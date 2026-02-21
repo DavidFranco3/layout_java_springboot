@@ -1,6 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+a,
+a:hover,
+a:focus,
+a:active,
+aside a,
+aside a:hover,
+aside a:focus,
+aside a:active,
+.nav-link,
+.nav-link:hover {
+  text-decoration: none !important;
+  color: inherit !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+aside a span,
+aside a i {
+  text-decoration: none !important;
+}
 
 
 /* Dropdown fix */
@@ -41,7 +60,7 @@
   html.dark textarea:focus {
     border-color: #3b82f6;
     /* blue-500 */
-    ring-color: #3b82f6;
+    --tw-ring-color: #3b82f6;
     background-color: #1e293b;
     /* slate-800 focus highlight */
   }

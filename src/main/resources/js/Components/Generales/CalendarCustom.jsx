@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
-import moment from 'moment';
-import 'moment/locale/es'; // Importa el locale de español para moment
+import { Calendar, dayjsLocalizer, Views } from 'react-big-calendar';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es'; // Importa el locale de español para dayjs
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Modal, Button, ButtonGroup, ToggleButton } from 'react-bootstrap';
 
-moment.locale('es'); // Configura moment para usar español
+dayjs.locale('es'); // Configura dayjs para usar español
 
-const localizer = momentLocalizer(moment);
+const localizer = dayjsLocalizer(dayjs);
 
 const CalendarCustom = ({ eventos, onEventClick }) => {
   const [showModal, setShowModal] = useState(false);
@@ -17,7 +17,7 @@ const CalendarCustom = ({ eventos, onEventClick }) => {
 
   const handleSelectSlot = ({ start }) => {
     const selectedDateEvents = eventos.filter(
-      (event) => moment(event.start).isSame(start, 'day')
+      (event) => dayjs(event.start).isSame(start, 'day')
     );
     setSelectedDate(start);
     setDailyEvents(selectedDateEvents);
@@ -143,7 +143,7 @@ const CalendarCustom = ({ eventos, onEventClick }) => {
 
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Cuentas {selectedDate && moment(selectedDate).format('LL')}</Modal.Title>
+          <Modal.Title>Cuentas {selectedDate && dayjs(selectedDate).format('LL')}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {dailyEvents.length > 0 ? (

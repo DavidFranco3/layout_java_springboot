@@ -3,7 +3,7 @@ import { Link } from "@inertiajs/react";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
-import { Inertia } from "@inertiajs/inertia";
+import { router } from "@inertiajs/react";
 import Swal from "sweetalert2";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -28,7 +28,7 @@ const Index = (props) => {
             cancelButtonText: "Cancelar",
         }).then((result) => {
             if (result.isConfirmed) {
-                Inertia.delete(route("configuracions.destroy", id), {
+                router.delete(route("configuracions.destroy", id), {
                     onSuccess: () => {
                         Swal.fire({
                             icon: "success",

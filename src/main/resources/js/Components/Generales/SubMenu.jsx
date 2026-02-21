@@ -24,7 +24,7 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
 
     const textoColor = isDark ? "text-slate-100" : "text-slate-900";
     const textoColorHover = isDark ? "hover:text-white hover:bg-white/10" : "hover:text-black hover:bg-black/5";
-    const activeChildColor = isDark ? "text-indigo-200 bg-white/10" : "text-indigo-600 bg-black/5";
+    const activeColor = isDark ? "bg-white/20 text-white" : "bg-black/10 text-black";
 
     return (
         <li className="mb-1">
@@ -54,20 +54,20 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
 
             {/* Submenús - Solo mostrar si sidebar está abierto y menú expandido */}
             <div className={`overflow-hidden transition-all duration-300 ${expandedMenu && sidebarOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
-                <ul className="space-y-1 pl-4 border-l border-white/20 ml-4">
+                <ul className="space-y-1 px-2">
                     {subItems.map((item) => {
                         const isActive = route().current(item.route);
                         return (
                             <li key={item.route}>
                                 <Link
                                     href={route(item.route)}
-                                    className={`flex items-center px-4 py-2 text-sm rounded-md transition-colors ${isActive
-                                        ? `${activeChildColor} font-medium`
+                                    className={`flex items-center pl-10 pr-4 py-2 text-sm font-medium rounded-lg transition-colors group !no-underline hover:no-underline ${isActive
+                                        ? activeColor
                                         : `${textoColor} opacity-70 hover:opacity-100 ${textoColorHover}`
                                         }`}
                                 >
-                                    <i className={`${item.icon} mr-3 text-xs opacity-75`} />
-                                    <span>{item.label}</span>
+                                    <i className={`nav-icon ${item.icon} w-5 h-5 text-center transition-opacity ${isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'} mr-3`} />
+                                    <span className="truncate">{item.label}</span>
                                 </Link>
                             </li>
                         );

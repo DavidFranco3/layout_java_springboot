@@ -37,8 +37,10 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
             >
 
                 {/* Logo Area */}
-                <div className={`flex items-center h-16 border-b border-white/10 shrink-0 transition-all duration-300 ${sidebarOpen ? 'justify-start px-4' : 'justify-center px-0'}`} style={{ backgroundColor: 'rgba(0,0,0,0.1)' }}>
-                    <Link href={route("dashboard")} className="flex items-center space-x-2 w-full justify-center overflow-hidden">
+                <div className={`flex items-center h-16 border-b border-white/10 shrink-0 transition-all duration-300 ${sidebarOpen ? 'justify-start px-4' : 'justify-center px-0'}`}>
+                    <Link href={route("dashboard")} className="flex items-center space-x-2 w-full justify-center overflow-hidden !no-underline">
+
+
                         {configuracion?.logo ? (
                             <img
                                 src={`/storage/${configuracion.logo}`}
@@ -58,7 +60,8 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                 </div>
 
                 {/* User Info Brief */}
-                <div className={`border-b border-white/5 transition-all duration-300 ${sidebarOpen ? 'p-4' : 'p-2 flex justify-center'}`} style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}>
+                <div className={`border-b border-white/5 transition-all duration-300 ${sidebarOpen ? 'p-4' : 'p-2 flex justify-center'}`}>
+
                     <div className="flex items-center space-x-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${isDark ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
                             {user?.name?.charAt(0) || 'U'}
@@ -80,7 +83,9 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                         <li>
                             <Link
                                 href={route("dashboard")}
-                                className={`flex items-center py-2.5 text-sm font-medium rounded-lg transition-colors group ${sidebarOpen ? 'px-4' : 'justify-center px-2'} ${route().current("dashboard")
+                                className={`flex items-center py-2.5 text-sm font-medium rounded-lg transition-colors group !no-underline ${sidebarOpen ? 'px-4' : 'justify-center px-2'} ${route().current("dashboard")
+
+
                                     ? activeColor
                                     : `${textoColor} opacity-80 ${textoColorHover}`
                                     }`}
@@ -146,10 +151,11 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
 
                 {/* Footer del sidebar (opcional, para debug) */}
                 {process.env.NODE_ENV === 'development' && sidebarOpen && (
-                    <div className="p-2 bg-black/20 text-[10px] opacity-70 text-center">
+                    <div className="p-2 text-[10px] opacity-70 text-center">
                         v1.0 Dev Mode
                     </div>
                 )}
+
             </aside>
         </>
     );
