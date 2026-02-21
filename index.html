@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirigiendo a Spring Boot...</title>
+</head>
+
+<body style="font-family: sans-serif; text-align: center; margin-top: 50px; background: #f8fafc; color: #334155;">
+  <div
+    style="max-width: 600px; margin: 0 auto; padding: 20px; background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+    <h1 style="color: #4f46e5; margin-bottom: 10px;">¡Oops! Estás en la terminal de solo-recursos (Vite)</h1>
+    <p style="font-size: 1.1rem; line-height: 1.5;">La aplicación completa de <b>Spring Boot</b> corre en el puerto
+      <strong>8080</strong>.</p>
+    <p>Serás redirigido en un instante...</p>
+    <a href="http://localhost:8080/"
+      style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #4f46e5; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Ir
+      a la Aplicación (Puerto 8080)</a>
+  </div>
+  <script>
+    if (window.location.port === "5173" || window.location.port !== "8080") {
+      setTimeout(() => {
+        window.location.replace("http://localhost:8080" + window.location.pathname + window.location.search);
+      }, 500);
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Dropdown fix */
+.dropdown-menu.show {
+  position: fixed !important;
+}
+
+/* Global Dark Mode Inputs */
+@layer base {
+
+  /* Inputs, Selects, Textareas en Dark Mode */
+  html.dark input[type='text'],
+  html.dark input[type='password'],
+  html.dark input[type='email'],
+  html.dark input[type='number'],
+  html.dark input[type='date'],
+  html.dark input[type='search'],
+  html.dark select,
+  html.dark textarea {
+    background-color: #0f172a;
+    /* slate-900 */
+    border-color: #334155;
+    /* slate-700 */
+    color: #f3f4f6;
+    /* gray-100 */
+  }
+
+  /* Placeholder más suave */
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: #64748b;
+    /* slate-500 */
+  }
+
+  /* Focus state */
+  html.dark input:focus,
+  html.dark select:focus,
+  html.dark textarea:focus {
+    border-color: #3b82f6;
+    /* blue-500 */
+    ring-color: #3b82f6;
+    background-color: #1e293b;
+    /* slate-800 focus highlight */
+  }
+
+  /* Checkbox & Radio adjustments if needed */
+  html.dark input[type='checkbox'],
+  html.dark input[type='radio'] {
+    background-color: #1e293b;
+    border-color: #475569;
+  }
+}
