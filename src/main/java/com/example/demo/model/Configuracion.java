@@ -5,9 +5,11 @@ import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "configuracion")
+@SQLRestriction("status = 1")
 @Data
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Configuracion {
@@ -33,8 +35,8 @@ public class Configuracion {
     @Column(nullable = false)
     private String nombre_comercial;
 
-    @Column(nullable = false)
-    private boolean status = true;
+    @Column(columnDefinition = "Integer default 1")
+    private Integer status = 1;
 
     // Getters and Setters
     public Long getId() {
@@ -93,11 +95,11 @@ public class Configuracion {
         this.nombre_comercial = nombre_comercial;
     }
 
-    public boolean isStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 

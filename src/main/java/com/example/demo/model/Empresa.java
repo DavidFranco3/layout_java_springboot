@@ -3,9 +3,11 @@ package com.example.demo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "empresas")
+@SQLRestriction("status = 1")
 @Data
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Empresa {
@@ -35,8 +37,8 @@ public class Empresa {
     private String regimen_fiscal;
     private String uso_cfdi;
 
-    @Column(nullable = false)
-    private boolean status = true;
+    @Column(columnDefinition = "Integer default 1")
+    private Integer status = 1;
 
     // Getters and Setters
     public Long getId() {
@@ -175,11 +177,11 @@ public class Empresa {
         this.uso_cfdi = uso_cfdi;
     }
 
-    public boolean isStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 }

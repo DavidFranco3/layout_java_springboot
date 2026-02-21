@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "users")
+@SQLRestriction("status = 1")
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class User {
 
@@ -33,6 +35,9 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "Integer default 1")
+    private Integer status = 1;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -88,6 +93,14 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     @JsonIgnore

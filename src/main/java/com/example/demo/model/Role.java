@@ -5,9 +5,11 @@ import lombok.Data;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "roles")
+@SQLRestriction("status = 1")
 @Data
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Role {
@@ -21,6 +23,9 @@ public class Role {
 
     @Column(name = "guard_name", nullable = false)
     private String guardName = "web";
+
+    @Column(columnDefinition = "Integer default 1")
+    private Integer status = 1;
 
     @JsonIgnore
     @ManyToMany

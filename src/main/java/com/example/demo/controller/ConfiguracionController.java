@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import com.example.demo.service.AuditoriaService;
 
 @Controller
 @RequestMapping("/configuracions")
@@ -19,11 +21,13 @@ public class ConfiguracionController {
 
     private final ConfiguracionRepository configuracionRepository;
     private final EmpresaRepository empresaRepository; // Keep EmpresaRepository if still used
+    private final AuditoriaService auditoriaService;
 
     public ConfiguracionController(ConfiguracionRepository configuracionRepository,
-            EmpresaRepository empresaRepository) {
+            EmpresaRepository empresaRepository, AuditoriaService auditoriaService) {
         this.configuracionRepository = configuracionRepository;
         this.empresaRepository = empresaRepository; // Inject EmpresaRepository
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping
@@ -56,13 +60,28 @@ public class ConfiguracionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> store(@RequestBody Configuracion configuracion) {
+    public ResponseEntity<?> store(@RequestBody Configuracion configuracion, HttpServletRequest request) {
         if (configuracionRepository.count() > 0) {
             return ResponseEntity.status(HttpStatus.SEE_OTHER)
                     .location(URI.create("/configuracions"))
                     .build();
         }
-        configuracionRepository.save(configuracion);
+        configuracion = configuracionRepository.save(configuracion);
+
+        Map<String, Object> newData = new HashMap<>();
+        newData.put("colores", configuracion.getColores());
+        newData.put("nombre_comercial", configuracion.getNombre_comercial());
+        newData.put("status", configuracion.getStatus());
+
+        auditoriaService.registrarAuditoria(
+                "POST",
+                "Configuracion",
+                configuracion.getId(),
+                null,
+                newData,
+                "Creación de configuración",
+                request);
+
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/configuracions"))
                 .build();
@@ -82,17 +101,58 @@ public class ConfiguracionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Configuracion configuracion) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Configuracion configuracion,
+            HttpServletRequest request) {
+        configuracion.setId(id);
+        Configuracion currentConfig = configuracionRepository.findById(id).orElseThrow();
+
+        Map<String, Object> oldData = new HashMap<>();
+        oldData.put("colores", currentConfig.getColores());
+        oldData.put("nombre_comercial", currentConfig.getNombre_comercial());
+        oldData.put("status", currentConfig.getStatus());
+
         configuracion.setId(id);
         configuracionRepository.save(configuracion);
+
+        Map<String, Object> newData = new HashMap<>();
+        newData.put("colores", configuracion.getColores());
+        newData.put("nombre_comercial", configuracion.getNombre_comercial());
+        newData.put("status", configuracion.getStatus());
+
+        auditoriaService.registrarAuditoria(
+                "PUT",
+                "Configuracion",
+                configuracion.getId(),
+                oldData,
+                newData,
+                "Actualización de configuración",
+                request);
+
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/configuracions"))
                 .build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable Long id) {
-        configuracionRepository.deleteById(id);
+    public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
+        Configuracion configuracion = configuracionRepository.findById(id).orElseThrow();
+
+        Map<String, Object> oldData = new HashMap<>();
+        oldData.put("colores", configuracion.getColores());
+        oldData.put("nombre_comercial", configuracion.getNombre_comercial());
+        oldData.put("status", configuracion.getStatus());
+
+        auditoriaService.registrarAuditoria(
+                "DELETE",
+                "Configuracion",
+                configuracion.getId(),
+                oldData,
+                null,
+                "Eliminación de configuración",
+                request);
+
+        configuracion.setStatus(0);
+        configuracionRepository.save(configuracion);
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/configuracions"))
                 .build();

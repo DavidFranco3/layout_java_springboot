@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "modulos")
+@SQLRestriction("status = 1")
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Modulo {
     @Id
@@ -17,6 +19,9 @@ public class Modulo {
     private String nombre;
 
     private String slug;
+
+    @Column(columnDefinition = "Integer default 1")
+    private Integer status = 1;
 
     @JsonIgnore
     @OneToMany(mappedBy = "modulo")
@@ -53,5 +58,13 @@ public class Modulo {
 
     public void setPermissions(List<Permission> permissions) {
         this.permissions = permissions;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

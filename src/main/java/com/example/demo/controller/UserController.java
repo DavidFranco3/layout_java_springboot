@@ -10,6 +10,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.HttpServletRequest;
+import com.example.demo.service.AuditoriaService;
 
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -24,12 +26,14 @@ public class UserController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaService auditoriaService;
 
     public UserController(UserRepository userRepository, RoleRepository roleRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder, AuditoriaService auditoriaService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping
@@ -40,7 +44,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<?> store(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> store(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
         User user = new User();
         user.setName((String) payload.get("nombre"));
         user.setEmail((String) payload.get("email"));
@@ -65,7 +69,22 @@ public class UserController {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
 
-        userRepository.save(user);
+        user = userRepository.save(user);
+
+        // Auditoria
+        Map<String, Object> newData = new HashMap<>();
+        newData.put("name", user.getName());
+        newData.put("email", user.getEmail());
+        newData.put("rol_id", user.getRole() != null ? user.getRole().getId() : null);
+
+        auditoriaService.registrarAuditoria(
+                "POST",
+                "Usuario",
+                user.getId(),
+                null,
+                newData,
+                "Creación de usuario",
+                request);
 
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/users"))
@@ -73,10 +92,16 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload,
+            HttpServletRequest request) {
         Optional<User> userOpt = userRepository.findById(id);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+            Map<String, Object> oldData = new HashMap<>();
+            oldData.put("name", user.getName());
+            oldData.put("email", user.getEmail());
+            oldData.put("rol_id", user.getRole() != null ? user.getRole().getId() : null);
+
             if (payload.containsKey("nombre")) {
                 user.setName((String) payload.get("nombre"));
             }
@@ -106,6 +131,20 @@ public class UserController {
             }
             user.setUpdatedAt(LocalDateTime.now());
             userRepository.save(user);
+
+            Map<String, Object> newData = new HashMap<>();
+            newData.put("name", user.getName());
+            newData.put("email", user.getEmail());
+            newData.put("rol_id", user.getRole() != null ? user.getRole().getId() : null);
+
+            auditoriaService.registrarAuditoria(
+                    "PUT",
+                    "Usuario",
+                    user.getId(),
+                    oldData,
+                    newData,
+                    "Actualización de usuario",
+                    request);
         }
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/users"))
@@ -113,8 +152,27 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable Long id) {
-        userRepository.deleteById(id);
+    public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            Map<String, Object> oldData = new HashMap<>();
+            oldData.put("name", user.getName());
+            oldData.put("email", user.getEmail());
+            oldData.put("rol_id", user.getRole() != null ? user.getRole().getId() : null);
+
+            auditoriaService.registrarAuditoria(
+                    "DELETE",
+                    "Usuario",
+                    user.getId(),
+                    oldData,
+                    null,
+                    "Eliminación de usuario",
+                    request);
+
+            user.setStatus(0);
+            userRepository.save(user);
+        }
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/users"))
                 .build();

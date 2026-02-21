@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import com.example.demo.service.AuditoriaService;
+import com.example.demo.repository.UserRepository;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -19,110 +22,171 @@ import java.util.Map;
 @RequestMapping("/roles")
 public class RolesController {
 
-    private final RoleRepository roleRepository;
-    private final PermissionRepository permissionRepository;
-    private final ModuloRepository moduloRepository;
+        private final RoleRepository roleRepository;
+        private final PermissionRepository permissionRepository;
+        private final ModuloRepository moduloRepository;
+        private final AuditoriaService auditoriaService;
+        private final UserRepository userRepository;
 
-    public RolesController(RoleRepository roleRepository, PermissionRepository permissionRepository,
-            ModuloRepository moduloRepository) {
-        this.roleRepository = roleRepository;
-        this.permissionRepository = permissionRepository;
-        this.moduloRepository = moduloRepository;
-    }
+        public RolesController(RoleRepository roleRepository, PermissionRepository permissionRepository,
+                        ModuloRepository moduloRepository, AuditoriaService auditoriaService,
+                        UserRepository userRepository) {
+                this.roleRepository = roleRepository;
+                this.permissionRepository = permissionRepository;
+                this.moduloRepository = moduloRepository;
+                this.auditoriaService = auditoriaService;
+                this.userRepository = userRepository;
+        }
 
-    @GetMapping
-    public Object index() {
-        Map<String, Object> props = new HashMap<>();
-        props.put("roles", roleRepository.findAll());
-        return Inertia.render("Roles/Index", props);
-    }
+        @GetMapping
+        public Object index() {
+                Map<String, Object> props = new HashMap<>();
+                props.put("roles", roleRepository.findAll());
+                return Inertia.render("Roles/Index", props);
+        }
 
-    @GetMapping("/{id}/edit")
-    public Object edit(@PathVariable Long id) {
-        Map<String, Object> props = new HashMap<>();
-        Role role = roleRepository.findById(id).orElseThrow();
-        props.put("role", role);
-        props.put("permissions", permissionRepository.findAll());
-        return Inertia.render("Roles/Edit", props);
-    }
+        @GetMapping("/{id}/edit")
+        public Object edit(@PathVariable Long id) {
+                Map<String, Object> props = new HashMap<>();
+                Role role = roleRepository.findById(id).orElseThrow();
+                props.put("role", role);
+                props.put("permissions", permissionRepository.findAll());
+                return Inertia.render("Roles/Edit", props);
+        }
 
-    @GetMapping("/create")
-    public Object create() {
-        return Inertia.render("Roles/Create", new HashMap<>());
-    }
+        @GetMapping("/create")
+        public Object create() {
+                return Inertia.render("Roles/Create", new HashMap<>());
+        }
 
-    @PostMapping
-    public ResponseEntity<?> store(@RequestBody Map<String, Object> payload) {
-        String name = (String) payload.get("name");
-        @SuppressWarnings("unchecked")
-        List<Integer> permisosIds = (List<Integer>) payload.get("permisos");
+        @PostMapping
+        public ResponseEntity<?> store(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+                String name = (String) payload.get("name");
+                @SuppressWarnings("unchecked")
+                List<Integer> permisosIds = (List<Integer>) payload.get("permisos");
 
-        List<Long> permisosLongIds = permisosIds.stream()
-                .map(Integer::longValue)
-                .toList();
+                List<Long> permisosLongIds = permisosIds.stream()
+                                .map(Integer::longValue)
+                                .toList();
 
-        Role role = new Role();
-        role.setName(name);
-        role.setPermissions(permissionRepository.findAllById(permisosLongIds));
-        roleRepository.save(role);
+                Role role = new Role();
+                role.setName(name);
+                role.setPermissions(permissionRepository.findAllById(permisosLongIds));
+                role = roleRepository.save(role);
 
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/roles"))
-                .build();
-    }
+                Map<String, Object> newData = new HashMap<>();
+                newData.put("name", role.getName());
+                newData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
-        String name = (String) payload.get("name");
-        @SuppressWarnings("unchecked")
-        List<Integer> permisosIds = (List<Integer>) payload.get("permisos");
+                auditoriaService.registrarAuditoria(
+                                "POST",
+                                "Rol",
+                                role.getId(),
+                                null,
+                                newData,
+                                "Creación de rol",
+                                request);
 
-        List<Long> permisosLongIds = permisosIds.stream()
-                .map(Integer::longValue)
-                .toList();
+                return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                                .location(URI.create("/roles"))
+                                .build();
+        }
 
-        Role role = roleRepository.findById(id).orElseThrow();
-        role.setName(name);
-        role.setPermissions(permissionRepository.findAllById(permisosLongIds));
-        roleRepository.save(role);
+        @PutMapping("/{id}")
+        public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload,
+                        HttpServletRequest request) {
+                String name = (String) payload.get("name");
+                @SuppressWarnings("unchecked")
+                List<Integer> permisosIds = (List<Integer>) payload.get("permisos");
 
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/roles"))
-                .build();
-    }
+                List<Long> permisosLongIds = permisosIds.stream()
+                                .map(Integer::longValue)
+                                .toList();
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable Long id) {
-        roleRepository.deleteById(id);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/roles"))
-                .build();
-    }
+                Role role = roleRepository.findById(id).orElseThrow();
 
-    @GetMapping("/getPermisos")
-    @ResponseBody
-    public Map<String, Object> getPermisos() {
-        return Map.of(
-                "success", true,
-                "message", "Permisos encontrados.",
-                "data", permissionRepository.findAllWithModuloInfo());
-    }
+                Map<String, Object> oldData = new HashMap<>();
+                oldData.put("name", role.getName());
+                oldData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
 
-    @GetMapping("/getModulos")
-    @ResponseBody
-    public Map<String, Object> getModulos() {
-        return Map.of(
-                "success", true,
-                "message", "Módulos encontrados.",
-                "data", moduloRepository.findAll());
-    }
+                role.setName(name);
+                role.setPermissions(permissionRepository.findAllById(permisosLongIds));
+                roleRepository.save(role);
 
-    @GetMapping("/getRoles")
-    @ResponseBody
-    public Map<String, Object> getRoles() {
-        return Map.of(
-                "success", true,
-                "message", "Roles encontrados.",
-                "data", roleRepository.findAll());
-    }
+                Map<String, Object> newData = new HashMap<>();
+                newData.put("name", role.getName());
+                newData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
+
+                auditoriaService.registrarAuditoria(
+                                "PUT",
+                                "Rol",
+                                role.getId(),
+                                oldData,
+                                newData,
+                                "Actualización de rol",
+                                request);
+
+                return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                                .location(URI.create("/roles"))
+                                .build();
+        }
+
+        @DeleteMapping("/{id}")
+        public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
+                Role role = roleRepository.findById(id).orElseThrow();
+
+                if (userRepository.countByRoleId(id) > 0) {
+                        Map<String, String> errors = new HashMap<>();
+                        errors.put("general", "No se puede eliminar el rol porque tiene usuarios asignados.");
+                        request.getSession().setAttribute("errors", errors);
+                        return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                                        .location(URI.create("/roles"))
+                                        .build();
+                }
+
+                Map<String, Object> oldData = new HashMap<>();
+                oldData.put("name", role.getName());
+                oldData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
+
+                auditoriaService.registrarAuditoria(
+                                "DELETE",
+                                "Rol",
+                                role.getId(),
+                                oldData,
+                                null,
+                                "Eliminación de rol",
+                                request);
+                role.setStatus(0);
+                roleRepository.save(role);
+                return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                                .location(URI.create("/roles"))
+                                .build();
+        }
+
+        @GetMapping("/getPermisos")
+        @ResponseBody
+        public Map<String, Object> getPermisos() {
+                return Map.of(
+                                "success", true,
+                                "message", "Permisos encontrados.",
+                                "data", permissionRepository.findAllWithModuloInfo());
+        }
+
+        @GetMapping("/getModulos")
+        @ResponseBody
+        public Map<String, Object> getModulos() {
+                return Map.of(
+                                "success", true,
+                                "message", "Módulos encontrados.",
+                                "data", moduloRepository.findAll());
+        }
+
+        @GetMapping("/getRoles")
+        @ResponseBody
+        public Map<String, Object> getRoles() {
+                return Map.of(
+                                "success", true,
+                                "message", "Roles encontrados.",
+                                "data", roleRepository.findAll());
+        }
 }

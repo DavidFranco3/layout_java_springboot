@@ -13,7 +13,6 @@ import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.ModuloRepository;
 import com.example.demo.repository.PermissionRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,9 +50,12 @@ public class DataSeeder {
             entityManager
                     .createNativeQuery("INSERT IGNORE INTO roles (id, name, guard_name) VALUES (1, 'admin', 'web')")
                     .executeUpdate();
-            System.out.println("✅ Reparación de rol ID 1 completada (INSERT IGNORE).");
+            entityManager
+                    .createNativeQuery("UPDATE roles SET status = 1 WHERE id = 1")
+                    .executeUpdate();
+            System.out.println("Reparación de rol ID 1 completada (INSERT IGNORE y UPDATE status).");
         } catch (Exception e) {
-            System.err.println("⚠️ Error durante la reparación manual: " + e.getMessage());
+            System.err.println("Error durante la reparación manual: " + e.getMessage());
         }
 
         // 1. Seed Empresa
@@ -70,7 +72,7 @@ public class DataSeeder {
             empresa.setNombre("tsf");
             empresa.setRazon_social("tsf");
             empresa.setTipoPersona("Moral");
-            empresa.setStatus(true);
+            empresa.setStatus(1);
             empresa = empresaRepository.save(empresa);
             System.out.println("Empresa creada: " + empresa.getNombre());
         }
@@ -88,7 +90,7 @@ public class DataSeeder {
             configuracion.setIdDatosEmpresa(empresa.getId());
             configuracion.setColores("#1c0cf7ff");
             configuracion.setNombre_comercial("tsf");
-            configuracion.setStatus(true);
+            configuracion.setStatus(1);
             configuracionRepository.save(configuracion);
             System.out.println("Configuración creada para la empresa: " + empresa.getNombre());
         }
@@ -155,8 +157,9 @@ public class DataSeeder {
         if (userOptional.isPresent()) {
             User existingAdmin = userOptional.get();
             existingAdmin.setPassword(passwordEncoder.encode("12345678"));
+            existingAdmin.setRole(adminRole); // Ensure they have the correct Admin role mapped
             userRepository.save(existingAdmin);
-            System.out.println("Usuario administrador ya existe. Su hash de contraseña fue actualizado a BCrypt.");
+            System.out.println("Usuario administrador ya existe. Su hash de contraseña y rol han sido actualizados.");
         } else {
             User user = new User();
             user.setName("Administrador");

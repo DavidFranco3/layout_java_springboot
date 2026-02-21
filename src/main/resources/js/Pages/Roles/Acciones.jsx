@@ -155,7 +155,7 @@ const Acciones = ({ setShow, data, accion }) => {
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: "Hubo un problema al actualizar el rol",
+                            text: errors?.general || "Hubo un problema al actualizar el rol",
                             confirmButtonColor: "#d33",
                         });
                     },
@@ -182,7 +182,7 @@ const Acciones = ({ setShow, data, accion }) => {
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: "Hubo un problema al eliminar el rol",
+                            text: errors?.general || "Hubo un problema al eliminar el rol",
                             confirmButtonColor: "#d33",
                         });
                     },

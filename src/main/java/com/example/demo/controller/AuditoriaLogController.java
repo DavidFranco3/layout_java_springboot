@@ -25,7 +25,7 @@ public class AuditoriaLogController {
     @GetMapping
     public Object index() {
         Map<String, Object> props = new HashMap<>();
-        props.put("logs", auditoriaLogRepository.findAll());
+        props.put("auditorialogs", auditoriaLogRepository.findAll());
         return Inertia.render("AuditoriaLogs/Index", props);
     }
 

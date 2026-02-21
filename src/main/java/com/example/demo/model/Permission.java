@@ -5,9 +5,11 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "permissions")
+@SQLRestriction("status = 1")
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Permission {
     @Id
@@ -19,6 +21,9 @@ public class Permission {
 
     @Column(name = "guard_name", nullable = false)
     private String guardName = "web";
+
+    @Column(columnDefinition = "Integer default 1")
+    private Integer status = 1;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -78,5 +83,13 @@ public class Permission {
     @JsonProperty("modulo_nombre")
     public String getModuloNombre() {
         return modulo != null ? modulo.getNombre() : null;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

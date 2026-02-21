@@ -11,15 +11,19 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import com.example.demo.service.AuditoriaService;
 
 @Controller
 @RequestMapping("/empresas")
 public class EmpresaController {
 
     private final EmpresaRepository empresaRepository;
+    private final AuditoriaService auditoriaService;
 
-    public EmpresaController(EmpresaRepository empresaRepository) {
+    public EmpresaController(EmpresaRepository empresaRepository, AuditoriaService auditoriaService) {
         this.empresaRepository = empresaRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping
@@ -38,8 +42,24 @@ public class EmpresaController {
     }
 
     @PostMapping
-    public ResponseEntity<?> store(@RequestBody Empresa empresa) {
-        empresaRepository.save(empresa);
+    public ResponseEntity<?> store(@RequestBody Empresa empresa, HttpServletRequest request) {
+        empresa = empresaRepository.save(empresa);
+
+        Map<String, Object> newData = new HashMap<>();
+        newData.put("nombre", empresa.getNombre());
+        newData.put("razon_social", empresa.getRazon_social());
+        newData.put("tipoPersona", empresa.getTipoPersona());
+        newData.put("status", empresa.getStatus());
+
+        auditoriaService.registrarAuditoria(
+                "POST",
+                "Empresa",
+                empresa.getId(),
+                null,
+                newData,
+                "Creación de empresa",
+                request);
+
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/empresas"))
                 .build();
@@ -55,17 +75,59 @@ public class EmpresaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Empresa empresa) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Empresa empresa, HttpServletRequest request) {
+        Empresa currentEmpresa = empresaRepository.findById(id).orElseThrow();
+
+        Map<String, Object> oldData = new HashMap<>();
+        oldData.put("nombre", currentEmpresa.getNombre());
+        oldData.put("razon_social", currentEmpresa.getRazon_social());
+        oldData.put("tipoPersona", currentEmpresa.getTipoPersona());
+        oldData.put("status", currentEmpresa.getStatus());
+
         empresa.setId(id);
         empresaRepository.save(empresa);
+
+        Map<String, Object> newData = new HashMap<>();
+        newData.put("nombre", empresa.getNombre());
+        newData.put("razon_social", empresa.getRazon_social());
+        newData.put("tipoPersona", empresa.getTipoPersona());
+        newData.put("status", empresa.getStatus());
+
+        auditoriaService.registrarAuditoria(
+                "PUT",
+                "Empresa",
+                empresa.getId(),
+                oldData,
+                newData,
+                "Actualización de empresa",
+                request);
+
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/empresas"))
                 .build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable Long id) {
-        empresaRepository.deleteById(id);
+    public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
+        Empresa empresa = empresaRepository.findById(id).orElseThrow();
+
+        Map<String, Object> oldData = new HashMap<>();
+        oldData.put("nombre", empresa.getNombre());
+        oldData.put("razon_social", empresa.getRazon_social());
+        oldData.put("tipoPersona", empresa.getTipoPersona());
+        oldData.put("status", empresa.getStatus());
+
+        auditoriaService.registrarAuditoria(
+                "DELETE",
+                "Empresa",
+                empresa.getId(),
+                oldData,
+                null,
+                "Eliminación de empresa",
+                request);
+
+        empresa.setStatus(0);
+        empresaRepository.save(empresa);
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/empresas"))
                 .build();

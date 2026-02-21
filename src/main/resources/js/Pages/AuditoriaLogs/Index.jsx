@@ -76,7 +76,7 @@ const Index = (props) => {
         },
         {
             name: "Usuario",
-            selector: (row) => row.user.name || "N/A",
+            selector: (row) => row.user_name || "N/A",
             sortable: true,
         },
         {

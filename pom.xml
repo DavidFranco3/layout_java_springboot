@@ -81,6 +81,7 @@
 				<version>1.15.0</version>
 				<configuration>
 					<nodeVersion>v20.10.0</nodeVersion>
+					<skip>${env.SKIP_FRONTEND}</skip>
 				</configuration>
 				<executions>
 					<execution>

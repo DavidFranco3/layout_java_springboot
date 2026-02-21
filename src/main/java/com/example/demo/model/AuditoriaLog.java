@@ -74,6 +74,7 @@ public class AuditoriaLog {
         this.model = model;
     }
 
+    @JsonProperty("model_id")
     public Long getModelId() {
         return modelId;
     }
@@ -114,6 +115,7 @@ public class AuditoriaLog {
         this.ip = ip;
     }
 
+    @JsonProperty("user_agent")
     public String getUserAgent() {
         return userAgent;
     }
@@ -138,6 +140,7 @@ public class AuditoriaLog {
         this.observaciones = observaciones;
     }
 
+    @JsonProperty("created_at")
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
