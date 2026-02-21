@@ -70,7 +70,7 @@ export default function Create({ cerrarModal, permisos, modulos }) {
         const style = document.createElement('style');
         style.textContent = tabScrollStyles;
         document.head.appendChild(style);
-
+        
         // Cleanup: remueve los estilos al desmontar el componente
         return () => {
             if (document.head.contains(style)) {
@@ -95,7 +95,7 @@ export default function Create({ cerrarModal, permisos, modulos }) {
      * - errors: objeto con errores de validación del servidor
      */
     const { data, setData, post, processing, reset, errors } = useForm({
-        name: "",        // Nombre del rol
+        nombre: "",        // Nombre del rol
         permisos: [],      // Array de IDs de permisos asignados al rol
     });
 
@@ -119,9 +119,9 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                 acc[moduloNombre].push(permiso);
                 return acc;
             }, {});
-
+            
             setPermisosPorModulo(grupos);
-
+            
             // Establece la primera pestaña como activa
             const primerModulo = Object.keys(grupos)[0];
             if (primerModulo) {
@@ -178,13 +178,13 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                 <Form.Control
                     type="text"
                     placeholder="Ingrese nombre"
-                    value={data.name}
-                    isInvalid={!!errors.name}  // Muestra estado de error si existe
-                    onChange={(e) => setData("name", e.target.value)}
+                    value={data.nombre}
+                    isInvalid={!!errors.nombre}  // Muestra estado de error si existe
+                    onChange={(e) => setData("nombre", e.target.value)}
                 />
                 {/* Muestra mensaje de error de validación */}
                 <Form.Control.Feedback type="invalid">
-                    {errors.name}
+                    {errors.nombre}
                 </Form.Control.Feedback>
             </Form.Group>
 
@@ -197,7 +197,7 @@ export default function Create({ cerrarModal, permisos, modulos }) {
              */}
             <Form.Group className="mb-3">
                 <Form.Label>Permisos por Módulo</Form.Label>
-
+                
                 {/* Sistema de pestañas para mostrar permisos por módulos */}
                 <Tab.Container activeKey={activeTab} onSelect={(tab) => setActiveTab(tab)}>
                     {/* 
@@ -210,7 +210,7 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                      * - scrollbarWidth/scrollbarColor - Estilos para Firefox
                      * - className "custom-tabs-scroll" - Aplica estilos webkit personalizados
                      */}
-                    <div style={{
+                    <div style={{ 
                         overflowX: "auto",              // Scroll horizontal automático
                         overflowY: "hidden",            // Sin scroll vertical
                         whiteSpace: "nowrap",           // Pestañas en una línea
@@ -219,13 +219,13 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                         scrollbarWidth: "thin",         // Scrollbar delgada (Firefox)
                         scrollbarColor: "#6c757d #f8f9fa" // Colores scrollbar (Firefox)
                     }}
-                        className="custom-tabs-scroll"      // Clase para estilos webkit
+                    className="custom-tabs-scroll"      // Clase para estilos webkit
                     >
                         {/* Navegación de pestañas optimizada para scroll horizontal */}
-                        <Nav
-                            variant="tabs"
+                        <Nav 
+                            variant="tabs" 
                             className="flex-nowrap"         // Evita wrap de pestañas
-                            style={{
+                            style={{ 
                                 minWidth: "max-content",    // Ancho mínimo necesario
                                 borderBottom: "1px solid #dee2e6" // Borde consistente
                             }}
@@ -241,9 +241,9 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                                      * - padding optimizado - 12px horizontal para mejor uso del espacio
                                      * - fontSize reducido - 0.9rem para ahorrar espacio
                                      */}
-                                    <Nav.Link
+                                    <Nav.Link 
                                         eventKey={moduloNombre}
-                                        style={{
+                                        style={{ 
                                             whiteSpace: "nowrap",       // Texto en una línea
                                             minWidth: "fit-content",    // Ancho ajustado al contenido
                                             paddingLeft: "12px",        // Padding optimizado
@@ -253,8 +253,8 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                                     >
                                         {moduloNombre}
                                         {/* Badge con contador de permisos por módulo */}
-                                        <span
-                                            className="badge bg-secondary ms-2"
+                                        <span 
+                                            className="badge bg-secondary ms-2" 
                                             style={{ fontSize: "0.7rem" }} // Badge más pequeño
                                         >
                                             {permisosPorModulo[moduloNombre].length}
@@ -263,7 +263,7 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                                 </Nav.Item>
                             ))}
                         </Nav>
-
+                        
                         {/* 
                          * INDICADOR VISUAL DE SCROLL HORIZONTAL
                          * 
@@ -326,7 +326,7 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                                                     </td>
                                                 </tr>
                                             ))}
-
+                                            
                                             {/* Mensaje cuando no hay permisos en el módulo */}
                                             {permisosDelModulo.length === 0 && (
                                                 <tr>
@@ -338,12 +338,12 @@ export default function Create({ cerrarModal, permisos, modulos }) {
                                         </tbody>
                                     </table>
                                 </div>
-
+                                
                                 {/* Información adicional del módulo */}
                                 <div className="mt-2">
                                     <small className="text-muted">
-                                        Módulo: <strong>{moduloNombre}</strong> |
-                                        Permisos disponibles: <strong>{permisosDelModulo.length}</strong> |
+                                        Módulo: <strong>{moduloNombre}</strong> | 
+                                        Permisos disponibles: <strong>{permisosDelModulo.length}</strong> | 
                                         Seleccionados en este módulo: <strong>
                                             {permisosDelModulo.filter(p => data.permisos.includes(p.id)).length}
                                         </strong>

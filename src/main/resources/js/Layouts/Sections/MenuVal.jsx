@@ -48,7 +48,9 @@ const Menu = (props) => {
     const getConfiguracion = async () => {
         try {
             const response = await axios.get(
-                "/configuracions/api/list"
+                `${route(
+                    "configuraciones.configuraciones.listarConfiguraciones"
+                )}`
             );
             //console.log(response.data);
             if (response.status === 200) {
@@ -121,173 +123,173 @@ const Menu = (props) => {
             if (response.status === 200) {
                 const newModulos = response.data; // ✅ correcto
                 //console.log(
-                "🧪 Tipo:",
+                    "🧪 Tipo:",
                     typeof newModulos,
                     "| Longitud:",
                     newModulos.length
                 );
 
-if (Array.isArray(newModulos) && newModulos.length > 0) {
-    const newHash = JSON.stringify(newModulos);
-    localStorage.setItem(
-        cacheKey,
-        JSON.stringify({ hash: newHash, modulos: newModulos })
-    );
-    setModulosPermitidos(newModulos);
-    //console.log("✅ Módulos válidos recibidos:", newModulos);
+                if (Array.isArray(newModulos) && newModulos.length > 0) {
+                    const newHash = JSON.stringify(newModulos);
+                    localStorage.setItem(
+                        cacheKey,
+                        JSON.stringify({ hash: newHash, modulos: newModulos })
+                    );
+                    setModulosPermitidos(newModulos);
+                    //console.log("✅ Módulos válidos recibidos:", newModulos);
 
-    if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-        //console.log("🛑 Intervalo detenido (datos válidos)");
-    }
-} else {
-    console.warn(
-        "⚠️ Backend devolvió módulos vacíos, reintentando..."
-    );
-    localStorage.removeItem(cacheKey);
-}
-            }
-        } catch (error) {
-    console.error("❌ Error al obtener módulos desde backend:", error);
-}
-    };
-
-const fetchModulosPorEmpresa = async () => {
-    const cached = localStorage.getItem(cacheKey);
-
-    if (cached) {
-        try {
-            const parsed = JSON.parse(cached);
-            if (parsed && Array.isArray(parsed.modulos)) {
-                const { hash, modulos } = parsed;
-
-                if (modulos.length === 0) {
+                    if (intervalRef.current) {
+                        clearInterval(intervalRef.current);
+                        intervalRef.current = null;
+                        //console.log("🛑 Intervalo detenido (datos válidos)");
+                    }
+                } else {
                     console.warn(
-                        "⚠️ Cache vacío. Reintentando desde backend..."
+                        "⚠️ Backend devolvió módulos vacíos, reintentando..."
                     );
                     localStorage.removeItem(cacheKey);
-                    setModulosPermitidos([]);
-                    fetchModulosDesdeBackend();
-
-                    if (!intervalRef.current) {
-                        intervalRef.current = setInterval(
-                            fetchModulosDesdeBackend,
-                            1000
-                        );
-                    }
-                    return;
                 }
-
-                setModulosPermitidos(modulos);
-                //console.log("✅ Cache válido con módulos:", modulos);
-
-                // 🔁 Verificación en segundo plano
-                axios
-                    .get(
-                        "http://127.0.0.1:8000/api/modulos-por-empresa?empresa=saas"
-                    )
-                    .then((response) => {
-                        const newModulos = response.data; // ✅ acceso correcto
-                        const newHash = JSON.stringify(newModulos);
-                        if (newHash !== hash) {
-                            localStorage.setItem(
-                                cacheKey,
-                                JSON.stringify({
-                                    hash: newHash,
-                                    modulos: newModulos,
-                                })
-                            );
-                            setModulosPermitidos(newModulos);
-                            //console.log("🔄 Cache actualizado.");
-                        }
-                    })
-                    .catch((err) =>
-                        console.error(
-                            "🔁 Error actualizando módulos en segundo plano:",
-                            err
-                        )
-                    );
-
-                return;
-            } else {
-                console.warn("⚠️ Cache inválido. Forzando recarga...");
-                localStorage.removeItem(cacheKey);
             }
         } catch (error) {
-            console.error("❌ Error al parsear cache:", error);
-            localStorage.removeItem(cacheKey);
-        }
-    }
-
-    // Si no hay cache o es inválido
-    fetchModulosDesdeBackend();
-    if (!intervalRef.current) {
-        intervalRef.current = setInterval(fetchModulosDesdeBackend, 5000);
-    }
-};
-
-useEffect(() => {
-    fetchModulosPorEmpresa();
-
-    return () => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
+            console.error("❌ Error al obtener módulos desde backend:", error);
         }
     };
-}, []);
 
-// ✅ Verifica si el módulo con el nombre especificado está habilitado
-const tieneModulo = (nombreModulo) => {
-    return (
-        Array.isArray(modulosPermitidos) &&
-        modulosPermitidos.some(
-            (mod) =>
-                typeof mod?.nombre === "string" &&
-                mod.nombre === nombreModulo
-        )
-    );
-};
+    const fetchModulosPorEmpresa = async () => {
+        const cached = localStorage.getItem(cacheKey);
 
-// ✅ Devuelve los submódulos de un módulo por nombre
-const obtenerSubmodulos = (nombreModulo) => {
-    if (!Array.isArray(modulosPermitidos)) return [];
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (parsed && Array.isArray(parsed.modulos)) {
+                    const { hash, modulos } = parsed;
 
-    const modulo = modulosPermitidos.find(
-        (mod) =>
-            typeof mod?.nombre === "string" && mod.nombre === nombreModulo
-    );
+                    if (modulos.length === 0) {
+                        console.warn(
+                            "⚠️ Cache vacío. Reintentando desde backend..."
+                        );
+                        localStorage.removeItem(cacheKey);
+                        setModulosPermitidos([]);
+                        fetchModulosDesdeBackend();
 
-    if (!modulo || !Array.isArray(modulo.submodulos)) return [];
-
-    return modulo.submodulos;
-};
-
-// ✅ Verifica si existe un submódulo específico dentro de un módulo
-const tieneSubmodulo = (nombreModulo, rutaSubmodulo) => {
-    const submodulos = obtenerSubmodulos(nombreModulo);
-    return submodulos.some(
-        (sub) => typeof sub?.ruta === "string" && sub.ruta === rutaSubmodulo
-    );
-};
-
-return (
-    <div>
-        <aside className="main-sidebar sidebar-dark-primary elevation-4">
-            <a href={route("dashboard")} style={mystylelogo}>
-                <img
-                    src={
-                        dataConfiguracion.length > 0
-                            ? `${baseUrl}/storage/${dataConfiguracion[0]?.logo}` ||
-                            "https://appseguritec.com/logo.jpg" // Default si no hay colores
-                            : "https://appseguritec.com/logo.jpg"
+                        if (!intervalRef.current) {
+                            intervalRef.current = setInterval(
+                                fetchModulosDesdeBackend,
+                                1000
+                            );
+                        }
+                        return;
                     }
-                    alt="AdminLTE Logo"
-                    style={{ height: "55px" }}
-                />
-            </a>
-            {(props.auth.id_rol !== 2 ||
-                (props.auth.id_rol == 2 && turno === true)) && (
+
+                    setModulosPermitidos(modulos);
+                    //console.log("✅ Cache válido con módulos:", modulos);
+
+                    // 🔁 Verificación en segundo plano
+                    axios
+                        .get(
+                            "http://127.0.0.1:8000/api/modulos-por-empresa?empresa=saas"
+                        )
+                        .then((response) => {
+                            const newModulos = response.data; // ✅ acceso correcto
+                            const newHash = JSON.stringify(newModulos);
+                            if (newHash !== hash) {
+                                localStorage.setItem(
+                                    cacheKey,
+                                    JSON.stringify({
+                                        hash: newHash,
+                                        modulos: newModulos,
+                                    })
+                                );
+                                setModulosPermitidos(newModulos);
+                                //console.log("🔄 Cache actualizado.");
+                            }
+                        })
+                        .catch((err) =>
+                            console.error(
+                                "🔁 Error actualizando módulos en segundo plano:",
+                                err
+                            )
+                        );
+
+                    return;
+                } else {
+                    console.warn("⚠️ Cache inválido. Forzando recarga...");
+                    localStorage.removeItem(cacheKey);
+                }
+            } catch (error) {
+                console.error("❌ Error al parsear cache:", error);
+                localStorage.removeItem(cacheKey);
+            }
+        }
+
+        // Si no hay cache o es inválido
+        fetchModulosDesdeBackend();
+        if (!intervalRef.current) {
+            intervalRef.current = setInterval(fetchModulosDesdeBackend, 5000);
+        }
+    };
+
+    useEffect(() => {
+        fetchModulosPorEmpresa();
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, []);
+
+    // ✅ Verifica si el módulo con el nombre especificado está habilitado
+    const tieneModulo = (nombreModulo) => {
+        return (
+            Array.isArray(modulosPermitidos) &&
+            modulosPermitidos.some(
+                (mod) =>
+                    typeof mod?.nombre === "string" &&
+                    mod.nombre === nombreModulo
+            )
+        );
+    };
+
+    // ✅ Devuelve los submódulos de un módulo por nombre
+    const obtenerSubmodulos = (nombreModulo) => {
+        if (!Array.isArray(modulosPermitidos)) return [];
+
+        const modulo = modulosPermitidos.find(
+            (mod) =>
+                typeof mod?.nombre === "string" && mod.nombre === nombreModulo
+        );
+
+        if (!modulo || !Array.isArray(modulo.submodulos)) return [];
+
+        return modulo.submodulos;
+    };
+
+    // ✅ Verifica si existe un submódulo específico dentro de un módulo
+    const tieneSubmodulo = (nombreModulo, rutaSubmodulo) => {
+        const submodulos = obtenerSubmodulos(nombreModulo);
+        return submodulos.some(
+            (sub) => typeof sub?.ruta === "string" && sub.ruta === rutaSubmodulo
+        );
+    };
+
+    return (
+        <div>
+            <aside className="main-sidebar sidebar-dark-primary elevation-4">
+                <a href={route("dashboard")} style={mystylelogo}>
+                    <img
+                        src={
+                            dataConfiguracion.length > 0
+                                ? `${baseUrl}/storage/${dataConfiguracion[0]?.logo}` ||
+                                  "https://appseguritec.com/logo.jpg" // Default si no hay colores
+                                : "https://appseguritec.com/logo.jpg"
+                        }
+                        alt="AdminLTE Logo"
+                        style={{ height: "55px" }}
+                    />
+                </a>
+                {(props.auth.id_rol !== 2 ||
+                    (props.auth.id_rol == 2 && turno === true)) && (
                     <div className="sidebar">
                         <nav className="mt-2">
                             <ul
@@ -343,7 +345,7 @@ return (
                                     isVentas) &&
                                     tieneModulo("Cotizaciones") &&
                                     obtenerSubmodulos("Cotizaciones").length >
-                                    0 && (
+                                        0 && (
                                         <SubMenu
                                             title="Cotizaciones"
                                             icon="nav-icon bi bi-currency-exchange"
@@ -538,7 +540,7 @@ return (
                                     isAuditor) &&
                                     tieneModulo("Catalogos") &&
                                     obtenerSubmodulos("Catalogos").length >
-                                    0 && (
+                                        0 && (
                                         <SubMenu
                                             title="Catalogos"
                                             icon="fas fa-book"
@@ -608,7 +610,7 @@ return (
                                     isAuditor) &&
                                     tieneModulo("Configuración") &&
                                     obtenerSubmodulos("Configuración").length >
-                                    0 && (
+                                        0 && (
                                         <SubMenu
                                             title="Configuración"
                                             icon="fas fa-cogs"
@@ -676,9 +678,9 @@ return (
                         </nav>
                     </div>
                 )}
-        </aside>
-    </div>
-);
+            </aside>
+        </div>
+    );
 };
 
 export default Menu;

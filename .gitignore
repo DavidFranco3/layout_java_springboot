@@ -64,3 +64,6 @@ dist-ssr/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Static assets and storage (Generated/Uploaded)
+/src/main/resources/static/

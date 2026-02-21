@@ -3,8 +3,8 @@ package com.example.demo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
@@ -27,7 +27,7 @@ public class Role {
     @Column(columnDefinition = "Integer default 1")
     private Integer status = 1;
 
-    @JsonIgnore
+    @JsonProperty("permisos")
     @ManyToMany
     @JoinTable(name = "role_has_permissions", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private List<Permission> permissions;
@@ -62,5 +62,13 @@ public class Role {
 
     public void setPermissions(List<Permission> permissions) {
         this.permissions = permissions;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

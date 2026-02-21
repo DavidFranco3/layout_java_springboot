@@ -1,7 +1,7 @@
 import { Link, Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
-export default function Welcome({ auth = { user: null }, laravelVersion, phpVersion }) {
+export default function Welcome({ auth, laravelVersion, phpVersion }) {
     const [scrolled, setScrolled] = useState(false);
 
     // Efecto de navbar al hacer scroll
@@ -27,7 +27,7 @@ export default function Welcome({ auth = { user: null }, laravelVersion, phpVers
                         <div className="flex items-center gap-4">
                             {auth.user ? (
                                 <Link
-                                    href="/dashboard"
+                                    href={route('dashboard')}
                                     className="px-5 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-all shadow-lg hover:shadow-indigo-500/30"
                                 >
                                     Dashboard
@@ -35,13 +35,13 @@ export default function Welcome({ auth = { user: null }, laravelVersion, phpVers
                             ) : (
                                 <>
                                     <Link
-                                        href="/login"
+                                        href={route('login')}
                                         className="hidden sm:block text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-medium transition-colors"
                                     >
                                         Iniciar Sesión
                                     </Link>
                                     <Link
-                                        href="/register"
+                                        href={route('register')}
                                         className="px-5 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition-all shadow-lg hover:shadow-indigo-500/30"
                                     >
                                         Registrarse
@@ -70,7 +70,7 @@ export default function Welcome({ auth = { user: null }, laravelVersion, phpVers
                             Roles, auditoría y análisis en un solo lugar.
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp animation-delay-700">
-                            <Link href="/register" className="px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                            <Link href={route('register')} className="px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-2">
                                 <i className="fas fa-rocket"></i> Empezar Gratis
                             </Link>
                             <a href="#features" className="px-8 py-4 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 font-bold text-lg transition-colors flex items-center justify-center gap-2">

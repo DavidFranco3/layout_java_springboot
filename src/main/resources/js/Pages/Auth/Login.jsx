@@ -21,10 +21,8 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post('/login');
+        post(route('login'));
     };
-
-    console.log(data)
 
     return (
         <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900">
@@ -50,7 +48,7 @@ export default function Login({ status, canResetPassword }) {
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                             ¿No tienes cuenta? {' '}
                             <Link
-                                href="/register"
+                                href={route('register')}
                                 className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                             >
                                 Regístrate gratis
@@ -117,7 +115,7 @@ export default function Login({ status, canResetPassword }) {
 
                             {canResetPassword && (
                                 <Link
-                                    href="/forgot-password"
+                                    href={route('password.request')}
                                     className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
                                 >
                                     ¿Olvidaste tu contraseña?

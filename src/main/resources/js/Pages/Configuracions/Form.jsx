@@ -14,7 +14,7 @@ export default function Form(props) {
     );
 
     // Datos iniciales del formulario
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         nombre_comercial: isEdit ? configuracion?.nombre_comercial || "" : "",
         colores: isEdit ? configuracion?.colores || "" : "",
         logo: null,
@@ -57,14 +57,20 @@ export default function Form(props) {
         };
 
         if (isEdit && configuracion?.id) {
-            // En edición: usar PUT directo (JSON) como los demás módulos
-            put(route("configuracions.update", configuracion.id), {
+            // En edición: usar POST con _method PUT
+            post(route("configuracions.update", configuracion.id), {
+                data: {
+                    ...data,
+                    _method: "PUT",
+                },
+                forceFormData: true,
                 onSuccess,
                 onError,
             });
         } else {
-            // En creación: POST normal (JSON)
+            // En creación: POST normal
             post(route("configuracions.store"), {
+                forceFormData: true,
                 onSuccess,
                 onError,
             });
@@ -157,29 +163,6 @@ export default function Form(props) {
                                                 objectFit: "contain",
                                             }}
                                         />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Datos de la Empresa */}
-                            <div className="mb-3">
-                                <label>Empresa Vinculada</label>
-                                <select
-                                    className={`form-control ${errors.id_datos_empresa ? "is-invalid" : ""}`}
-                                    value={data.id_datos_empresa || ""}
-                                    onChange={(e) => setData("id_datos_empresa", e.target.value)}
-                                    required
-                                >
-                                    <option value="">Seleccione una empresa</option>
-                                    {props.empresas?.map((emp) => (
-                                        <option key={emp.id} value={emp.id}>
-                                            {emp.nombre}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.id_datos_empresa && (
-                                    <div className="invalid-feedback">
-                                        {errors.id_datos_empresa}
                                     </div>
                                 )}
                             </div>

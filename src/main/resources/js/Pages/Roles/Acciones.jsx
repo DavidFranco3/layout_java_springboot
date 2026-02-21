@@ -94,7 +94,13 @@ const Acciones = ({ setShow, data, accion }) => {
         // Establece valores iniciales cuando se está editando un rol existente
         if (data && accion === 'editar') {
             setValue('name', data.name || '');        // Establece el nombre del rol
-            setValue('permisos', data.permisos || []); // Establece los permisos asignados
+
+            // Si data.permisos viene como un array de objetos (del backend serializado),
+            // extraemos solo los IDs para que coincida con lo que espera el formulario.
+            const initialPermisos = Array.isArray(data.permisos)
+                ? data.permisos.map(p => typeof p === 'object' ? p.id : p)
+                : [];
+            setValue('permisos', initialPermisos); // Establece los permisos asignados
         }
     }, [data, accion]);
 
@@ -155,7 +161,7 @@ const Acciones = ({ setShow, data, accion }) => {
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: errors?.general || "Hubo un problema al actualizar el rol",
+                            text: "Hubo un problema al actualizar el rol",
                             confirmButtonColor: "#d33",
                         });
                     },
@@ -182,7 +188,7 @@ const Acciones = ({ setShow, data, accion }) => {
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: errors?.general || "Hubo un problema al eliminar el rol",
+                            text: "Hubo un problema al eliminar el rol",
                             confirmButtonColor: "#d33",
                         });
                     },

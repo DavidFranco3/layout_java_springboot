@@ -20,7 +20,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'src/main/resources/static',
-    emptyOutDir: true,
+    emptyOutDir: false,
     manifest: true,
     rollupOptions: {
       input: path.resolve(__dirname, 'src/main/resources/js/app.jsx'),

@@ -48,15 +48,13 @@ export default function Authenticated({ auth, user, children }) {
                 yaSeteadoDesdeStorage = true;
             }
 
-            const res = await axios.get(
-                "/configuracions/api/list"
-            );
+            const res = await axios.get("/configuracions/api/list");
 
             if (res.status === 200 && res.data.length > 0) {
                 const nuevaConfig = {
                     ...res.data[0],
                     colores: res.data[0].colores || "#005073",
-                    logo: res.data[0].logo ? `/files/${res.data[0].logo}` : null,
+                    logo: res.data[0].logo || null,
                 };
 
                 const esDiferente =

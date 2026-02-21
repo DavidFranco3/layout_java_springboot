@@ -10,10 +10,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import com.example.demo.service.AuditoriaService;
+import org.springframework.web.multipart.MultipartFile;
 
 @Controller
 @RequestMapping("/configuracions")
@@ -28,6 +33,11 @@ public class ConfiguracionController {
         this.configuracionRepository = configuracionRepository;
         this.empresaRepository = empresaRepository; // Inject EmpresaRepository
         this.auditoriaService = auditoriaService;
+    }
+
+    @InitBinder("configuracion")
+    public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+        binder.setDisallowedFields("logo");
     }
 
     @GetMapping
@@ -60,12 +70,29 @@ public class ConfiguracionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> store(@RequestBody Configuracion configuracion, HttpServletRequest request) {
+    public ResponseEntity<?> store(@ModelAttribute Configuracion configuracion,
+            @RequestParam(value = "logo", required = false) MultipartFile logoFile,
+            HttpServletRequest request) {
         if (configuracionRepository.count() > 0) {
             return ResponseEntity.status(HttpStatus.SEE_OTHER)
                     .location(URI.create("/configuracions"))
                     .build();
         }
+
+        if (logoFile != null && !logoFile.isEmpty()) {
+            try {
+                String fileName = UUID.randomUUID().toString() + "_" + logoFile.getOriginalFilename();
+                Path uploadPath = Paths.get("src/main/resources/static/storage/");
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+                Files.copy(logoFile.getInputStream(), uploadPath.resolve(fileName));
+                configuracion.setLogo(fileName);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         configuracion = configuracionRepository.save(configuracion);
 
         Map<String, Object> newData = new HashMap<>();
@@ -100,8 +127,9 @@ public class ConfiguracionController {
                                                              // name changed
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Configuracion configuracion,
+    @PostMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @ModelAttribute Configuracion configuracion,
+            @RequestParam(value = "logo", required = false) MultipartFile logoFile,
             HttpServletRequest request) {
         configuracion.setId(id);
         Configuracion currentConfig = configuracionRepository.findById(id).orElseThrow();
@@ -110,6 +138,23 @@ public class ConfiguracionController {
         oldData.put("colores", currentConfig.getColores());
         oldData.put("nombre_comercial", currentConfig.getNombre_comercial());
         oldData.put("status", currentConfig.getStatus());
+
+        if (logoFile != null && !logoFile.isEmpty()) {
+            try {
+                String fileName = UUID.randomUUID().toString() + "_" + logoFile.getOriginalFilename();
+                Path uploadPath = Paths.get("src/main/resources/static/storage/");
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+                Files.copy(logoFile.getInputStream(), uploadPath.resolve(fileName));
+                configuracion.setLogo(fileName);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            // retain old logo if no new file is provided
+            configuracion.setLogo(currentConfig.getLogo());
+        }
 
         configuracion.setId(id);
         configuracionRepository.save(configuracion);

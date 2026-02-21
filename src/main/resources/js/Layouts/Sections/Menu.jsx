@@ -41,7 +41,7 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                     <Link href={route("dashboard")} className="flex items-center space-x-2 w-full justify-center overflow-hidden">
                         {configuracion?.logo ? (
                             <img
-                                src={configuracion.logo}
+                                src={`/storage/${configuracion.logo}`}
                                 alt="Logo"
                                 className="h-10 object-contain max-w-full"
                             />

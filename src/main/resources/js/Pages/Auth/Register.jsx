@@ -22,7 +22,7 @@ export default function Register() {
 
     const submit = (e) => {
         e.preventDefault();
-        post('/register');
+        post(route('register'));
     };
 
     return (
@@ -49,7 +49,7 @@ export default function Register() {
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                             ¿Ya tienes cuenta? {' '}
                             <Link
-                                href="/login"
+                                href={route('login')}
                                 className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                             >
                                 Inicia sesión aquí

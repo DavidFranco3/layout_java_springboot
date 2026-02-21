@@ -95,7 +95,7 @@ const Index = (props) => {
             cell: (row) =>
                 row.logo ? (
                     <img
-                        src={`/files/${row.logo}`} // Aquí usamos la ruta general /files/{path}
+                        src={`/storage/${row.logo}`} // Aquí usamos la ruta general /storage/{path}
                         alt="Logo"
                         style={{
                             width: "100px",
