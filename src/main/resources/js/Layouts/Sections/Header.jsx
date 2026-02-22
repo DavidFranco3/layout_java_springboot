@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Dropdown from "@/Components/Dropdown";
-import BasicModal from "@/Components/Modal/BasicModal";
+import ModalCustom from "@/Components/Generales/ModalCustom";
 import Swal from "sweetalert2";
 import { router } from "@inertiajs/react";
 import useAuth from "@/hooks/useAuth";
@@ -149,13 +149,14 @@ export default function Header(props) {
                 </div>
             </div>
 
-            <BasicModal
-                show={showModal}
-                setShow={setShowModal}
-                title={titulosModal}
-            >
-                {contentModal}
-            </BasicModal>
+            <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
+                <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
+                    {titulosModal}
+                </ModalCustom.Header>
+                <ModalCustom.Body>
+                    {contentModal}
+                </ModalCustom.Body>
+            </ModalCustom>
         </header>
     );
 }

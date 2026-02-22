@@ -13,7 +13,7 @@
 import { useState, useEffect } from "react";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import DropdownActions from "@/Components/Generales/DropdownActions"; // Importar nuevo componente
-import BasicModal from "@/Components/Modal/BasicModal";
+import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
 
 const TblUsers = ({ users, roles, permisos }) => {
@@ -153,9 +153,14 @@ const TblUsers = ({ users, roles, permisos }) => {
             <DataTablecustom datos={users} columnas={columns} />
 
             {/* Modal reutilizable para mostrar formularios de edición/eliminación */}
-            <BasicModal show={showModal} setShow={setShowModal} title={titulosModal}>
-                {contentModal}
-            </BasicModal>
+            <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
+                <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
+                    {titulosModal}
+                </ModalCustom.Header>
+                <ModalCustom.Body>
+                    {contentModal}
+                </ModalCustom.Body>
+            </ModalCustom>
         </>
     );
 };

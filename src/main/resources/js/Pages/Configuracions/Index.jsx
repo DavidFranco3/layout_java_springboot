@@ -4,7 +4,7 @@ import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import DropdownActions from "@/Components/Generales/DropdownActions";
-import BasicModal from "@/Components/Modal/BasicModal";
+import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -159,13 +159,14 @@ const Index = (props) => {
                         />
 
                         {/* Modal */}
-                        <BasicModal
-                            show={showModal}
-                            setShow={setShowModal}
-                            title={titulosModal}
-                        >
-                            {contentModal}
-                        </BasicModal>
+                        <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
+                            <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
+                                {titulosModal}
+                            </ModalCustom.Header>
+                            <ModalCustom.Body>
+                                {contentModal}
+                            </ModalCustom.Body>
+                        </ModalCustom>
                     </ContainerLaravel>
                 </div>
             </div>

@@ -12,7 +12,7 @@
 import { useState, useEffect } from "react";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import DropdownActions from "@/Components/Generales/DropdownActions";
-import BasicModal from "@/Components/Modal/BasicModal";
+import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
 
 const TblRoles = ({ roles }) => {
@@ -112,9 +112,14 @@ const TblRoles = ({ roles }) => {
             <DataTablecustom datos={roles} columnas={columns} />
 
             {/* Modal reutilizable para mostrar formularios de edición/eliminación */}
-            <BasicModal show={showModal} setShow={setShowModal} title={titulosModal}>
-                {contentModal}
-            </BasicModal>
+            <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
+                <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
+                    {titulosModal}
+                </ModalCustom.Header>
+                <ModalCustom.Body>
+                    {contentModal}
+                </ModalCustom.Body>
+            </ModalCustom>
         </>
     );
 };

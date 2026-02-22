@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Calendar, dayjsLocalizer, Views } from 'react-big-calendar';
 import dayjs from 'dayjs';
-import 'dayjs/locale/es'; // Importa el locale de español para dayjs
+import 'dayjs/locale/es';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Modal, Button, ButtonGroup, ToggleButton } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarAlt, faMoneyBillWave, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import ModalCustom from './ModalCustom';
 
-dayjs.locale('es'); // Configura dayjs para usar español
-
+dayjs.locale('es');
 const localizer = dayjsLocalizer(dayjs);
 
 const CalendarCustom = ({ eventos, onEventClick }) => {
-  const [showModal, setShowModal] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [dailyEvents, setDailyEvents] = useState([]);
   const [view, setView] = useState(Views.MONTH);
@@ -21,67 +22,43 @@ const CalendarCustom = ({ eventos, onEventClick }) => {
     );
     setSelectedDate(start);
     setDailyEvents(selectedDateEvents);
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setSelectedDate(null);
-    setDailyEvents([]);
+    setIsOpen(true); // Abrir ModalCustom
   };
 
   const handleEventClick = (eventId, tipo) => {
     onEventClick(eventId, tipo);
-    handleCloseModal();
+    setIsOpen(false);
   };
 
   const formatAmount = (amount) => {
     const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount)) {
-      return 'Cantidad no válida';
+    return isNaN(parsedAmount)
+      ? 'N/A'
+      : new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parsedAmount);
+  };
+
+  const eventStyleGetter = (event) => ({
+    style: {
+      backgroundColor: event.color || '#6366f1',
+      borderRadius: '4px',
+      opacity: 0.9,
+      color: 'white',
+      border: 'none',
+      display: 'block',
+      fontSize: '0.8rem'
     }
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parsedAmount);
-  };
+  });
 
-  const eventStyleGetter = (event) => {
-    return {
-      style: {
-        backgroundColor: event.color,
-        borderRadius: '0px',
-        opacity: 0.8,
-        color: 'white',
-        border: '0px',
-        display: 'block'
-      }
-    };
-  };
-
-  // Personaliza los mensajes del calendario
   const messages = {
-    date: 'Fecha',
-    time: 'Hora',
-    event: 'Evento',
     allDay: 'Todo el día',
-    week: 'Semana',
-    work_week: 'Semana laboral',
-    day: 'Día',
-    month: 'Mes',
     previous: 'Anterior',
     next: 'Siguiente',
-    yesterday: 'Ayer',
-    tomorrow: 'Mañana',
     today: 'Hoy',
+    month: 'Mes',
+    week: 'Semana',
+    day: 'Día',
     agenda: 'Agenda',
-    noEventsInRange: 'No hay eventos en este rango.',
     showMore: total => `+ Ver más (${total})`
-  };
-
-  // Personaliza el formato de fecha
-  const formats = {
-    dayFormat: 'dddd', // Nombre completo del día en español
-    monthHeaderFormat: 'MMMM YYYY', // Nombre completo del mes y año en español
-    weekdayFormat: 'ddd', // Abreviación del nombre del día en español
-    monthFormat: 'MMMM YYYY' // Nombre completo del mes y año en español
   };
 
   const eventsWithProperDates = eventos.map(event => ({
@@ -91,83 +68,86 @@ const CalendarCustom = ({ eventos, onEventClick }) => {
   }));
 
   return (
-    <div className="container mt-5">
-      {/* <div className="row mb-3">
-        <div className="col">
-          <ButtonGroup toggle>
-            {[
-              { value: Views.MONTH, label: 'Mes' },
-              { value: Views.WEEK, label: 'Semana' },
-              { value: Views.DAY, label: 'Día' },
-              { value: Views.AGENDA, label: 'Agenda' }
-            ].map((radio, idx) => (
-              <ToggleButton
-                key={idx}
-                type="radio"
-                variant="outline-primary"
-                name="view"
-                value={radio.value}
-                checked={view === radio.value}
-                onChange={(e) => setView(e.currentTarget.value)}
-              >
-                {radio.label}
-              </ToggleButton>
-            ))}
-          </ButtonGroup>
-        </div>
-      </div> */}
-      <div className="row">
-        <div className="col">
-          <Calendar
-            localizer={localizer}
-            events={eventsWithProperDates}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 600 }}
-            views={['month', 'week', 'day', 'agenda']}
-            view={view}
-            onView={(newView) => setView(newView)}
-            selectable
-            onSelectSlot={handleSelectSlot}
-            popup
-            dayPropGetter={() => ({
-              className: 'rbc-day-bg',
-            })}
-            eventPropGetter={eventStyleGetter}
-            className="border"
-            messages={messages}
-            formats={formats}
-          />
-        </div>
+    <div className="p-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+      <div className="mb-4">
+        <Calendar
+          localizer={localizer}
+          events={eventsWithProperDates}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 600 }}
+          views={['month', 'week', 'day', 'agenda']}
+          view={view}
+          onView={(newView) => setView(newView)}
+          selectable
+          onSelectSlot={handleSelectSlot}
+          popup
+          eventPropGetter={eventStyleGetter}
+          messages={messages}
+          className="rounded-lg overflow-hidden border dark:border-slate-700"
+        />
       </div>
 
-      <Modal show={showModal} onHide={handleCloseModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Cuentas {selectedDate && dayjs(selectedDate).format('LL')}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {dailyEvents.length > 0 ? (
-            <ul className="list-group">
-              {dailyEvents.map((event) => (
-                <li
+      {/* Implementación de tu ModalCustom */}
+      <ModalCustom show={isOpen} onClose={() => setIsOpen(false)} maxWidth="md">
+        <ModalCustom.Header onClose={() => setIsOpen(false)} closeButton>
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faCalendarAlt} className="text-indigo-500" />
+            <span className="font-bold text-gray-800 dark:text-white">
+              Cuentas del {selectedDate && dayjs(selectedDate).format('DD [de] MMMM')}
+            </span>
+          </div>
+        </ModalCustom.Header>
+
+        <ModalCustom.Body>
+          <div className="space-y-3">
+            {dailyEvents.length > 0 ? (
+              dailyEvents.map((event) => (
+                <div
                   key={event.id}
-                  className="list-group-item list-group-item-action"
                   onClick={() => handleEventClick(event.id, event.title)}
+                  className="flex items-center justify-between p-3 rounded-lg border border-gray-100 dark:border-slate-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer transition-colors group"
                 >
-                  {event.title} - {formatAmount(event.cantidad)}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No hay cuentas para este día.</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseModal}>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-2 h-10 rounded-full"
+                      style={{ backgroundColor: event.color }}
+                    />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Presiona para ver detalles
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                      {formatAmount(event.cantidad)}
+                    </span>
+                    <FontAwesomeIcon icon={faMoneyBillWave} className="ml-2 text-gray-300 group-hover:text-indigo-400 text-xs" />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <FontAwesomeIcon icon={faInfoCircle} className="text-gray-300 text-4xl mb-2" />
+                <p className="text-gray-500 dark:text-gray-400">No hay cuentas registradas para esta fecha.</p>
+              </div>
+            )}
+          </div>
+        </ModalCustom.Body>
+
+        <ModalCustom.Footer>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700 transition-colors"
+          >
             Cerrar
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          </button>
+        </ModalCustom.Footer>
+      </ModalCustom>
     </div>
   );
 };

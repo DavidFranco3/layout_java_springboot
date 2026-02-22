@@ -6,7 +6,7 @@ import DropdownActions from "@/Components/Generales/DropdownActions";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import BasicModal from "@/Components/Modal/BasicModal";
+import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
 
 dayjs.extend(utc);
@@ -115,13 +115,14 @@ const Index = (props) => {
                         {/* DataTable */}
                         <DataTablecustom datos={empresas} columnas={columns} />
 
-                        <BasicModal
-                            show={showModal}
-                            setShow={setShowModal}
-                            title={titulosModal}
-                        >
-                            {contentModal}
-                        </BasicModal>
+                        <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
+                            <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
+                                {titulosModal}
+                            </ModalCustom.Header>
+                            <ModalCustom.Body>
+                                {contentModal}
+                            </ModalCustom.Body>
+                        </ModalCustom>
                     </ContainerLaravel>
                 </div>
             </div>
