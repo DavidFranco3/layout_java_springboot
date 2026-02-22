@@ -46,8 +46,9 @@ public class AuditoriaLog {
     @Column(columnDefinition = "TEXT")
     private String observaciones;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @org.hibernate.annotations.CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
     // Getters and Setters
     public Long getId() {

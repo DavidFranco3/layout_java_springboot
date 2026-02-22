@@ -1,74 +1,119 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: var(--app-primary, #005073);
+  --color-primary-soft: color-mix(in srgb, var(--app-primary, #005073), transparent 85%);
+  --color-primary-hover: color-mix(in srgb, var(--app-primary, #005073), black 15%);
+}
+
+:root {
+  --app-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+}
+
+html.dark {
+  --app-bg: #020617;
+  --card-bg: #0f172a;
+  --sidebar-bg: #0f172a;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-light: #1e293b;
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--text-main);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
 a,
-a:hover,
-a:focus,
-a:active,
-aside a,
-aside a:hover,
-aside a:focus,
-aside a:active,
-.nav-link,
-.nav-link:hover {
+.nav-link {
   text-decoration: none !important;
   color: inherit !important;
-  outline: none !important;
-  box-shadow: none !important;
+  transition: all 0.2s ease;
 }
 
-aside a span,
-aside a i {
-  text-decoration: none !important;
+/* Scrollbar Moderno */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-
-/* Dropdown fix */
-.dropdown-menu.show {
-  position: fixed !important;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Global Dark Mode Inputs */
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 20px;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Inputs Modernizados (Point 2) */
 @layer base {
 
-  /* Inputs, Selects, Textareas en Dark Mode */
-  html.dark input[type='text'],
-  html.dark input[type='password'],
-  html.dark input[type='email'],
-  html.dark input[type='number'],
-  html.dark input[type='date'],
-  html.dark input[type='search'],
-  html.dark select,
-  html.dark textarea {
-    background-color: #0f172a;
-    /* slate-900 */
-    border-color: #334155;
-    /* slate-700 */
-    color: #f3f4f6;
-    /* gray-100 */
+  input[type='text'],
+  input[type='password'],
+  input[type='email'],
+  input[type='number'],
+  input[type='date'],
+  input[type='search'],
+  select,
+  textarea {
+    @apply rounded-xl border border-slate-200 bg-white/50 px-4 py-2.5 text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 dark:focus:bg-slate-900;
   }
 
-  /* Placeholder más suave */
-  html.dark input::placeholder,
-  html.dark textarea::placeholder {
-    color: #64748b;
-    /* slate-500 */
+  input[type='checkbox'],
+  input[type='radio'] {
+    @apply rounded text-primary focus:ring-primary/20 border-slate-300 dark:border-slate-700 dark:bg-slate-800;
+  }
+}
+
+/* Glassmorphism & Premium Shadows */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+html.dark .glass {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shadow-premium {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-premium-lg {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
   }
 
-  /* Focus state */
-  html.dark input:focus,
-  html.dark select:focus,
-  html.dark textarea:focus {
-    border-color: #3b82f6;
-    /* blue-500 */
-    --tw-ring-color: #3b82f6;
-    background-color: #1e293b;
-    /* slate-800 focus highlight */
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
 
-  /* Checkbox & Radio adjustments if needed */
-  html.dark input[type='checkbox'],
-  html.dark input[type='radio'] {
-    background-color: #1e293b;
-    border-color: #475569;
-  }
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
 }

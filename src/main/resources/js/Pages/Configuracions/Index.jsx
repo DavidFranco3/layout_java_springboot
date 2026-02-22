@@ -9,6 +9,9 @@ import Acciones from "./Acciones";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import PrimaryButton from "@/Components/PrimaryButton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faCog, faWrench, faPalette, faImage, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
@@ -26,7 +29,6 @@ const Index = (props) => {
         setShowModal(true);
     };
 
-    // Columnas de DataTable
     const columns = [
         {
             name: "ID",
@@ -40,60 +42,46 @@ const Index = (props) => {
             sortable: true,
         },
         {
-            name: "Color Principal",
-            cell: (row) =>
-                row.colores ? (
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: "20px",
-                                height: "20px",
-                                backgroundColor: row.colores,
-                                border: "1px solid #ccc",
-                                borderRadius: "4px",
-                            }}
-                        ></div>
-                        <span>{row.colores}</span>
-                    </div>
-                ) : (
-                    "No asignado"
-                ),
-            width: "150px",
+            name: "Empresa",
+            selector: (row) => row.empresa_nombre || "No asignada",
+            sortable: true,
         },
-
         {
-            name: "Logo",
-            cell: (row) =>
-                row.logo ? (
-                    <img
-                        src={`/storage/${row.logo}`}
-                        alt="Logo"
-                        style={{
-                            width: "100px",
-                            height: "28px",
-                            objectFit: "contain",
-                        }}
-                    />
-                ) : (
-                    "No asignado"
-                ),
+            name: "Branding",
+            cell: (row) => (
+                <div className="flex items-center gap-4 py-2">
+                    {row.logo && (
+                        <div className="w-16 h-8 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">
+                            <img src={`/storage/${row.logo}`} alt="Logo" className="max-h-full max-w-full object-contain" />
+                        </div>
+                    )}
+                    {row.colores && (
+                        <div className="flex items-center gap-2 px-2 py-1 rounded bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                            <div className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: row.colores }}></div>
+                            <span className="text-[10px] font-mono text-slate-500">{row.colores}</span>
+                        </div>
+                    )}
+                </div>
+            ),
+            width: "220px",
         },
         {
             name: "Estado",
-            selector: (row) => (row.status ? "Activo" : "Inactivo"),
+            cell: (row) => (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${row.status
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-500"
+                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-500"
+                    }`}>
+                    {row.status ? "Activo" : "Inactivo"}
+                </span>
+            ),
             width: "100px",
         },
         {
-            name: "Creado el",
-            selector: (row) =>
-                dayjs.utc(row.created_at).format("DD/MM/YYYY h:mm:ss A"),
+            name: "Última Modificación",
+            selector: (row) => dayjs.utc(row.updated_at || row.created_at).format("DD/MM/YYYY"),
             sortable: true,
+            width: "150px"
         },
         {
             name: "Acciones",
@@ -103,7 +91,7 @@ const Index = (props) => {
                     icon="fas fa-ellipsis-v"
                     actions={[
                         {
-                            label: "Editar",
+                            label: "Configurar",
                             icon: "fas fa-pen",
                             color: "text-amber-500",
                             href: route("configuracions.edit", row.id)
@@ -113,7 +101,10 @@ const Index = (props) => {
                             icon: "fas fa-trash",
                             color: "text-red-500",
                             onClick: () => abrirModal(
-                                "Eliminar Configuración",
+                                <div className="flex items-center gap-2">
+                                    <FontAwesomeIcon icon={faWrench} className="text-red-500" />
+                                    <span>Eliminar Configuración</span>
+                                </div>,
                                 <Acciones
                                     setShow={setShowModal}
                                     data={row}
@@ -133,43 +124,42 @@ const Index = (props) => {
 
     return (
         <Authenticated auth={auth} errors={errors}>
-            <div className="col-lg-12 d-flex justify-content-center">
-                <div className="col-lg-12 col-lg-offset-1 mt-2">
-                    <ContainerLaravel
-                        titulo={"Configuracion del layout"}
-                        icono={"fa-list"}
-                    >
-                        {/* Botón para crear */}
-                        {configuracions.length === 0 && (
-                            <div className="mb-3 text-end">
-                                <Link
-                                    href={route("configuracions.create")}
-                                    className="btn btn-success"
-                                >
-                                    <i className="fa fa-plus me-2"></i> Crear
-                                    Configuración
-                                </Link>
-                            </div>
-                        )}
-
-                        {/* Tabla */}
-                        <DataTablecustom
-                            datos={configuracions}
-                            columnas={columns}
-                        />
-
-                        {/* Modal */}
-                        <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
-                            <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
-                                {titulosModal}
-                            </ModalCustom.Header>
-                            <ModalCustom.Body>
-                                {contentModal}
-                            </ModalCustom.Body>
-                        </ModalCustom>
-                    </ContainerLaravel>
+            <ContainerLaravel
+                titulo="Configuración del Sistema"
+                icono={faCog}
+            >
+                <div className="flex justify-between items-center mb-6">
+                    <div className="space-y-1">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Personaliza la identidad visual y los parámetros generales de la plataforma.
+                        </p>
+                    </div>
+                    {configuracions.length === 0 && (
+                        <Link href={route("configuracions.create")}>
+                            <PrimaryButton className="gap-2">
+                                <FontAwesomeIcon icon={faPlus} />
+                                Nueva Configuración
+                            </PrimaryButton>
+                        </Link>
+                    )}
                 </div>
-            </div>
+
+                <div className="mt-4">
+                    <DataTablecustom
+                        datos={configuracions}
+                        columnas={columns}
+                    />
+                </div>
+
+                <ModalCustom show={showModal} onClose={() => setShowModal(false)} maxWidth="lg">
+                    <ModalCustom.Header closeButton onClose={() => setShowModal(false)}>
+                        <div className="font-bold text-slate-900 dark:text-white">{titulosModal}</div>
+                    </ModalCustom.Header>
+                    <ModalCustom.Body>
+                        {contentModal}
+                    </ModalCustom.Body>
+                </ModalCustom>
+            </ContainerLaravel>
         </Authenticated>
     );
 };

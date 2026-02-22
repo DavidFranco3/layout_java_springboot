@@ -17,21 +17,24 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                 <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl invisible md:visible"></div>
 
                 <ContainerLaravel titulo={"Perfil de Usuario"} icono={"fa-user-cog"}>
-                    <div className="max-w-5xl mx-auto py-4">
-                        <div className="grid grid-cols-1 gap-8">
-                            <div className="p-6 sm:p-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-xl shadow-slate-200/50 dark:shadow-none sm:rounded-3xl border border-white dark:border-slate-700 transition-all duration-300">
+                    <div className="max-w-7xl mx-auto py-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Información de Perfil */}
+                            <div className="p-6 sm:p-10 bg-[var(--card-bg)] backdrop-blur-xl shadow-premium sm:rounded-[2.5rem] border border-[var(--border-light)] transition-all duration-300">
                                 <UpdateProfileInformationForm
                                     mustVerifyEmail={mustVerifyEmail}
                                     status={status}
                                 />
                             </div>
 
-                            <div className="p-6 sm:p-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-xl shadow-slate-200/50 dark:shadow-none sm:rounded-3xl border border-white dark:border-slate-700 transition-all duration-300">
+                            {/* Cambio de Contraseña */}
+                            <div className="p-6 sm:p-10 bg-[var(--card-bg)] backdrop-blur-xl shadow-premium sm:rounded-[2.5rem] border border-[var(--border-light)] transition-all duration-300">
                                 <UpdatePasswordForm />
                             </div>
 
-                            <div className="p-6 sm:p-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-xl shadow-red-200/20 dark:shadow-none sm:rounded-3xl border border-white dark:border-slate-700 transition-all duration-300">
-                                <DeleteUserForm />
+                            {/* Peligro: Eliminar Cuenta (Ancho Completo abajo) */}
+                            <div className="lg:col-span-2 p-6 sm:p-10 bg-rose-50/50 dark:bg-rose-900/5 backdrop-blur-xl shadow-premium sm:rounded-[2.5rem] border border-rose-100 dark:border-rose-900/20 transition-all duration-300">
+                                <DeleteUserForm className="max-w-xl" />
                             </div>
                         </div>
                     </div>

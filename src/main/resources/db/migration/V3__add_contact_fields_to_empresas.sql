@@ -1,0 +1,2 @@
+-- Estos campos ya fueron incluidos en V1__init_schema.sql
+-- Se mantiene este archivo vacío para sincronizar el historial de Flyway.

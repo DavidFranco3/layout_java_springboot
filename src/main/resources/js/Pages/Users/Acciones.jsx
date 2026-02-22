@@ -1,281 +1,230 @@
-/**
- * Componente Acciones - Formulario multipropósito para operaciones CRUD de usuarios
- * 
- * Este componente maneja las acciones de editar y eliminar usuarios del sistema.
- * Solo permite editar el nombre y el rol del usuario, manteniendo la simplicidad
- * y evitando modificaciones complejas de datos sensibles.
- * 
- * @param {Object} props - Propiedades del componente
- * @param {Function} props.setShow - Función para controlar la visibilidad del modal
- * @param {Object} props.data - Datos del usuario a procesar (nombre, rol, etc.)
- * @param {string} props.accion - Tipo de acción a realizar ("editar" | "eliminar")
- * @param {Array} props.roles - Lista de roles disponibles para asignar
- */
-
 import React from "react";
 import { useEffect, useState } from 'react';
-import { Spinner, Button, Form, Row, Col } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { router } from '@inertiajs/react';
-import Swal from "sweetalert2";
+import InputLabel from "@/Components/InputLabel";
+import InputError from "@/Components/InputError";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
+import DangerButton from "@/Components/DangerButton";
 import useAuth from "@/hooks/useAuth";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser, faEnvelope, faShieldAlt, faTrash, faSave, faTimes, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 const Acciones = ({ setShow, data, accion, roles }) => {
-    // Hook para verificación de permisos
     const { user, rolNombre, hasPermission } = useAuth();
-
-    /**
-     * Hook de react-hook-form para manejar el formulario
-     * - register: registra campos en el formulario
-     * - handleSubmit: maneja el envío del formulario
-     * - formState.errors: errores de validación
-     * - setValue: establece valores programáticamente
-     * - watch: observa cambios en campos específicos
-     */
-    const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+    const { register, handleSubmit, formState: { errors }, setValue } = useForm({
         defaultValues: {
-            name: data?.name || '',        // Nombre del usuario (valor inicial)
-            rol_id: data?.rol_id || ''     // ID del rol asignado al usuario
+            name: data?.name || '',
+            rol_id: data?.rol_id || ''
         }
     });
 
-    // Estados locales del componente
-    const [isLoading, setIsLoading] = useState(false); // Estado de carga durante peticiones
-
-    /**
-     * Verificación de permisos según la acción
-     */
+    const [isLoading, setIsLoading] = useState(false);
     const permisoRequerido = accion === 'editar' ? 'editar users' : 'eliminar users';
     const tienePermiso = hasPermission(permisoRequerido);
 
-    // Si no tiene el permiso necesario, mostrar mensaje de error
     if (!tienePermiso) {
         return (
-            <div className="text-center p-4">
-                <div className="alert alert-danger">
-                    <h5><i className="fas fa-exclamation-triangle"></i> Acceso Denegado</h5>
-                    <p>No tienes permisos para {accion} usuarios.</p>
-                    <p><strong>Tu rol:</strong> {rolNombre || 'Sin asignar'}</p>
-                    <p><strong>Permiso requerido:</strong> {permisoRequerido}</p>
+            <div className="p-6 text-center animate-fade-in">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mb-4 shadow-inner">
+                    <FontAwesomeIcon icon={faShieldAlt} size="2x" />
                 </div>
-                <Button variant="secondary" onClick={() => setShow(false)}>
-                    Cerrar
-                </Button>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Acceso Denegado</h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-6 font-medium">No tienes permisos para {accion} usuarios.</p>
+                <SecondaryButton onClick={() => setShow(false)}>Cerrar</SecondaryButton>
             </div>
         );
     }
 
-    /**
-     * Observadores para detectar cambios en tiempo real en los campos del formulario
-     * Esto permite que la UI se actualice automáticamente cuando cambian los valores
-     */
-    const watchedName = watch('name');     // Observa cambios en el nombre
-    const watchedRolId = watch('rol_id');  // Observa cambios en el rol
+    const buttonLabel = accion === 'editar' ? 'Actualizar' : 'Eliminar';
 
-    /**
-     * Define la etiqueta del botón según la acción a realizar
-     */
-    const buttonLabel = accion === 'registrar'
-        ? 'Guardar'
-        : accion === 'editar'
-            ? 'Actualizar'
-            : 'Eliminar';
-
-    /**
-     * Hook useEffect para inicialización del componente
-     * Se ejecuta cuando cambian las dependencias: data o accion
-     */
     useEffect(() => {
-        // Establece valores iniciales cuando se está editando un usuario existente
         if (data && accion === 'editar') {
-            setValue('name', data.name || '');        // Establece el nombre del usuario
-            setValue('rol_id', data.rol_id || '');    // Establece el rol asignado
+            setValue('name', data.name || '');
+            setValue('rol_id', data.rol_id || '');
         }
-    }, [data, accion]);
+    }, [data, accion, setValue]);
 
-    /**
-     * Maneja el envío del formulario según la acción especificada
-     * Utiliza Inertia.js router para las peticiones HTTP
-     * 
-     * @param {Object} formData - Datos del formulario validados
-     */
     const onFormSubmit = async (formData) => {
-        setIsLoading(true); // Activa el estado de carga
-
+        setIsLoading(true);
         try {
             if (accion === "editar") {
-                // Actualiza el usuario existente usando PUT request
                 router.put(route('users.update', data.id), {
                     rol_id: formData.rol_id
                 }, {
-                    // Callback ejecutado en caso de éxito
                     onSuccess: () => {
                         Swal.fire({
                             icon: "success",
-                            title: "Éxito",
+                            title: "Actualizado",
                             text: "Usuario actualizado correctamente",
                             showConfirmButton: false,
                             timer: 2000,
+                            background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                            color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
                         });
-                        setShow(false); // Cierra el modal
+                        setShow(false);
                     },
-                    // Callback ejecutado en caso de error
                     onError: (errors) => {
-                        console.error("Error:", errors);
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: "Hubo un problema al actualizar el usuario",
-                            confirmButtonColor: "#d33",
+                            text: "Hubo un problema al actualizar",
+                            confirmButtonColor: "var(--app-primary)",
                         });
                     },
-                    // Callback ejecutado al finalizar (éxito o error)
-                    onFinish: () => {
-                        setIsLoading(false); // Desactiva el estado de carga
-                    }
+                    onFinish: () => setIsLoading(false)
                 });
             } else if (accion === "eliminar") {
-                // Elimina el usuario usando DELETE request
                 router.delete(route('users.destroy', data.id), {
                     onSuccess: () => {
                         Swal.fire({
                             icon: "success",
-                            title: "Éxito",
-                            text: "Usuario eliminado correctamente",
+                            title: "Eliminado",
+                            text: "Usuario eliminado con éxito",
                             showConfirmButton: false,
                             timer: 2000,
+                            background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                            color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
                         });
-                        setShow(false); // Cierra el modal
+                        setShow(false);
                     },
-                    onError: (errors) => {
-                        console.error("Error:", errors);
+                    onError: () => {
                         Swal.fire({
                             icon: "error",
                             title: "Error",
-                            text: "Hubo un problema al eliminar el usuario",
-                            confirmButtonColor: "#d33",
+                            text: "No se pudo eliminar el usuario",
+                            confirmButtonColor: "#ef4444",
                         });
                     },
-                    onFinish: () => {
-                        setIsLoading(false); // Desactiva el estado de carga
-                    }
+                    onFinish: () => setIsLoading(false)
                 });
-            } else {
-                // Acción no reconocida - la creación se maneja en otro componente
-                Swal.fire({
-                    icon: "info",
-                    title: "Acción no reconocida",
-                    text: "La creación de usuarios se gestiona en otro componente.",
-                    confirmButtonColor: "#3085d6",
-                });
-                setIsLoading(false);
             }
-
         } catch (error) {
-            console.error("Error:", error);
             setIsLoading(false);
         }
     };
 
     return (
-        <Form onSubmit={handleSubmit(onFormSubmit)}>
-            <Row>
-                <Col>
-                    {/* Campo de entrada para el nombre del usuario */}
-                    {/* <Form.Group className="mb-3" controlId="formNombre">
-                        <Form.Label>Nombre</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Ingrese nombre"
-                            {...register('name', { required: 'El nombre es requerido' })}
-                            isInvalid={!!errors.name}
-                            disabled={accion === 'eliminar'} // Deshabilita si es eliminación
-                        /> */}
-                        {/* Mensaje de error de validación */}
-                        {/* <Form.Control.Feedback type="invalid">
-                            {errors.name?.message}
-                        </Form.Control.Feedback>
-                    </Form.Group> */}
-
-                    {/* Campo de selección de rol */}
-                    <Form.Group className="mb-3" controlId="formRol">
-                        <Form.Label>Rol</Form.Label>
-                        <Form.Select
-                            {...register('rol_id', { required: 'El rol es requerido' })}
-                            isInvalid={!!errors.rol_id}
-                            disabled={accion === 'eliminar'} // Deshabilita si es eliminación
-                        >
-                            <option value="">Seleccione un rol</option>
-                            {roles && roles.map((rol) => (
-                                <option key={rol.id} value={rol.id}>
-                                    {rol.name}
-                                </option>
-                            ))}
-                        </Form.Select>
-                        {/* Mensaje de error de validación */}
-                        <Form.Control.Feedback type="invalid">
-                            {errors.rol_id?.message}
-                        </Form.Control.Feedback>
-                    </Form.Group>
-
-                    {/* Información adicional para eliminación */}
-                    {accion === 'eliminar' && (
-                        <div className="alert alert-warning">
-                            <strong>¡Atención!</strong> Esta acción eliminará permanentemente el usuario "{data?.name}". 
-                            Esta operación no se puede deshacer.
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 animate-fade-in">
+            {accion === 'editar' ? (
+                <div className="space-y-5">
+                    {/* Header sutil */}
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <FontAwesomeIcon icon={faShieldAlt} />
                         </div>
-                    )}
-
-                    {/* Información del usuario actual */}
-                    {data && (
-                        <div className="mt-3 p-2 bg-light rounded">
-                            <small className="text-muted">
-                                <strong>Usuario:</strong> {data.name}<br/>
-                                <strong>Email:</strong> {data.email}<br/>
-                                <strong>Rol actual:</strong> {data.rol_nombre || 'Sin rol asignado'}
-                            </small>
+                        <div>
+                            <h4 className="text-base font-bold text-slate-900 dark:text-white leading-none">Configuración de Usuario</h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold">Actualizar credenciales y nivel de acceso</p>
                         </div>
-                    )}
-                </Col>
-            </Row>
+                    </div>
 
-            {/* Botón de acción dinámico según el tipo de operación */}
-            <div className="text-center mt-4">
-                <Button
-                    variant={accion === "eliminar" ? "danger" : "primary"}
-                    type="submit"
-                    disabled={isLoading}
-                    style={{
-                        backgroundColor: accion === "eliminar" ? "#dc3545" : "#2C3E50",
-                        border: "none",
-                        padding: "0.5rem 1.5rem",
-                        borderRadius: "8px",
-                        fontSize: "1rem",
-                        fontWeight: "500",
-                        color: "#fff",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                    }}
+                    <div className="space-y-2">
+                        <InputLabel value="Rol Actual" />
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                                <FontAwesomeIcon icon={faShieldAlt} />
+                            </span>
+                            <select
+                                {...register('rol_id', { required: 'El rol es requerido' })}
+                                className="w-full pl-11 h-11 rounded-xl border-slate-200 bg-white/50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 transition-all focus:ring-4 focus:ring-primary/10 focus:border-primary"
+                            >
+                                <option value="">Selecciona un rol...</option>
+                                {roles && roles.map((rol) => (
+                                    <option key={rol.id} value={rol.id}>{rol.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        {errors.rol_id && <InputError message={errors.rol_id.message} />}
+                    </div>
+
+                    {/* Card de información del usuario */}
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/20">
+                                {data?.name?.charAt(0)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h5 className="text-sm font-bold text-slate-900 dark:text-white truncate">{data?.name}</h5>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                    <FontAwesomeIcon icon={faEnvelope} className="mr-1 opacity-70" /> {data?.email}
+                                </p>
+                            </div>
+                            <div className="shrink-0 text-right">
+                                <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded-lg font-bold uppercase tracking-tighter">
+                                    {data?.rol_nombre || 'Sin rol'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-5">
+                    {/* Alerta de eliminación */}
+                    <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/20 text-center">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 mb-3">
+                            <FontAwesomeIcon icon={faExclamationTriangle} size="lg" />
+                        </div>
+                        <h4 className="text-base font-bold text-amber-900 dark:text-amber-400 mb-1">Confirmar Eliminación</h4>
+                        <p className="text-sm text-amber-700 dark:text-amber-600/80 leading-relaxed font-medium">
+                            Estás a punto de borrar permanentemente a <span className="font-black text-amber-900 dark:text-amber-300">"{data?.name}"</span>.
+                            Esta acción no se puede deshacer.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Footer de Acciones */}
+            <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <SecondaryButton
+                    type="button"
+                    onClick={() => setShow(false)}
+                    className="h-11 px-6 font-bold"
                 >
-                    {/* Muestra spinner durante la carga o el texto del botón */}
-                    {isLoading ? (
-                        <>
-                            <Spinner
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                style={{
-                                    marginRight: "8px",
-                                    verticalAlign: "text-bottom",
-                                }}
-                            />
-                            {accion === "eliminar" ? "Eliminando..." : "Actualizando..."}
-                        </>
-                    ) : (
-                        buttonLabel
-                    )}
-                </Button>
+                    <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
+                </SecondaryButton>
+
+                {accion === 'editar' ? (
+                    <PrimaryButton
+                        type="submit"
+                        disabled={isLoading}
+                        className="h-11 px-8 font-bold shadow-lg shadow-primary/20"
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>Actualizando...</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <FontAwesomeIcon icon={faSave} />
+                                <span>{buttonLabel}</span>
+                            </div>
+                        )}
+                    </PrimaryButton>
+                ) : (
+                    <DangerButton
+                        type="submit"
+                        disabled={isLoading}
+                        className="h-11 px-8 font-bold shadow-lg shadow-red-500/20"
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>Borrando...</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <FontAwesomeIcon icon={faTrash} />
+                                <span>{buttonLabel}</span>
+                            </div>
+                        )}
+                    </DangerButton>
+                )}
             </div>
-        </Form>
+        </form>
     );
 };
 

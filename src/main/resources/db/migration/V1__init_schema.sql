@@ -1,4 +1,4 @@
-CREATE TABLE empresas (
+CREATE TABLE IF NOT EXISTS empresas (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     telefono VARCHAR(255),
@@ -18,7 +18,7 @@ CREATE TABLE empresas (
     uso_cfdi VARCHAR(255),
     status BOOLEAN NOT NULL DEFAULT TRUE
 );
-CREATE TABLE configuracion (
+CREATE TABLE IF NOT EXISTS configuracion (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     colores VARCHAR(255),
     logo VARCHAR(255),
@@ -28,7 +28,7 @@ CREATE TABLE configuracion (
     status BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_configuracion_empresa FOREIGN KEY (id_datos_empresa) REFERENCES empresas(id)
 );
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
     email VARCHAR(255) UNIQUE,

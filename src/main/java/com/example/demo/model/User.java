@@ -30,9 +30,11 @@ public class User {
     @Column(name = "remember_token")
     private String rememberToken;
 
-    @Column(name = "created_at")
+    @org.hibernate.annotations.CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @org.hibernate.annotations.UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

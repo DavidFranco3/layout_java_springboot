@@ -1,4 +1,4 @@
-CREATE TABLE clientes (
+CREATE TABLE IF NOT EXISTS clientes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     campo_ejemplo VARCHAR(255) NOT NULL
 );

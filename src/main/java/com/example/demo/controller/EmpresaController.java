@@ -48,7 +48,14 @@ public class EmpresaController {
         Map<String, Object> newData = new HashMap<>();
         newData.put("nombre", empresa.getNombre());
         newData.put("razon_social", empresa.getRazon_social());
-        newData.put("tipoPersona", empresa.getTipoPersona());
+        newData.put("rfc", empresa.getRfc());
+        newData.put("calle", empresa.getCalle());
+        newData.put("colonia", empresa.getColonia());
+        newData.put("cp", empresa.getCp());
+        newData.put("estado", empresa.getEstado());
+        newData.put("municipio", empresa.getMunicipio());
+        newData.put("telefono", empresa.getTelefono());
+        newData.put("email", empresa.getEmail());
         newData.put("status", empresa.getStatus());
 
         auditoriaService.registrarAuditoria(
@@ -81,7 +88,14 @@ public class EmpresaController {
         Map<String, Object> oldData = new HashMap<>();
         oldData.put("nombre", currentEmpresa.getNombre());
         oldData.put("razon_social", currentEmpresa.getRazon_social());
-        oldData.put("tipoPersona", currentEmpresa.getTipoPersona());
+        oldData.put("rfc", currentEmpresa.getRfc());
+        oldData.put("calle", currentEmpresa.getCalle());
+        oldData.put("colonia", currentEmpresa.getColonia());
+        oldData.put("cp", currentEmpresa.getCp());
+        oldData.put("estado", currentEmpresa.getEstado());
+        oldData.put("municipio", currentEmpresa.getMunicipio());
+        oldData.put("telefono", currentEmpresa.getTelefono());
+        oldData.put("email", currentEmpresa.getEmail());
         oldData.put("status", currentEmpresa.getStatus());
 
         empresa.setId(id);
@@ -90,7 +104,14 @@ public class EmpresaController {
         Map<String, Object> newData = new HashMap<>();
         newData.put("nombre", empresa.getNombre());
         newData.put("razon_social", empresa.getRazon_social());
-        newData.put("tipoPersona", empresa.getTipoPersona());
+        newData.put("rfc", empresa.getRfc());
+        newData.put("calle", empresa.getCalle());
+        newData.put("colonia", empresa.getColonia());
+        newData.put("cp", empresa.getCp());
+        newData.put("estado", empresa.getEstado());
+        newData.put("municipio", empresa.getMunicipio());
+        newData.put("telefono", empresa.getTelefono());
+        newData.put("email", empresa.getEmail());
         newData.put("status", empresa.getStatus());
 
         auditoriaService.registrarAuditoria(

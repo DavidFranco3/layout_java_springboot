@@ -1,16 +1,3 @@
-/**
- * Componente Index - Página principal de gestión de usuarios
- * 
- * Este componente representa la página principal del módulo de usuarios, donde se muestra
- * la lista de usuarios existentes y se proporciona la funcionalidad para crear nuevos usuarios.
- * Utiliza el patrón de layout autenticado de Laravel Inertia.js.
- * 
- * @param {Object} props - Propiedades pasadas desde el controlador Laravel
- * @param {Object} props.auth - Información del usuario autenticado
- * @param {Object} props.errors - Errores de validación del servidor
- * @param {Array} props.users - Lista de usuarios obtenida desde el servidor
- */
-
 import React, { useEffect, useState } from "react";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
@@ -18,32 +5,34 @@ import axios from "axios";
 import Create from "./Create";
 import ModalCustom from "@/Components/Generales/ModalCustom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button } from "react-bootstrap";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faUsers, faUserShield, faExclamationTriangle, faEyeSlash, faLock, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import TblUsers from "./TblUsers";
 import useAuth from "@/hooks/useAuth";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
 
 const Index = (props) => {
-    // Desestructuración de props para acceder a los datos del servidor
     const { auth, errors, users } = props;
-
-    // Hook para verificación de permisos
     const { user, rolNombre, hasModuleAccess, hasPermission } = useAuth();
 
-    // Estados locales del componente
-    const [modalOpen, setModalOpen] = useState(false); // Controla la visibilidad del modal de creación
-    const [roles, setRoles] = useState([]);           // Lista de roles disponibles para asignar
+    const [modalOpen, setModalOpen] = useState(false);
+    const [roles, setRoles] = useState([]);
 
-    // Verificar acceso al módulo completo
     if (!hasModuleAccess('Users')) {
         return (
-            <Authenticated auth={props.auth} errors={props.errors}>
-                <div className="col-lg-12 d-flex justify-content-center">
-                    <div className="col-lg-12 col-lg-offset-1 mt-2">
-                        <div className="alert alert-danger">
-                            <h4><i className="fas fa-exclamation-triangle"></i> Acceso Denegado</h4>
-                            <p>No tienes permisos para acceder al módulo de Usuarios.</p>
-                            <p><strong>Tu rol:</strong> {rolNombre || 'Sin asignar'}</p>
+            <Authenticated auth={auth} errors={errors}>
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="max-w-md w-full bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20 p-8 rounded-2xl text-center shadow-xl">
+                        <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-500 mx-auto mb-4">
+                            <FontAwesomeIcon icon={faExclamationTriangle} size="xl" />
+                        </div>
+                        <h2 className="text-xl font-bold text-rose-800 dark:text-rose-400 mb-2">Acceso Denegado</h2>
+                        <p className="text-rose-600/80 dark:text-rose-500/80 text-sm mb-6">
+                            No tienes los privilegios necesarios para acceder al módulo de gestión de usuarios.
+                        </p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-rose-200/50 dark:bg-rose-900/50 rounded-full text-[10px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
+                            <FontAwesomeIcon icon={faUserShield} />
+                            <span>Tu Rol: {rolNombre || 'Sin asignar'}</span>
                         </div>
                     </div>
                 </div>
@@ -51,16 +40,21 @@ const Index = (props) => {
         );
     }
 
-    // Verificar permiso básico de ver usuarios
     if (!hasPermission('ver users')) {
         return (
-            <Authenticated auth={props.auth} errors={props.errors}>
-                <div className="col-lg-12 d-flex justify-content-center">
-                    <div className="col-lg-12 col-lg-offset-1 mt-2">
-                        <div className="alert alert-warning">
-                            <h4><i className="fas fa-eye-slash"></i> Sin Permisos de Visualización</h4>
-                            <p>No tienes permisos para ver la lista de usuarios.</p>
-                            <p><strong>Tu rol:</strong> {rolNombre || 'Sin asignar'}</p>
+            <Authenticated auth={auth} errors={errors}>
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="max-w-md w-full bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 p-8 rounded-2xl text-center shadow-xl">
+                        <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-500 mx-auto mb-4">
+                            <FontAwesomeIcon icon={faEyeSlash} size="xl" />
+                        </div>
+                        <h2 className="text-xl font-bold text-amber-800 dark:text-amber-400 mb-2">Sin Permisos de Lectura</h2>
+                        <p className="text-amber-600/80 dark:text-amber-500/80 text-sm mb-6">
+                            No tienes permiso para visualizar el listado de usuarios del sistema.
+                        </p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-200/50 dark:bg-amber-900/50 rounded-full text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                            <FontAwesomeIcon icon={faUserShield} />
+                            <span>Tu Rol: {rolNombre || 'Sin asignar'}</span>
                         </div>
                     </div>
                 </div>
@@ -68,99 +62,89 @@ const Index = (props) => {
         );
     }
 
-    /**
-     * Funciones para controlar el modal de creación de usuarios
-     */
-    const abrirModal = () => setModalOpen(true);   // Abre el modal
-    const cerrarModal = () => setModalOpen(false); // Cierra el modal
+    const abrirModal = () => setModalOpen(true);
+    const cerrarModal = () => setModalOpen(false);
 
-    /**
-     * Obtiene la lista de roles disponibles desde el servidor
-     * Esta información se utiliza para mostrar los roles que se pueden asignar a los usuarios
-     */
     const getRoles = async () => {
         try {
             const response = await axios.get(route('roles.getRoles'));
-            console.log("Roles:", response.data);
-            setRoles(response.data.data); // Actualiza el estado con los roles obtenidos
+            setRoles(response.data.data);
         } catch (error) {
             console.error("Error fetching roles:", error);
         }
     }
 
-    /**
-     * Hook useEffect para inicialización del componente
-     * Se ejecuta una sola vez al montar el componente
-     */
     useEffect(() => {
-        getRoles(); // Carga los roles disponibles al inicializar
+        getRoles();
     }, []);
 
-    console.log("users", users);
     return (
-        // Layout autenticado que envuelve todo el contenido
-        <Authenticated auth={props.auth} errors={props.errors}>
-            <div className="col-lg-12 d-flex justify-content-center">
-                <div className="col-lg-12 col-lg-offset-1 mt-2">
-                    {/* Contenedor principal con título e icono */}
-                    <ContainerLaravel titulo={"Listado de Usuarios"} icono={"fa-users"}>
-
-                        {/* Sección de acciones - Botón para crear nuevo usuario */}
-                        <div className="mb-3 d-flex justify-content-between align-items-center">
-                            {/* Debug info - Solo en desarrollo*/}
-                            {process.env.NODE_ENV === 'development' && user && (
-                                <div>
-                                    <small className="text-muted">
-                                        <i className="fas fa-user-shield"></i>
-                                        <strong> Rol:</strong> {rolNombre || 'Sin asignar'}
-                                    </small>
-                                </div>
-                            )}
-                            <div>
-                                {hasPermission('crear users') ? (
-                                    <Button onClick={abrirModal} className="btn-success">
-                                        <FontAwesomeIcon icon={faPlus} /> Nuevo Usuario
-                                    </Button>
-                                ) : (
-                                    <Button disabled className="btn-secondary" title="Sin permisos para crear usuarios">
-                                        <FontAwesomeIcon icon={faPlus} /> Nuevo Usuario
-                                        <i className="fas fa-lock ms-2"></i>
-                                    </Button>
-                                )}
-                            </div>
+        <Authenticated auth={auth} errors={errors}>
+            <ContainerLaravel
+                titulo="Gestión de Usuarios"
+                icono={faUsers}
+            >
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    {/* Bento Block: Info */}
+                    <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
+                            <FontAwesomeIcon icon={faUserShield} className="text-xl" />
                         </div>
-
-                        {/* Tabla que muestra la lista de usuarios */}
-                        <div>
-                            <TblUsers
-                                users={users}
-                                roles={roles}
-                                permisos={{
-                                    editar: hasPermission('editar users'),
-                                    eliminar: hasPermission('eliminar users')
-                                }}
-                            />
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Seguridad de Acceso</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Administra las credenciales y el nivel de acceso para cada colaborador de la plataforma.
+                            </p>
                         </div>
+                    </div>
 
-                        {/* Modal para crear nuevos usuarios - Solo si tiene permisos */}
-                        {hasPermission('crear users') && (
-                            <ModalCustom
-                                show={modalOpen}
-                                onClose={() => setModalOpen(false)}
-                                maxWidth="md"
-                            >
-                                <ModalCustom.Header onClose={() => setModalOpen(false)} closeButton>
-                                    Registrar Usuario
-                                </ModalCustom.Header>
-                                <ModalCustom.Body>
-                                    {/* Componente de creación de usuarios con roles */}
-                                    <Create cerrarModal={cerrarModal} roles={roles} />
-                                </ModalCustom.Body>
-                            </ModalCustom>
+                    {/* Bento Block: Action */}
+                    <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col justify-center">
+                        {hasPermission('crear users') ? (
+                            <PrimaryButton onClick={abrirModal} className="w-full h-12 gap-2 shadow-xl shadow-primary/20 rounded-2xl font-black text-[10px] uppercase tracking-widest">
+                                <FontAwesomeIcon icon={faPlus} />
+                                Nuevo Usuario
+                            </PrimaryButton>
+                        ) : (
+                            <SecondaryButton disabled className="w-full h-12 gap-2 opacity-50 border-dashed rounded-2xl">
+                                <FontAwesomeIcon icon={faLock} className="text-slate-400" />
+                                Acceso Restringido
+                            </SecondaryButton>
                         )}
-                    </ContainerLaravel>
+                    </div>
                 </div>
-            </div>
+
+                <div className="mt-4">
+                    <TblUsers
+                        users={users}
+                        roles={roles}
+                        permisos={{
+                            editar: hasPermission('editar users'),
+                            eliminar: hasPermission('eliminar users')
+                        }}
+                    />
+                </div>
+
+                {hasPermission('crear users') && (
+                    <ModalCustom
+                        show={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                        maxWidth="md"
+                    >
+                        <ModalCustom.Header onClose={() => setModalOpen(false)} closeButton>
+                            <div className="flex items-center gap-3 font-bold text-slate-900 dark:text-white">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <FontAwesomeIcon icon={faUserPlus} />
+                                </div>
+                                <span>Registrar Nuevo Usuario</span>
+                            </div>
+                        </ModalCustom.Header>
+                        <ModalCustom.Body>
+                            <Create cerrarModal={cerrarModal} roles={roles} />
+                        </ModalCustom.Body>
+                    </ModalCustom>
+                )}
+            </ContainerLaravel>
         </Authenticated>
     );
 };

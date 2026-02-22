@@ -31,13 +31,26 @@ export default function Header(props) {
     const headerBg = isBaseDark ? shadeColor(baseColor, 0.2) : shadeColor(baseColor, -0.05);
 
     // Override en modo oscuro global
-    const effectiveBg = darkMode ? "#1e293b" : headerBg;
-    const isDark = isColorDark(effectiveBg);
-
     // Clases dinámicas según el contraste del header resultante
-    const textColor = isDark ? "text-slate-100" : "text-slate-700";
-    const iconColor = isDark ? "text-slate-300 hover:bg-white/10" : "text-slate-500 hover:bg-black/5";
-    const borderColor = isDark ? "border-slate-700" : "border-black/5";
+    // Lógica de color dinámica basada en la marca
+    const corporateColor = configuracion?.colores || "#0f172a";
+
+    // Fondo del header: Usar el COLOR REAL en light mode
+    const headerBaseColor = darkMode
+        ? shadeColor(corporateColor, -0.7)
+        : corporateColor;
+
+    const isHeaderDark = isColorDark(headerBaseColor);
+
+    // Clases dinámicas mejoradas con soporte para color de marca
+    const headerClasses = "backdrop-blur-md shadow-sm border-b transition-all duration-300";
+    const dynamicBorderStyle = isHeaderDark ? "border-white/10" : "border-black/5";
+
+    const textColor = isHeaderDark ? "text-slate-100" : "text-slate-800";
+    const iconBase = "transition-all duration-200 flex items-center justify-center rounded-xl";
+    const iconClasses = isHeaderDark
+        ? `${iconBase} text-slate-200 hover:text-white hover:bg-white/10`
+        : `${iconBase} text-slate-600 hover:text-slate-900 hover:bg-black/5`;
 
     const handleLogout = async () => {
         const result = await Swal.fire({
@@ -45,103 +58,108 @@ export default function Header(props) {
             text: "Tu sesión se finalizará",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#EF4444",
-            cancelButtonColor: "#6B7280",
+            confirmButtonColor: "var(--app-primary)",
+            cancelButtonColor: "#64748b",
             confirmButtonText: "Sí, cerrar sesión",
             cancelButtonText: "Cancelar",
-            background: darkMode ? "#1f2937" : "#fff",
-            color: darkMode ? "#fff" : "#000",
+            background: darkMode ? "#0f172a" : "#fff",
+            color: darkMode ? "#f8fafc" : "#0f172a",
+            customClass: {
+                popup: 'rounded-3xl border border-slate-200 dark:border-slate-800 px-6 py-4'
+            }
         });
 
         if (result.isConfirmed) {
-            router.post(route("logout"), {
-                onSuccess: () => {
-                    Swal.fire({
-                        title: "Sesión finalizada",
-                        text: "Has cerrado sesión correctamente",
-                        icon: "success",
-                        timer: 1500,
-                        showConfirmButton: false,
-                        background: darkMode ? "#1f2937" : "#fff",
-                        color: darkMode ? "#fff" : "#000",
-                    });
-                    setTimeout(() => {
-                        router.visit("/login");
-                    }, 1600);
-                },
-            });
+            router.post(route("logout"));
         }
     };
 
     return (
         <header
-            className={`sticky top-0 z-30 h-16 w-full border-b transition-all duration-300 ${borderColor}`}
-            style={{ backgroundColor: effectiveBg, minHeight: '64px' }}
+            className={`sticky top-0 z-30 h-16 w-full ${headerClasses} ${dynamicBorderStyle}`}
+            style={{ backgroundColor: `${headerBaseColor}CC` }} // 80% de opacidad (CC en hex)
         >
-            <div className="flex flex-row flex-nowrap items-center justify-between h-full w-full px-4">
-                {/* Left side: Toggle & Title */}
-                <div className="flex items-center flex-row flex-nowrap h-full min-w-0">
+            <div className="flex items-center justify-between h-full px-4 md:px-6">
+                {/* Left: Sidebar Toggle & Brand */}
+                <div className="flex items-center gap-4">
                     <button
                         onClick={toggleSidebar}
-                        className={`rounded p-2 focus:outline-none transition-colors shrink-0 ${iconColor}`}
+                        className={`w-10 h-10 ${iconClasses}`}
+                        title={sidebarOpen ? "Colapsar" : "Expandir"}
                     >
-                        <i className="fas fa-bars text-xl" />
+                        <i className={`fas ${sidebarOpen ? 'fa-indent' : 'fa-bars'} text-lg`} />
                     </button>
 
-                    <h1 className={`text-lg font-semibold truncate ml-4 hidden sm:block ${textColor} min-w-0`}>
-                        {configuracion?.nombre_comercial || "Panel de Administración"}
-                    </h1>
+                    <div className="hidden sm:flex flex-col">
+                        <h1 className={`text-sm font-bold tracking-tight ${textColor} leading-none mb-1`}>
+                            {configuracion?.nombre_comercial || "Panel de Administración"}
+                        </h1>
+                        <span className="text-[10px] font-bold text-primary uppercase tracking-widest opacity-80">
+                            Dashboard Corporativo
+                        </span>
+                    </div>
                 </div>
 
-                {/* Right side: User & Actions */}
-                <div className="flex items-center flex-row flex-nowrap h-full shrink-0 gap-2 sm:gap-4 ml-auto">
-                    {/* Theme Toggle Button */}
+                {/* Right: Actions */}
+                <div className="flex items-center gap-2 sm:gap-3">
+                    {/* Theme Toggle */}
                     <button
                         onClick={toggleDarkMode}
-                        className={`rounded-full p-2 transition-colors shrink-0 ${iconColor}`}
-                        title="Alternar modo oscuro"
+                        className={`w-10 h-10 ${iconClasses}`}
+                        title="Modo Oscuro/Claro"
                     >
-                        {darkMode ? <i className="fas fa-sun text-yellow-500"></i> : <i className="fas fa-moon"></i>}
+                        <i className={`fas ${darkMode ? 'fa-sun text-amber-400' : 'fa-moon'} text-lg`} />
                     </button>
 
+                    {/* Separator */}
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:block" />
+
                     {/* User Dropdown */}
-                    <div className="relative shrink-0 flex items-center h-full">
+                    <div className="relative">
                         <Dropdown>
                             <Dropdown.Trigger>
-                                <button className={`flex items-center gap-2 rounded-full border border-transparent py-1 px-2 text-sm font-medium transition focus:outline-none whitespace-nowrap ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'}`}>
-                                    <div className={`flex h-8 w-8 items-center justify-center rounded-full shrink-0 ${isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-slate-700'}`}>
-                                        <i className="bi bi-person-fill text-lg leading-none" />
+                                <button className="flex items-center gap-3 p-1 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group">
+                                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold relative overflow-hidden group-hover:shadow-md transition-all">
+                                        <div className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                                        {user?.name?.charAt(0) || 'U'}
                                     </div>
-                                    <div className="hidden text-left md:block shrink-0">
-                                        <span className={`block leading-none truncate max-w-[120px] ${textColor}`}>{user?.name}</span>
-                                        {rolNombre && (
-                                            <span className={`mt-0.5 block text-xs font-normal truncate max-w-[120px] ${isDark ? 'text-slate-300' : 'text-slate-500'}`}>
-                                                {rolNombre}
-                                            </span>
-                                        )}
+                                    <div className="hidden md:flex flex-col items-start pr-2">
+                                        <span className={`text-[13px] font-bold leading-none ${textColor} group-hover:text-primary transition-colors`}>
+                                            {user?.name?.split(' ')[0]}
+                                        </span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">
+                                            {rolNombre || 'Usuario'}
+                                        </span>
                                     </div>
-                                    <i className={`fas fa-chevron-down ml-1 text-xs shrink-0 ${isDark ? 'text-slate-400' : 'text-slate-400'}`} />
+                                    <i className="fas fa-chevron-down text-[10px] text-slate-400 mr-1" />
                                 </button>
                             </Dropdown.Trigger>
 
-                            <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white dark:bg-slate-800 border dark:border-slate-700">
-                                <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700 md:hidden">
-                                    <span className="block text-sm text-slate-700 dark:text-slate-200">{user?.name}</span>
-                                    <span className="block text-xs text-slate-500 dark:text-slate-400">{rolNombre}</span>
+                            <Dropdown.Content align="right" width="56" contentClasses="p-2 bg-white dark:bg-slate-900 border dark:border-slate-800 shadow-premium-lg rounded-2xl overflow-hidden mt-2">
+                                <div className="px-4 py-3 border-b border-slate-50 dark:border-slate-800 mb-2">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Conectado como:</p>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
+                                    <p className="text-[11px] text-slate-500 font-medium truncate">{user?.email}</p>
                                 </div>
 
-                                <Dropdown.Link href={route("profile.edit")} className="dark:text-slate-300 dark:hover:bg-slate-700">
-                                    <i className="fas fa-user-circle mr-2 opacity-75"></i> Perfil
+                                <Dropdown.Link href={route("profile.edit")} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary transition-all">
+                                    <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                        <i className="fas fa-user-circle" />
+                                    </div>
+                                    Perfil de Usuario
                                 </Dropdown.Link>
 
-                                <div className="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+                                <div className="my-2 border-t border-slate-100 dark:border-slate-800" />
 
                                 <Dropdown.Link
                                     as="button"
-                                    className="w-full text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                     onClick={handleLogout}
+                                    className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
                                 >
-                                    <i className="fas fa-sign-out-alt mr-2 opacity-75"></i> Cerrar Sesión
+                                    <div className="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center">
+                                        <i className="fas fa-sign-out-alt" />
+                                    </div>
+                                    Cerrar Sesión
                                 </Dropdown.Link>
                             </Dropdown.Content>
                         </Dropdown>

@@ -38,14 +38,14 @@ const DebouncedInput = ({
 
     return (
         <div className={`relative ${className}`}>
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 dark:text-gray-500 pointer-events-none">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 dark:text-slate-500 pointer-events-none">
                 <i className="fas fa-search"></i>
             </span>
             <input
                 {...props}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-700 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200"
+                className="w-full pl-11 pr-10 h-11 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-inner focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white/50 dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-300"
                 placeholder={placeholder}
             />
             {value && (

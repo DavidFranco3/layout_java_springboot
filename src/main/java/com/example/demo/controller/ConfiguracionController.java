@@ -98,6 +98,7 @@ public class ConfiguracionController {
         Map<String, Object> newData = new HashMap<>();
         newData.put("colores", configuracion.getColores());
         newData.put("nombre_comercial", configuracion.getNombre_comercial());
+        newData.put("id_datos_empresa", configuracion.getIdDatosEmpresa());
         newData.put("status", configuracion.getStatus());
 
         auditoriaService.registrarAuditoria(
@@ -137,6 +138,7 @@ public class ConfiguracionController {
         Map<String, Object> oldData = new HashMap<>();
         oldData.put("colores", currentConfig.getColores());
         oldData.put("nombre_comercial", currentConfig.getNombre_comercial());
+        oldData.put("id_datos_empresa", currentConfig.getIdDatosEmpresa());
         oldData.put("status", currentConfig.getStatus());
 
         if (logoFile != null && !logoFile.isEmpty()) {
@@ -162,6 +164,7 @@ public class ConfiguracionController {
         Map<String, Object> newData = new HashMap<>();
         newData.put("colores", configuracion.getColores());
         newData.put("nombre_comercial", configuracion.getNombre_comercial());
+        newData.put("id_datos_empresa", configuracion.getIdDatosEmpresa());
         newData.put("status", configuracion.getStatus());
 
         auditoriaService.registrarAuditoria(

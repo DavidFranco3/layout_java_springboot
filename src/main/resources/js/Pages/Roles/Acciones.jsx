@@ -1,115 +1,49 @@
-/**
- * Componente Acciones - Formulario multipropósito para operaciones CRUD de roles
- * 
- * Este componente maneja las acciones de editar y eliminar roles del sistema.
- * Utiliza react-hook-form para el manejo del formulario y permite la asignación
- * de permisos mediante switches interactivos.
- * 
- * @param {Object} props - Propiedades del componente
- * @param {Function} props.setShow - Función para controlar la visibilidad del modal
- * @param {Object} props.data - Datos del rol a procesar (nombre, permisos, etc.)
- * @param {string} props.accion - Tipo de acción a realizar ("editar" | "eliminar")
- */
-
-import React from "react";
-import { useEffect, useState } from 'react';
-import { Spinner, Button, Form, Row, Col, Nav, Tab } from 'react-bootstrap';
-import { useForm } from 'react-hook-form';
-import { router } from '@inertiajs/react';
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { router } from "@inertiajs/react";
+import InputLabel from "@/Components/InputLabel";
+import TextInput from "@/Components/TextInput";
+import InputError from "@/Components/InputError";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
+import DangerButton from "@/Components/DangerButton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faShieldAlt, faCheckCircle, faSave, faTimes, faTrash, faExclamationTriangle, faLayerGroup, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
+import axios from "axios";
 
-// Estilos CSS personalizados para el scroll de pestañas
-const tabScrollStyles = `
-.custom-tabs-scroll::-webkit-scrollbar {
-    height: 8px;
-}
-.custom-tabs-scroll::-webkit-scrollbar-track {
-    background: #f8f9fa;
-    border-radius: 4px;
-}
-.custom-tabs-scroll::-webkit-scrollbar-thumb {
-    background: #6c757d;
-    border-radius: 4px;
-}
-.custom-tabs-scroll::-webkit-scrollbar-thumb:hover {
-    background: #495057;
-}
-.custom-tabs-scroll {
-    scroll-behavior: smooth;
-}
-`;
+const Acciones = ({ setShow, data: rol, accion }) => {
+    const isEdit = accion === "editar";
+    const isEliminar = accion === "eliminar";
 
-const Acciones = ({ setShow, data, accion }) => {
-    // Inyecta los estilos CSS
-    useEffect(() => {
-        const style = document.createElement('style');
-        style.textContent = tabScrollStyles;
-        document.head.appendChild(style);
-        return () => document.head.removeChild(style);
-    }, []);
-    /**
-     * Hook de react-hook-form para manejar el formulario
-     * - register: registra campos en el formulario
-     * - handleSubmit: maneja el envío del formulario
-     * - formState.errors: errores de validación
-     * - setValue: establece valores programáticamente
-     * - watch: observa cambios en campos específicos
-     */
     const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
         defaultValues: {
-            name: data?.name || '',        // Nombre del rol (valor inicial)
-            permisos: data?.permisos || [] // Permisos del rol (array de IDs)
+            name: rol?.name || '',
+            permisos: rol?.permisos || []
         }
     });
 
-    // Estados locales del componente
-    const [permisos, setPermisos] = useState([]);      // Lista de todos los permisos disponibles
-    const [isLoading, setIsLoading] = useState(false); // Estado de carga durante peticiones
-    const [activeTab, setActiveTab] = useState('');    // Pestaña activa para módulos
-    const [permisosPorModulo, setPermisosPorModulo] = useState({}); // Permisos agrupados por módulo
+    const [permisos, setPermisos] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('');
+    const [permisosPorModulo, setPermisosPorModulo] = useState({});
 
-    /**
-     * Observadores para detectar cambios en tiempo real en los campos del formulario
-     * Esto permite que la UI se actualice automáticamente cuando cambian los valores
-     */
-    const watchedName = watch('name');         // Observa cambios en el nombre
-    const watchedPermisos = watch('permisos'); // Observa cambios en los permisos
+    const watchedName = watch('name');
+    const watchedPermisos = watch('permisos');
 
-    /**
-     * Define la etiqueta del botón según la acción a realizar
-     */
-    const buttonLabel = accion === 'registrar'
-        ? 'Guardar'
-        : accion === 'editar'
-            ? 'Actualizar'
-            : 'Eliminar';
-
-    /**
-     * Hook useEffect para inicialización del componente
-     * Se ejecuta cuando cambian las dependencias: data o accion
-     */
     useEffect(() => {
-        getPermisos(); // Carga la lista de permisos disponibles
-
-        // Establece valores iniciales cuando se está editando un rol existente
-        if (data && accion === 'editar') {
-            setValue('name', data.name || '');        // Establece el nombre del rol
-
-            // Si data.permisos viene como un array de objetos (del backend serializado),
-            // extraemos solo los IDs para que coincida con lo que espera el formulario.
-            const initialPermisos = Array.isArray(data.permisos)
-                ? data.permisos.map(p => typeof p === 'object' ? p.id : p)
+        getPermisos();
+        if (rol && isEdit) {
+            setValue('name', rol.name || '');
+            const initialPermisos = Array.isArray(rol.permisos)
+                ? rol.permisos.map(p => typeof p === 'object' ? p.id : p)
                 : [];
-            setValue('permisos', initialPermisos); // Establece los permisos asignados
+            setValue('permisos', initialPermisos);
         }
-    }, [data, accion]);
+    }, [rol, accion]);
 
-    /**
-     * Hook useEffect para agrupar permisos por módulos cuando se cargan
-     */
     useEffect(() => {
         if (permisos && permisos.length > 0) {
-            // Agrupa los permisos por modulo_nombre
             const grupos = permisos.reduce((acc, permiso) => {
                 const moduloNombre = permiso.modulo_nombre || 'Sin Módulo';
                 if (!acc[moduloNombre]) {
@@ -120,296 +54,215 @@ const Acciones = ({ setShow, data, accion }) => {
             }, {});
 
             setPermisosPorModulo(grupos);
-
-            // Establece la primera pestaña como activa si no hay una seleccionada
             if (!activeTab && Object.keys(grupos).length > 0) {
                 setActiveTab(Object.keys(grupos)[0]);
             }
         }
     }, [permisos]);
 
-    /**
-     * Maneja el envío del formulario según la acción especificada
-     * Utiliza Inertia.js router para las peticiones HTTP
-     * 
-     * @param {Object} formData - Datos del formulario validados
-     */
-    const onFormSubmit = async (formData) => {
-        setIsLoading(true); // Activa el estado de carga
-
-        try {
-            if (accion === "editar") {
-                // Actualiza el rol existente usando PUT request
-                router.put(route('roles.update', data.id), {
-                    name: formData.name,
-                    permisos: formData.permisos
-                }, {
-                    // Callback ejecutado en caso de éxito
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Éxito",
-                            text: "Rol actualizado correctamente",
-                            showConfirmButton: false,
-                            timer: 2000,
-                        });
-                        setShow(false); // Cierra el modal
-                    },
-                    // Callback ejecutado en caso de error
-                    onError: (errors) => {
-                        console.error("Error:", errors);
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "Hubo un problema al actualizar el rol",
-                            confirmButtonColor: "#d33",
-                        });
-                    },
-                    // Callback ejecutado al finalizar (éxito o error)
-                    onFinish: () => {
-                        setIsLoading(false); // Desactiva el estado de carga
-                    }
-                });
-            } else if (accion === "eliminar") {
-                // Elimina el rol usando DELETE request
-                router.delete(route('roles.destroy', data.id), {
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Éxito",
-                            text: "Rol eliminado correctamente",
-                            showConfirmButton: false,
-                            timer: 2000,
-                        });
-                        setShow(false); // Cierra el modal
-                    },
-                    onError: (errors) => {
-                        console.error("Error:", errors);
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "Hubo un problema al eliminar el rol",
-                            confirmButtonColor: "#d33",
-                        });
-                    },
-                    onFinish: () => {
-                        setIsLoading(false); // Desactiva el estado de carga
-                    }
-                });
-            } else {
-                // Acción no reconocida - la creación se maneja en otro componente
-                Swal.fire({
-                    icon: "info",
-                    title: "Acción no reconocida",
-                    text: "La creación de roles se gestiona en otro componente.",
-                    confirmButtonColor: "#3085d6",
-                });
-                setIsLoading(false);
-            }
-
-        } catch (error) {
-            console.error("Error:", error);
-            setIsLoading(false);
-        }
-    };
-
-    /**
-     * Obtiene la lista de permisos disponibles desde el servidor
-     * Utiliza axios para hacer una petición GET al endpoint de permisos
-     */
     const getPermisos = async () => {
         try {
             const response = await axios.get(route('roles.getPermisos'));
-            setPermisos(response.data.data); // Actualiza el estado con los permisos obtenidos
+            setPermisos(response.data.data);
         } catch (error) {
             console.error("Error fetching permissions:", error);
         }
     }
 
+    const togglePermiso = (id) => {
+        if (!isEdit) return;
+        const current = watchedPermisos || [];
+        const nuevos = current.includes(id)
+            ? current.filter(pid => pid !== id)
+            : [...current, id];
+        setValue("permisos", nuevos);
+    };
+
+    const onFormSubmit = async (formData) => {
+        setIsLoading(true);
+        const onSuccess = (msg) => {
+            Swal.fire({
+                icon: "success",
+                title: "Éxito",
+                text: msg,
+                showConfirmButton: false,
+                timer: 2000,
+                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+            });
+            setShow(false);
+        };
+
+        const onError = () => {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Ocurrió un problema al procesar la solicitud.",
+                confirmButtonColor: "var(--app-primary)",
+            });
+            setIsLoading(false);
+        };
+
+        if (isEdit) {
+            router.put(route('roles.update', rol.id), {
+                name: formData.name,
+                permisos: formData.permisos
+            }, { onSuccess: () => onSuccess("Rol actualizado correctamente"), onError });
+        } else if (isEliminar) {
+            router.delete(route('roles.destroy', rol.id), {
+                onSuccess: () => onSuccess("Rol eliminado correctamente"),
+                onError
+            });
+        }
+    };
+
+    if (isEliminar) {
+        return (
+            <div className="p-1 space-y-6 animate-fade-in">
+                <div className="p-6 rounded-3xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 text-center">
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 mb-4 shadow-inner">
+                        <FontAwesomeIcon icon={faExclamationTriangle} size="xl" />
+                    </div>
+                    <h4 className="text-lg font-bold text-red-900 dark:text-red-400 mb-2">Confirmar Eliminación</h4>
+                    <p className="text-sm text-red-700 dark:text-red-600/80 leading-relaxed max-w-xs mx-auto">
+                        ¿Estás seguro de eliminar el rol <span className="font-bold text-red-900 dark:text-red-300">"{rol?.name}"</span>? Esta acción revocará todos los accesos asociados.
+                    </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <SecondaryButton onClick={() => setShow(false)} className="h-12 px-6">
+                        <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
+                    </SecondaryButton>
+                    <DangerButton onClick={handleSubmit(onFormSubmit)} disabled={isLoading} className="h-12 px-8 shadow-lg shadow-red-500/20">
+                        {isLoading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                <span>Eliminando...</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <FontAwesomeIcon icon={faTrash} />
+                                <span>Eliminar Rol</span>
+                            </div>
+                        )}
+                    </DangerButton>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <Form onSubmit={handleSubmit(onFormSubmit)}>
-            <Row>
-                <Col>
-                    {/* Campo de entrada para el nombre del rol */}
-                    <Form.Group className="mb-3" controlId="formNombre">
-                        <Form.Label>Nombre</Form.Label>
-                        <Form.Control
-                            type="text"
-                            placeholder="Ingrese nombre"
-                            {...register('name', { required: 'El nombre es requerido' })}
-                            isInvalid={!!errors.name}
-                        />
-                        {/* Mensaje de error de validación */}
-                        <Form.Control.Feedback type="invalid">
-                            {errors.name?.message}
-                        </Form.Control.Feedback>
-                    </Form.Group>
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6 animate-fade-in p-1">
+            <div className="space-y-2">
+                <InputLabel value="Nombre del Rol" />
+                <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                        <FontAwesomeIcon icon={faShieldAlt} />
+                    </span>
+                    <TextInput
+                        className="w-full pl-11 h-12"
+                        placeholder="Ingrese nombre del rol"
+                        {...register('name', { required: 'El nombre es requerido' })}
+                        isError={!!errors.name}
+                    />
+                </div>
+                {errors.name && <p className="text-xs text-red-500 font-medium pl-1">{errors.name.message}</p>}
+            </div>
 
-                    {/* Sección de gestión de permisos organizados por módulos */}
-                    <Form.Group className="mb-3">
-                        <Form.Label>Permisos por Módulo</Form.Label>
+            <div className="space-y-4">
+                <div className="flex items-center gap-2 text-slate-900 dark:text-white font-bold text-sm uppercase tracking-wider">
+                    <FontAwesomeIcon icon={faLayerGroup} className="text-primary" />
+                    <span>Permisos Asignados</span>
+                </div>
 
-                        {/* Sistema de pestañas para mostrar permisos por módulos */}
-                        <Tab.Container activeKey={activeTab} onSelect={(tab) => setActiveTab(tab)}>
-                            {/* Navegación de pestañas con nombres de módulos - Con scroll horizontal */}
-                            <div style={{
-                                overflowX: "auto",
-                                overflowY: "hidden",
-                                whiteSpace: "nowrap",
-                                marginBottom: "1rem",
-                                paddingBottom: "2px",
-                                // Estilos de scrollbar personalizados
-                                scrollbarWidth: "thin",
-                                scrollbarColor: "#6c757d #f8f9fa"
-                            }}
-                                className="custom-tabs-scroll"
+                <div className="border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex overflow-x-auto no-scrollbar border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30">
+                        {Object.keys(permisosPorModulo).map((modulo) => (
+                            <button
+                                key={modulo}
+                                type="button"
+                                onClick={() => setActiveTab(modulo)}
+                                className={`px-5 py-4 text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 border-b-2 ${activeTab === modulo
+                                    ? "border-primary text-primary bg-primary/5"
+                                    : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                    }`}
                             >
-                                <Nav
-                                    variant="tabs"
-                                    className="flex-nowrap"
-                                    style={{
-                                        minWidth: "max-content",
-                                        borderBottom: "1px solid #dee2e6"
-                                    }}
-                                >
-                                    {Object.keys(permisosPorModulo).map((moduloNombre) => (
-                                        <Nav.Item key={moduloNombre} style={{ flexShrink: 0 }}>
-                                            <Nav.Link
-                                                eventKey={moduloNombre}
-                                                style={{
-                                                    whiteSpace: "nowrap",
-                                                    minWidth: "fit-content",
-                                                    paddingLeft: "12px",
-                                                    paddingRight: "12px",
-                                                    fontSize: "0.9rem"
-                                                }}
-                                            >
-                                                {moduloNombre}
-                                                <span className="badge bg-secondary ms-2" style={{ fontSize: "0.7rem" }}>
-                                                    {permisosPorModulo[moduloNombre].length}
-                                                </span>
-                                            </Nav.Link>
-                                        </Nav.Item>
-                                    ))}
-                                </Nav>
+                                {modulo}
+                                <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${activeTab === modulo ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-500"
+                                    }`}>
+                                    {permisosPorModulo[modulo].length}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
 
-                                {/* Indicador visual de scroll */}
-                                {Object.keys(permisosPorModulo).length > 5 && (
-                                    <div className="text-center mt-1">
-                                        <small className="text-muted">
-                                            <i className="fas fa-arrows-alt-h me-1"></i>
-                                            Desliza horizontalmente para ver más módulos
-                                        </small>
+                    <div className="max-h-[300px] overflow-y-auto p-4 space-y-2 custom-scrollbar">
+                        {activeTab && permisosPorModulo[activeTab]?.map((permiso) => (
+                            <div
+                                key={permiso.id}
+                                onClick={() => togglePermiso(permiso.id)}
+                                className={`group flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-all border ${watchedPermisos?.includes(permiso.id)
+                                    ? "bg-primary/5 border-primary/20 shadow-sm"
+                                    : "bg-white dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 hover:border-primary/30"
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${watchedPermisos?.includes(permiso.id) ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:text-primary"
+                                        }`}>
+                                        <FontAwesomeIcon icon={faCheckCircle} className="text-xs" />
                                     </div>
-                                )}
+                                    <p className={`text-sm font-bold transition-colors ${watchedPermisos?.includes(permiso.id) ? "text-primary" : "text-slate-700 dark:text-slate-200"
+                                        }`}>
+                                        {permiso.name}
+                                    </p>
+                                </div>
+                                <div className={`w-10 h-5 rounded-full relative transition-colors ${watchedPermisos?.includes(permiso.id) ? "bg-primary" : "bg-slate-200 dark:bg-slate-700"
+                                    }`}>
+                                    <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all shadow-sm ${watchedPermisos?.includes(permiso.id) ? "left-6" : "left-1"
+                                        }`} />
+                                </div>
                             </div>
+                        ))}
+                    </div>
+                </div>
 
-                            {/* Contenido de cada pestaña con la tabla de permisos */}
-                            <Tab.Content>
-                                {Object.entries(permisosPorModulo).map(([moduloNombre, permisosDelModulo]) => (
-                                    <Tab.Pane key={moduloNombre} eventKey={moduloNombre}>
-                                        {/* Contenedor con scroll para la tabla de permisos del módulo activo */}
-                                        <div style={{ maxHeight: 250, overflowY: "auto", border: "1px solid #eee", borderRadius: 6 }}>
-                                            <table className="table table-sm mb-0">
-                                                <thead className="table-light">
-                                                    <tr>
-                                                        <th>Permiso</th>
-                                                        {/* <th>Descripción</th> */}
-                                                        <th width="80">Seleccionar</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {/* Renderiza cada permiso del módulo seleccionado */}
-                                                    {permisosDelModulo.map((permiso) => (
-                                                        <tr key={permiso.id}>
-                                                            <td>
-                                                                <strong>{permiso.name}</strong>
-                                                            </td>
-                                                            {/* <td>
-                                                                <small className="text-muted">
-                                                                    {permiso.description || 'Sin descripción'}
-                                                                </small>
-                                                            </td> */}
-                                                            <td className="text-center">
-                                                                {/* Switch para seleccionar/deseleccionar permisos */}
-                                                                <Form.Check
-                                                                    type="switch"
-                                                                    id={`permiso-switch-${permiso.id}`}
-                                                                    checked={watchedPermisos.includes(permiso.id)}
-                                                                    onChange={(e) => {
-                                                                        const checked = e.target.checked;
-                                                                        const permisoId = permiso.id;
-                                                                        const currentPermisos = watchedPermisos || [];
-
-                                                                        // Actualiza la lista de permisos según el estado del switch
-                                                                        if (checked) {
-                                                                            // Agrega el permiso a la lista
-                                                                            setValue("permisos", [...currentPermisos, permisoId]);
-                                                                        } else {
-                                                                            // Remueve el permiso de la lista
-                                                                            setValue("permisos", currentPermisos.filter((id) => id !== permisoId));
-                                                                        }
-                                                                    }}
-                                                                    label=""
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-
-                                                    {/* Mensaje cuando no hay permisos en el módulo */}
-                                                    {permisosDelModulo.length === 0 && (
-                                                        <tr>
-                                                            <td colSpan="3" className="text-center text-muted py-3">
-                                                                No hay permisos disponibles para este módulo
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        {/* Información adicional del módulo */}
-                                        <div className="mt-2">
-                                            <small className="text-muted">
-                                                Módulo: <strong>{moduloNombre}</strong> |
-                                                Permisos disponibles: <strong>{permisosDelModulo.length}</strong> |
-                                                Seleccionados en este módulo: <strong>
-                                                    {permisosDelModulo.filter(p => watchedPermisos.includes(p.id)).length}
-                                                </strong>
-                                            </small>
-                                        </div>
-                                    </Tab.Pane>
-                                ))}
-                            </Tab.Content>
-                        </Tab.Container>
-
-                        {/* Resumen de permisos seleccionados */}
-                        {watchedPermisos && watchedPermisos.length > 0 && (
-                            <div className="mt-3 p-2 bg-light rounded">
-                                <small className="text-success">
-                                    <strong>Total de permisos seleccionados: {watchedPermisos.length}</strong>
-                                </small>
+                {watchedPermisos?.length > 0 && (
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <FontAwesomeIcon icon={faInfoCircle} />
                             </div>
-                        )}
+                            <div>
+                                <h5 className="text-sm font-bold">Resumen de Selección</h5>
+                                <p className="text-xs text-slate-500">{watchedPermisos.length} permisos habilitados para este rol</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-2xl font-black text-primary">{watchedPermisos.length}</span>
+                        </div>
+                    </div>
+                )}
+            </div>
 
-                        {/* Mensaje de error para validación de permisos */}
-                        {errors.permisos && (
-                            <div className="invalid-feedback d-block">{errors.permisos?.message}</div>
-                        )}
-                    </Form.Group>
-                </Col>
-            </Row>
-
-            {/* Botón de acción dinámico según el tipo de operación */}
-            <Button
-                variant={accion === "eliminar" ? "danger" : "primary"}
-                type="submit"
-                disabled={isLoading}
-            >
-                {/* Muestra spinner durante la carga o el texto del botón */}
-                {isLoading ? <Spinner size="sm" animation="border" /> : buttonLabel}
-            </Button>
-        </Form>
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <SecondaryButton type="button" onClick={() => setShow(false)} className="h-12 px-6">
+                    <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
+                </SecondaryButton>
+                <PrimaryButton type="submit" disabled={isLoading} className="h-12 px-10 shadow-xl shadow-primary/20">
+                    {isLoading ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span>Guardando...</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <FontAwesomeIcon icon={faSave} />
+                            <span>Actualizar Rol</span>
+                        </div>
+                    )}
+                </PrimaryButton>
+            </div>
+        </form>
     );
 };
 

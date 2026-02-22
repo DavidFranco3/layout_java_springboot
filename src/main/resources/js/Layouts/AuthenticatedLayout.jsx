@@ -75,10 +75,10 @@ export default function Authenticated({ auth, user, children }) {
 
     return (
         <div
-            className={`min-h-screen bg-slate-50 ${darkMode ? 'dark:bg-slate-900' : ''}`}
+            className="min-h-screen bg-[var(--app-bg)] transition-colors duration-300"
             style={{ '--app-primary': configuracion?.colores || '#005073' }}
         >
-            {/* Sidebar */}
+            {/* Sidebar con transición suave */}
             <Menu
                 auth={auth}
                 configuracion={configuracion}
@@ -88,7 +88,7 @@ export default function Authenticated({ auth, user, children }) {
             />
 
             {/* Main Content Wrapper */}
-            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
 
                 <Header
                     auth={auth}
@@ -100,13 +100,15 @@ export default function Authenticated({ auth, user, children }) {
                     sidebarOpen={sidebarOpen}
                 />
 
-                <main className="flex-1 p-6 overflow-x-hidden">
-                    {children &&
-                        React.cloneElement(children, {
-                            configuracion,
-                            darkMode,
-                            toggleDarkMode: () => setDarkMode(!darkMode),
-                        })}
+                <main className="flex-1 p-4 md:p-8 overflow-x-hidden animate-fade-in">
+                    <div className="max-w-[1700px] mx-auto">
+                        {children &&
+                            React.cloneElement(children, {
+                                configuracion,
+                                darkMode,
+                                toggleDarkMode: () => setDarkMode(!darkMode),
+                            })}
+                    </div>
                 </main>
 
                 <Footer
@@ -117,3 +119,4 @@ export default function Authenticated({ auth, user, children }) {
         </div>
     );
 }
+

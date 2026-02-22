@@ -1,217 +1,190 @@
-/**
- * Componente Create - Formulario para crear nuevos usuarios
- * 
- * Este componente renderiza un formulario modal para la creación de nuevos usuarios
- * del sistema, permitiendo asignar nombre, email, contraseña y rol específico.
- * 
- * @param {Object} props - Propiedades del componente
- * @param {Function} props.cerrarModal - Función para cerrar el modal
- * @param {Array} props.roles - Lista de roles disponibles para asignar
- */
-
 import React from "react";
 import { useForm } from "@inertiajs/react";
-import { Form, Button, Spinner } from "react-bootstrap";
-import Swal from "sweetalert2";
+import InputLabel from "@/Components/InputLabel";
+import TextInput from "@/Components/TextInput";
+import InputError from "@/Components/InputError";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
 import useAuth from "@/hooks/useAuth";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser, faEnvelope, faKey, faShieldAlt, faSave, faTimes } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
 
 export default function Create({ cerrarModal, roles }) {
-    // Hook para verificación de permisos
     const { user, rolNombre, hasPermission } = useAuth();
 
-    // Verificar permiso para crear usuarios
     if (!hasPermission('crear users')) {
         return (
-            <div className="text-center p-4">
-                <div className="alert alert-danger">
-                    <h5><i className="fas fa-exclamation-triangle"></i> Acceso Denegado</h5>
-                    <p>No tienes permisos para crear usuarios.</p>
-                    <p><strong>Tu rol:</strong> {rolNombre || 'Sin asignar'}</p>
-                    <p><strong>Permiso requerido:</strong> crear_users</p>
+            <div className="p-6 text-center animate-fade-in">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 mb-4 shadow-inner">
+                    <FontAwesomeIcon icon={faShieldAlt} size="2x" />
                 </div>
-                <Button variant="secondary" onClick={cerrarModal}>
-                    Cerrar
-                </Button>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Acceso Denegado</h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">No tienes permisos para crear usuarios.</p>
+                <SecondaryButton onClick={cerrarModal}>Cerrar</SecondaryButton>
             </div>
         );
     }
 
-    /**
-     * Hook de Inertia.js para manejar formularios
-     * 
-     * PROPIEDADES:
-     * - data: contiene los valores actuales del formulario
-     * - setData: función para actualizar valores del formulario
-     * - post: función para enviar datos via POST
-     * - processing: estado booleano que indica si hay una petición en curso
-     * - reset: función para limpiar el formulario
-     * - errors: objeto con errores de validación del servidor
-     */
     const { data, setData, post, processing, reset, errors } = useForm({
-        nombre: "",      // Nombre del usuario
-        email: "",       // Email del usuario
-        password: "",    // Contraseña del usuario
-        rol_id: "",      // ID del rol asignado al usuario
+        nombre: "",
+        email: "",
+        password: "",
+        rol_id: "",
     });
 
-    /**
-     * Maneja el envío del formulario
-     * 
-     * PROCESO:
-     * 1. Previene el comportamiento por defecto del formulario
-     * 2. Envía los datos al endpoint de creación de usuarios
-     * 3. Maneja respuestas de éxito y error con notificaciones SweetAlert
-     * 4. Cierra el modal y limpia el formulario en caso de éxito
-     * 
-     * @param {Event} e - Evento del formulario
-     */
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Envía los datos al endpoint de creación de usuarios
         post(route("users.store"), {
-            // Callback ejecutado cuando la petición es exitosa
             onSuccess: () => {
                 Swal.fire({
                     icon: "success",
-                    title: "Éxito",
-                    text: "Usuario registrado correctamente",
+                    title: "¡Logrado!",
+                    text: "Usuario registrado con éxito",
                     showConfirmButton: false,
                     timer: 2000,
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
                 });
-                cerrarModal();  // Cierra el modal
-                reset();        // Limpia el formulario
+                cerrarModal();
+                reset();
             },
-            // Callback ejecutado cuando hay errores
             onError: () => {
                 Swal.fire({
                     icon: "error",
-                    title: "Error",
+                    title: "Oops...",
                     text: "Hubo un problema al registrar el usuario",
-                    confirmButtonColor: "#d33",
+                    confirmButtonColor: "var(--app-primary)",
                 });
             },
         });
     };
 
     return (
-        <Form onSubmit={handleSubmit}>
-            {/* Campo de entrada para el nombre del usuario */}
-            <Form.Group className="mb-3" controlId="formNombre">
-                <Form.Label>Nombre</Form.Label>
-                <Form.Control
-                    type="text"
-                    placeholder="Ingrese nombre"
-                    value={data.nombre}
-                    isInvalid={!!errors.nombre}  // Muestra estado de error si existe
-                    onChange={(e) => setData("nombre", e.target.value)}
-                />
-                {/* Muestra mensaje de error de validación */}
-                <Form.Control.Feedback type="invalid">
-                    {errors.nombre}
-                </Form.Control.Feedback>
-            </Form.Group>
-
-            {/* Campo de selección de rol */}
-            <Form.Group className="mb-3" controlId="formRol">
-                <Form.Label>Rol</Form.Label>
-                <Form.Select
-                    value={data.rol_id}
-                    isInvalid={!!errors.rol_id}  // Muestra estado de error si existe
-                    onChange={(e) => setData("rol_id", e.target.value)}
-                >
-                    <option value="">Seleccione un Rol</option>
-                    {/* Mapea los roles disponibles para crear las opciones */}
-                    {roles.map((rol) => (
-                        <option key={rol.id} value={rol.id}>
-                            {rol.name}
-                        </option>
-                    ))}
-                </Form.Select>
-                {/* Muestra mensaje de error de validación */}
-                <Form.Control.Feedback type="invalid">
-                    {errors.rol_id}
-                </Form.Control.Feedback>
-            </Form.Group>
-
-            {/* Campo de entrada para el email del usuario */}
-            <Form.Group className="mb-3" controlId="formEmail">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                    type="email"
-                    placeholder="Ingrese correo"
-                    value={data.email}
-                    isInvalid={!!errors.email}  // Muestra estado de error si existe
-                    onChange={(e) => setData("email", e.target.value)}
-                />
-                {/* Muestra mensaje de error de validación */}
-                <Form.Control.Feedback type="invalid">
-                    {errors.email}
-                </Form.Control.Feedback>
-            </Form.Group>
-
-            {/* Campo de entrada para la contraseña del usuario */}
-            <Form.Group className="mb-3" controlId="formPassword">
-                <Form.Label>Contraseña</Form.Label>
-                <Form.Control
-                    type="password"
-                    placeholder="Ingrese contraseña"
-                    value={data.password}
-                    isInvalid={!!errors.password}  // Muestra estado de error si existe
-                    onChange={(e) => setData("password", e.target.value)}
-                />
-                {/* Muestra mensaje de error de validación */}
-                <Form.Control.Feedback type="invalid">
-                    {errors.password}
-                </Form.Control.Feedback>
-            </Form.Group>
-
-            {/* Información de permisos actual del usuario debug info - Solo en desarrollo*/}
-            {process.env.NODE_ENV === 'development' && user && (
-                <div className="mt-3 p-2 bg-light rounded">
-                    <small className="text-muted">
-                        <strong>Creando como:</strong> {user?.name} ({rolNombre})<br />
-                        <strong>Permiso:</strong> crear users ✅
-                    </small>
+        <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in p-1">
+            {/* Header del Formulario Interno (Opcional, pero da jerarquía) */}
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
+                    <FontAwesomeIcon icon={faUser} />
                 </div>
-            )}
-
-
-            {/* Botón de envío del formulario */}
-            <div className="text-center mt-4">
-                <Button
-                    type="submit"
-                    disabled={processing}  // Se deshabilita durante el procesamiento
-                    style={{
-                        backgroundColor: "#2C3E50",
-                        border: "none",
-                        padding: "0.5rem 1.5rem",
-                        borderRadius: "8px",
-                        fontSize: "1rem",
-                        fontWeight: "500",
-                        color: "#fff",
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                    }}
-                >
-                    {/* Cambia el contenido del botón según el estado de procesamiento */}
-                    {processing ? (
-                        <>
-                            <Spinner
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                style={{
-                                    marginRight: "8px",
-                                    verticalAlign: "text-bottom",
-                                }}
-                            />
-                            Guardando...
-                        </>
-                    ) : (
-                        "Guardar"
-                    )}
-                </Button>
+                <div>
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white leading-none">Información Personal</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold">Datos básicos del nuevo integrante</p>
+                </div>
             </div>
-        </Form>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* Nombre */}
+                <div className="space-y-1.5">
+                    <InputLabel htmlFor="nombre" value="Nombre Completo" />
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                            <FontAwesomeIcon icon={faUser} />
+                        </span>
+                        <TextInput
+                            id="nombre"
+                            className="w-full pl-10 h-11"
+                            value={data.nombre}
+                            placeholder="Ej. Juan Pérez"
+                            onChange={(e) => setData("nombre", e.target.value)}
+                            required
+                        />
+                    </div>
+                    <InputError message={errors.nombre} />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-1.5">
+                    <InputLabel htmlFor="email" value="Correo Electrónico" />
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                            <FontAwesomeIcon icon={faEnvelope} />
+                        </span>
+                        <TextInput
+                            id="email"
+                            type="email"
+                            className="w-full pl-10 h-11"
+                            value={data.email}
+                            placeholder="juan@ejemplo.com"
+                            onChange={(e) => setData("email", e.target.value)}
+                            required
+                        />
+                    </div>
+                    <InputError message={errors.email} />
+                </div>
+
+                {/* Rol */}
+                <div className="space-y-1.5">
+                    <InputLabel htmlFor="rol_id" value="Asignar Rol" />
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                            <FontAwesomeIcon icon={faShieldAlt} />
+                        </span>
+                        <select
+                            id="rol_id"
+                            className="w-full pl-10 h-11 rounded-xl border-slate-200 bg-white/50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 transition-all focus:ring-4 focus:ring-primary/10 focus:border-primary"
+                            value={data.rol_id}
+                            onChange={(e) => setData("rol_id", e.target.value)}
+                            required
+                        >
+                            <option value="">Selecciona un rol...</option>
+                            {roles.map((rol) => (
+                                <option key={rol.id} value={rol.id}>{rol.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <InputError message={errors.rol_id} />
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                    <InputLabel htmlFor="password" value="Contraseña" />
+                    <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                            <FontAwesomeIcon icon={faKey} />
+                        </span>
+                        <TextInput
+                            id="password"
+                            type="password"
+                            className="w-full pl-10 h-11"
+                            value={data.password}
+                            placeholder="••••••••"
+                            onChange={(e) => setData("password", e.target.value)}
+                            required
+                        />
+                    </div>
+                    <InputError message={errors.password} />
+                </div>
+            </div>
+
+            {/* Footer de Acciones dentro del Formulario */}
+            <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                <SecondaryButton
+                    type="button"
+                    onClick={cerrarModal}
+                    className="h-11 px-6 font-bold"
+                >
+                    <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
+                </SecondaryButton>
+
+                <PrimaryButton
+                    type="submit"
+                    disabled={processing}
+                    className="h-11 px-8 font-bold shadow-lg shadow-primary/20"
+                >
+                    {processing ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span>Guardando...</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <FontAwesomeIcon icon={faSave} />
+                            <span>Crear Usuario</span>
+                        </div>
+                    )}
+                </PrimaryButton>
+            </div>
+        </form>
     );
 }
