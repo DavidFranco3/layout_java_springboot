@@ -99,19 +99,29 @@ const Index = (props) => {
                     </div>
 
                     {/* Bento Block: Action */}
-                    <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col justify-center">
-                        {hasPermission('crear users') ? (
-                            <PrimaryButton onClick={abrirModal} className="w-full h-12 gap-2 shadow-xl shadow-primary/20 rounded-2xl font-black text-[10px] uppercase tracking-widest">
-                                <FontAwesomeIcon icon={faPlus} />
-                                Nuevo Usuario
-                            </PrimaryButton>
-                        ) : (
-                            <SecondaryButton disabled className="w-full h-12 gap-2 opacity-50 border-dashed rounded-2xl">
-                                <FontAwesomeIcon icon={faLock} className="text-slate-400" />
-                                Acceso Restringido
-                            </SecondaryButton>
-                        )}
-                    </div>
+                    <button
+                        onClick={hasPermission('crear users') ? abrirModal : null}
+                        disabled={!hasPermission('crear users')}
+                        className={`group relative overflow-hidden p-6 rounded-3xl border transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center ${hasPermission('crear users')
+                                ? 'bg-white dark:bg-slate-900 border-primary/20 hover:border-primary shadow-sm hover:shadow-2xl hover:shadow-primary/20 cursor-pointer active:scale-95'
+                                : 'bg-slate-100 dark:bg-slate-950 border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed'
+                            }`}
+                    >
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${hasPermission('crear users')
+                                ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                                : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                            }`}>
+                            <FontAwesomeIcon icon={hasPermission('crear users') ? faPlus : faLock} className="text-xl" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className={`text-sm font-black uppercase tracking-widest ${hasPermission('crear users') ? 'text-primary' : 'text-slate-400'}`}>
+                                {hasPermission('crear users') ? 'Nuevo Usuario' : 'Bloqueado'}
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                                {hasPermission('crear users') ? 'Registrar colaborador' : 'Sin permisos'}
+                            </p>
+                        </div>
+                    </button>
                 </div>
 
                 <div className="mt-4">

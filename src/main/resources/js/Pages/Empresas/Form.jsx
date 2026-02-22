@@ -83,19 +83,19 @@ export default function Form(props) {
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                            {/* BENTO BOX 1: INFORMACIÓN GENERAL */}
-                            <div className="bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-[var(--border-light)] shadow-sm space-y-6">
+                            {/* BENTO BOX 1: INFORMACIÓN GENERAL Y CONTACTO */}
+                            <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-[var(--border-light)] shadow-sm space-y-6">
                                 <div className="flex items-center gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800/50">
                                     <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 shadow-sm">
                                         <FontAwesomeIcon icon={faBuilding} />
                                     </div>
                                     <div>
-                                        <h4 className="text-lg font-bold tracking-tight">Información Corporativa</h4>
-                                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Datos públicos</p>
+                                        <h4 className="text-lg font-bold tracking-tight">Datos de la Empresa</h4>
+                                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Información básica y de contacto</p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
                                         <InputLabel htmlFor="nombre" value="Nombre Comercial" />
                                         <div className="relative">
@@ -106,16 +106,15 @@ export default function Form(props) {
                                                 id="nombre"
                                                 className="w-full pl-11 h-12"
                                                 value={data.nombre}
-                                                placeholder="Nombre público de la empresa"
+                                                placeholder="Nombre público"
                                                 onChange={(e) => setData("nombre", e.target.value)}
                                                 required
                                             />
                                         </div>
-                                        <InputError message={errors.nombre} />
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <InputLabel htmlFor="giro" value="Sector / Giro" />
+                                        <InputLabel htmlFor="giro" value="Giro / Sector" />
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                                                 <FontAwesomeIcon icon={faBriefcase} />
@@ -124,30 +123,14 @@ export default function Form(props) {
                                                 id="giro"
                                                 className="w-full pl-11 h-12"
                                                 value={data.giro}
-                                                placeholder="Ej. Comercial, Servicios, Tecnología"
+                                                placeholder="Ej. Servicios, Alimentos"
                                                 onChange={(e) => setData("giro", e.target.value)}
                                             />
                                         </div>
-                                        <InputError message={errors.giro} />
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* BENTO BOX 2: CONTACTO (Arriba con General) */}
-                            <div className="bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-[var(--border-light)] shadow-sm space-y-6">
-                                <div className="flex items-center gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800/50">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-sm">
-                                        <FontAwesomeIcon icon={faPhone} />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-lg font-bold tracking-tight">Comunicación</h4>
-                                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Canales Directos</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <InputLabel htmlFor="telefono" value="Teléfono" />
+                                        <InputLabel htmlFor="telefono" value="Teléfono de Contacto" />
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
                                                 <FontAwesomeIcon icon={faPhone} />

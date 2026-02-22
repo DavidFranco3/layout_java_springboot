@@ -128,19 +128,45 @@ const Index = (props) => {
                 titulo="Configuración del Sistema"
                 icono={faCog}
             >
-                <div className="flex justify-between items-center mb-6">
-                    <div className="space-y-1">
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Personaliza la identidad visual y los parámetros generales de la plataforma.
-                        </p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-2">
+                    {/* Bento Block: Info */}
+                    <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+                            <FontAwesomeIcon icon={faWrench} className="text-xl" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Personalización de Plataforma</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Ajusta la identidad visual, logotipos y parámetros generales para cada instancia del sistema.
+                            </p>
+                        </div>
                     </div>
-                    {configuracions.length === 0 && (
-                        <Link href={route("configuracions.create")}>
-                            <PrimaryButton className="gap-2">
-                                <FontAwesomeIcon icon={faPlus} />
-                                Nueva Configuración
-                            </PrimaryButton>
+
+                    {/* Bento Block: Action */}
+                    {configuracions.length === 0 ? (
+                        <Link
+                            href={route("configuracions.create")}
+                            className="group relative overflow-hidden p-6 rounded-3xl border border-primary/20 bg-white dark:bg-slate-900 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/20 active:scale-95"
+                        >
+                            <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                                <FontAwesomeIcon icon={faPlus} className="text-xl" />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-sm font-black uppercase tracking-widest text-primary">
+                                    Nueva Configuración
+                                </p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                                    Definir parámetros visuales
+                                </p>
+                            </div>
                         </Link>
+                    ) : (
+                        <div className="bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex flex-col items-center justify-center gap-2 opacity-60">
+                            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                <FontAwesomeIcon icon={faInfoCircle} />
+                            </div>
+                            <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Límite Alcanzado</p>
+                        </div>
                     )}
                 </div>
 

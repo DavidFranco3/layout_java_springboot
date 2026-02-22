@@ -38,15 +38,36 @@ const Index = (props) => {
                 titulo="Gestión de Clientes"
                 icono={faUsers}
             >
-                <div className="flex justify-between items-center mb-6">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Administra la base de datos de tus clientes registrados.
-                    </p>
-                    <Link href={route("clientes.create")}>
-                        <PrimaryButton className="gap-2">
-                            <FontAwesomeIcon icon={faPlus} />
-                            Nuevo Cliente
-                        </PrimaryButton>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-2">
+                    {/* Bento Block: Info */}
+                    <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
+                            <FontAwesomeIcon icon={faUsers} className="text-xl" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Base de Datos de Clientes</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Administra el padrón de clientes registrados, sus perfiles comerciales y datos históricos.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Bento Block: Action */}
+                    <Link
+                        href={route("clientes.create")}
+                        className="group relative overflow-hidden p-6 rounded-3xl border border-primary/20 bg-white dark:bg-slate-900 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/20 active:scale-95"
+                    >
+                        <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                            <FontAwesomeIcon icon={faPlus} className="text-xl" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm font-black uppercase tracking-widest text-primary">
+                                Nuevo Cliente
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                                Registrar nuevo perfil
+                            </p>
+                        </div>
                     </Link>
                 </div>
 

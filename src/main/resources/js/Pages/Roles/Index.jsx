@@ -64,12 +64,22 @@ const Index = (props) => {
                     </div>
 
                     {/* Bento Block: Action */}
-                    <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 flex flex-col justify-center">
-                        <PrimaryButton onClick={abrirModal} className="w-full h-12 gap-2 shadow-xl shadow-primary/20 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white">
-                            <FontAwesomeIcon icon={faPlus} />
-                            Crear Nuevo Rol
-                        </PrimaryButton>
-                    </div>
+                    <button
+                        onClick={abrirModal}
+                        className="group relative overflow-hidden p-6 rounded-3xl border border-primary/20 bg-white dark:bg-slate-900 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-primary/20 active:scale-95"
+                    >
+                        <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                            <FontAwesomeIcon icon={faPlus} className="text-xl" />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm font-black uppercase tracking-widest text-primary">
+                                Crear Nuevo Rol
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                                Configurar nivel de acceso
+                            </p>
+                        </div>
+                    </button>
                 </div>
 
                 <div className="mt-4">

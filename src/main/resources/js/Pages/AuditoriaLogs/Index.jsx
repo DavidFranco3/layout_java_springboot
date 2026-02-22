@@ -129,10 +129,19 @@ const Index = (props) => {
                 titulo="Historial de Auditoría"
                 icono={faTerminal}
             >
-                <div className="mb-6">
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Registro cronológico de todas las operaciones realizadas en el sistema para control de trazabilidad.
-                    </p>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-2">
+                    {/* Bento Block: Info */}
+                    <div className="lg:col-span-3 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                            <FontAwesomeIcon icon={faHistory} className="text-xl" />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Trazabilidad de Operaciones</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                Registro cronológico y detallado de cada acción realizada en la plataforma, permitiendo auditar cambios en datos sensibles e identidad de los usuarios.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="mt-4">
