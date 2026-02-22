@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
-import { router } from "@inertiajs/react";
-import Swal from "sweetalert2";
+import DropdownActions from "@/Components/Generales/DropdownActions";
+import BasicModal from "@/Components/Modal/BasicModal";
+import Acciones from "./Acciones";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -15,39 +16,14 @@ dayjs.extend(localizedFormat);
 const Index = (props) => {
     const { auth, errors, configuracions } = props;
 
-    // Eliminar configuración con SweetAlert
-    const handleDelete = (id) => {
-        Swal.fire({
-            title: "¿Estás seguro?",
-            text: "Esta acción eliminará la configuración y no se puede deshacer.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Sí, eliminar",
-            cancelButtonText: "Cancelar",
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(route("configuracions.destroy", id), {
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Eliminado",
-                            text: "La configuración ha sido eliminada correctamente",
-                            timer: 2000,
-                            showConfirmButton: false,
-                        });
-                    },
-                    onError: () => {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "No se pudo eliminar la configuración. Intenta nuevamente.",
-                        });
-                    },
-                });
-            }
-        });
+    const [showModal, setShowModal] = useState(false);
+    const [contentModal, setContentModal] = useState(null);
+    const [titulosModal, setTitulosModal] = useState(null);
+
+    const abrirModal = (titulo, contenido) => {
+        setTitulosModal(titulo);
+        setContentModal(contenido);
+        setShowModal(true);
     };
 
     // Columnas de DataTable
@@ -56,10 +32,12 @@ const Index = (props) => {
             name: "ID",
             selector: (row) => row.id,
             sortable: true,
+            width: "80px",
         },
         {
             name: "Nombre Comercial",
             selector: (row) => row.nombre_comercial || "Sin nombre",
+            sortable: true,
         },
         {
             name: "Color Principal",
@@ -72,7 +50,6 @@ const Index = (props) => {
                             gap: "8px",
                         }}
                     >
-                        {/* Cuadro de color */}
                         <div
                             style={{
                                 width: "20px",
@@ -82,12 +59,12 @@ const Index = (props) => {
                                 borderRadius: "4px",
                             }}
                         ></div>
-                        {/* Código hexadecimal */}
                         <span>{row.colores}</span>
                     </div>
                 ) : (
                     "No asignado"
                 ),
+            width: "150px",
         },
 
         {
@@ -95,7 +72,7 @@ const Index = (props) => {
             cell: (row) =>
                 row.logo ? (
                     <img
-                        src={`/storage/${row.logo}`} // Aquí usamos la ruta general /storage/{path}
+                        src={`/storage/${row.logo}`}
                         alt="Logo"
                         style={{
                             width: "100px",
@@ -110,48 +87,52 @@ const Index = (props) => {
         {
             name: "Estado",
             selector: (row) => (row.status ? "Activo" : "Inactivo"),
+            width: "100px",
         },
         {
             name: "Creado el",
             selector: (row) =>
                 dayjs.utc(row.created_at).format("DD/MM/YYYY h:mm:ss A"),
+            sortable: true,
         },
         {
             name: "Acciones",
             cell: (row) => (
-                <div style={{ display: "flex", gap: "8px" }}>
-                    {/* Botón Editar */}
-                    <Link
-                        href={route("configuracions.edit", row.id)}
-                        className="btn btn-warning btn-sm"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "5px",
-                        }}
-                    >
-                        <i className="fa fa-pen"></i> Editar
-                    </Link>
-
-                    {/* Botón Eliminar */}
-                    <button
-                        onClick={() => handleDelete(row.id)}
-                        className="btn btn-danger btn-sm"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "5px",
-                        }}
-                    >
-                        <i className="fa fa-trash"></i> Eliminar
-                    </button>
-                </div>
+                <DropdownActions
+                    buttonColor="minimal"
+                    icon="fas fa-ellipsis-v"
+                    actions={[
+                        {
+                            label: "Editar",
+                            icon: "fas fa-pen",
+                            color: "text-amber-500",
+                            href: route("configuracions.edit", row.id)
+                        },
+                        {
+                            label: "Eliminar",
+                            icon: "fas fa-trash",
+                            color: "text-red-500",
+                            onClick: () => abrirModal(
+                                "Eliminar Configuración",
+                                <Acciones
+                                    setShow={setShowModal}
+                                    data={row}
+                                    accion="eliminar"
+                                />
+                            )
+                        }
+                    ]}
+                />
             ),
+            ignoreRowClick: true,
+            allowOverflow: true,
+            button: true,
+            width: "100px",
         },
     ];
 
     return (
-        <Authenticated auth={props.auth} errors={props.errors}>
+        <Authenticated auth={auth} errors={errors}>
             <div className="col-lg-12 d-flex justify-content-center">
                 <div className="col-lg-12 col-lg-offset-1 mt-2">
                     <ContainerLaravel
@@ -176,6 +157,15 @@ const Index = (props) => {
                             datos={configuracions}
                             columnas={columns}
                         />
+
+                        {/* Modal */}
+                        <BasicModal
+                            show={showModal}
+                            setShow={setShowModal}
+                            title={titulosModal}
+                        >
+                            {contentModal}
+                        </BasicModal>
                     </ContainerLaravel>
                 </div>
             </div>

@@ -44,7 +44,7 @@ export default function Form(props) {
                 timer: 2000,
                 showConfirmButton: false,
             }).then(() => {
-                window.location.href = route("configuracions.index");
+                // Redirección manejada por Inertia o simplemente cerrar modal si aplica
             });
         };
 

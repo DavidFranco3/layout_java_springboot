@@ -30,7 +30,7 @@ export default function Form(props) {
                 timer: 2000,
                 showConfirmButton: false,
             }).then(() => {
-                window.location.href = `/${routeBase}`;
+                // Redirección manejada por Inertia o simplemente cerrar modal si aplica
             });
         };
 

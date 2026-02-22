@@ -271,6 +271,8 @@ const DataTablecustom = ({
                 paddingLeft: "16px",
                 paddingRight: "16px",
                 whiteSpace: "nowrap",
+                justifyContent: "center",
+                textAlign: "center",
             },
         },
         rows: {
@@ -295,6 +297,8 @@ const DataTablecustom = ({
             style: {
                 paddingLeft: "16px",
                 paddingRight: "16px",
+                justifyContent: "center",
+                textAlign: "center",
             },
         },
         pagination: {
@@ -389,6 +393,8 @@ const DataTablecustom = ({
                 .custom-header-wrapper {
                     display: flex;
                     align-items: center;
+                    justify-content: center;
+                    width: 100%;
                     gap: 8px;
                 }
 

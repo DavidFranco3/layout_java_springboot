@@ -100,7 +100,7 @@ export default function Authenticated({ auth, user, children }) {
                     sidebarOpen={sidebarOpen}
                 />
 
-                <main className="flex-1 p-6 mt-16 overflow-x-hidden">
+                <main className="flex-1 p-6 overflow-x-hidden">
                     {children &&
                         React.cloneElement(children, {
                             configuracion,

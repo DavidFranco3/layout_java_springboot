@@ -11,9 +11,7 @@
 
 import { useState, useEffect } from "react";
 import DataTablecustom from "@/Components/Generales/DataTable";
-import { Dropdown } from "react-bootstrap";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import DropdownActions from "@/Components/Generales/DropdownActions";
 import BasicModal from "@/Components/Modal/BasicModal";
 import Acciones from "./Acciones";
 
@@ -60,77 +58,51 @@ const TblRoles = ({ roles }) => {
      */
     const columns = [
         // Columna para mostrar el nombre del rol
-        { 
-            name: "Nombre", 
-            selector: (row) => row.name, 
-            sortable: true 
+        {
+            name: "Nombre",
+            selector: (row) => row.name,
+            sortable: true
         },
         // Columna de acciones con dropdown de opciones
         {
-            name: "Acciones", 
+            name: "Acciones",
             cell: (row) => {
                 return (
-                    <>
-                        {/* Validación de permisos - actualmente hardcodeada como true */}
-                        {(true) ? (
-                            <>
-                                {/* Dropdown con opciones de editar y eliminar */}
-                                <Dropdown>
-                                    <Dropdown.Toggle className="botonDropdown" id="dropdown-basic">
-                                        <FontAwesomeIcon icon={faBars} />
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu>
-                                        {/* Opción para editar rol */}
-                                        {true &&
-                                            <Dropdown.Item
-                                                onClick={() =>
-                                                    editarRol(
-                                                        <Acciones
-                                                            setShow={setShowModal}
-                                                            data={row}
-                                                            accion={"editar"}
-                                                        />
-                                                    )
-                                                }
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faPen}
-                                                    style={{ color: "#ffc107" }}
-                                                />
-                                                &nbsp; Editar
-                                            </Dropdown.Item>
-                                        }
-                                        {/* Opción para eliminar rol */}
-                                        {true &&
-                                            <Dropdown.Item
-                                                onClick={() =>
-                                                    eliminarRol(
-                                                        <Acciones
-                                                            setShow={setShowModal}
-                                                            data={row}
-                                                            accion={"eliminar"}
-                                                        />
-                                                    )
-                                                }
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faTrash}
-                                                    style={{ color: "#dc3545" }}
-                                                />
-                                                &nbsp; Eliminar
-                                            </Dropdown.Item>
-                                        }
-                                    </Dropdown.Menu>
-                                </Dropdown>
-                            </>
-                        ) : (
-                            <>
-                                No disponibles
-                            </>
-                        )}
-                    </>
+                    <DropdownActions
+                        buttonColor="minimal"
+                        icon="fas fa-ellipsis-v"
+                        actions={[
+                            {
+                                label: 'Editar',
+                                icon: 'fas fa-pen',
+                                color: 'text-amber-500',
+                                onClick: () => editarRol(
+                                    <Acciones
+                                        setShow={setShowModal}
+                                        data={row}
+                                        accion={"editar"}
+                                    />
+                                )
+                            },
+                            {
+                                label: 'Eliminar',
+                                icon: 'fas fa-trash',
+                                color: 'text-red-500',
+                                onClick: () => eliminarRol(
+                                    <Acciones
+                                        setShow={setShowModal}
+                                        data={row}
+                                        accion={"eliminar"}
+                                    />
+                                )
+                            }
+                        ]}
+                    />
                 )
-            }
+            },
+            ignoreRowClick: true,
+            allowOverflow: true,
+            button: true,
         }
     ];
 
@@ -138,7 +110,7 @@ const TblRoles = ({ roles }) => {
         <>
             {/* DataTable personalizado que renderiza la tabla de roles */}
             <DataTablecustom datos={roles} columnas={columns} />
-            
+
             {/* Modal reutilizable para mostrar formularios de edición/eliminación */}
             <BasicModal show={showModal} setShow={setShowModal} title={titulosModal}>
                 {contentModal}

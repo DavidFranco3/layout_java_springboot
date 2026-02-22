@@ -105,7 +105,10 @@ Thumbs.db
 ### Archivos estáticos generados
 ############################################
 
-/src/main/resources/static/
+/src/main/resources/static/assets/
+/src/main/resources/static/storage/
+!/src/main/resources/static/dist/
+!/src/main/resources/static/plugins/
 
 ############################################
 ### Otros

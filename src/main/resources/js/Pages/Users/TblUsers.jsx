@@ -13,9 +13,6 @@
 import { useState, useEffect } from "react";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import DropdownActions from "@/Components/Generales/DropdownActions"; // Importar nuevo componente
-// import { Dropdown } from "react-bootstrap"; // Eliminado
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import BasicModal from "@/Components/Modal/BasicModal";
 import Acciones from "./Acciones";
 
