@@ -131,6 +131,7 @@
         [type=submit],
         button {
             -webkit-appearance: button;
+            appearance: button;
             background-color: transparent;
             background-image: none
         }
@@ -154,15 +155,18 @@
 
         [type=search] {
             -webkit-appearance: textfield;
+            appearance: textfield;
             outline-offset: -2px
         }
 
         ::-webkit-search-decoration {
-            -webkit-appearance: none
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         ::-webkit-file-upload-button {
             -webkit-appearance: button;
+            appearance: button;
             font: inherit
         }
 
@@ -231,7 +235,6 @@
         svg,
         video {
             display: block;
-            vertical-align: middle
         }
 
         img,

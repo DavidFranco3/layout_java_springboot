@@ -4,6 +4,7 @@ import Menu from "./Sections/Menu";
 import Footer from "./Sections/Footer";
 import axios from "axios";
 import { getContrasteColor, suavizarColor } from "@/utils/Color";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Authenticated({ auth, user, children }) {
     // Inicializar modo oscuro leyendo de localStorage o preferencia del sistema
@@ -106,31 +107,40 @@ export default function Authenticated({ auth, user, children }) {
                 />
 
                 <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
-                    <div className="max-w-[1700px] mx-auto animate-fade-in">
-                        {/* Portada / Breadcrumbs / Page Header Area could go here */}
-                        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                {((window.location.pathname === '/dashboard' || window.location.pathname === '/') || (window.route && window.route().current('dashboard'))) ? (
-                                    <>
-                                        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-                                            <span className="w-2.5 h-10 bg-gradient-to-b from-primary to-blue-600 rounded-full hidden md:block" />
-                                            ¡Hola, <span className="text-primary">{auth?.user?.name || user?.name || 'Usuario'}</span>! 👋
-                                        </h1>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
-                                            Qué gusto verte de nuevo • {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                                        </p>
-                                    </>
-                                ) : null}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={window.location.pathname}
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -15 }}
+                            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            className="max-w-[1700px] mx-auto"
+                        >
+                            {/* Portada / Breadcrumbs / Page Header Area could go here */}
+                            <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    {((window.location.pathname === '/dashboard' || window.location.pathname === '/') || (window.route && window.route().current('dashboard'))) ? (
+                                        <>
+                                            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                                                <span className="w-2.5 h-10 bg-gradient-to-b from-primary to-blue-600 rounded-full hidden md:block" />
+                                                ¡Hola, <span className="text-primary">{auth?.user?.name || user?.name || 'Usuario'}</span>! 👋
+                                            </h1>
+                                            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+                                                Qué gusto verte de nuevo • {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                            </p>
+                                        </>
+                                    ) : null}
+                                </div>
                             </div>
-                        </div>
 
-                        {children &&
-                            React.cloneElement(children, {
-                                configuracion,
-                                darkMode,
-                                toggleDarkMode: () => setDarkMode(!darkMode),
-                            })}
-                    </div>
+                            {children &&
+                                React.cloneElement(children, {
+                                    configuracion,
+                                    darkMode,
+                                    toggleDarkMode: () => setDarkMode(!darkMode),
+                                })}
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
 
                 <Footer

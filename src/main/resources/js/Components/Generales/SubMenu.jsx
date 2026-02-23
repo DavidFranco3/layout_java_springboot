@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "@inertiajs/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, toggleSidebar }) => {
     const isAnyChildActive = subItems.some(item => route().current(item.route));
@@ -23,9 +24,10 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
 
     return (
         <li className="mb-1">
-            <button
+            <motion.button
+                whileTap={{ scale: 0.98 }}
                 onClick={toggleSubMenu}
-                className={`w-full flex items-center py-3 text-sm font-bold rounded-2xl transition-all duration-500 group relative overflow-hidden
+                className={`w-full flex items-center py-3 text-sm font-bold rounded-2xl transition-all duration-300 group relative overflow-hidden
                     ${sidebarOpen ? 'px-4' : 'justify-center px-0'}
                     ${expandedMenu && sidebarOpen
                         ? (isDark ? "bg-white/10 text-white shadow-inner" : "bg-slate-50 text-slate-900 shadow-inner")
@@ -34,50 +36,74 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
                 title={!sidebarOpen ? title : ""}
             >
                 {expandedMenu && sidebarOpen && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-glow" />
-                )}
-
-                <i className={`${icon} text-lg transition-all duration-500 ${expandedMenu && sidebarOpen ? 'opacity-100 scale-110' : 'opacity-60 group-hover:opacity-100'} ${sidebarOpen ? 'mr-3' : 'mr-0'}`} />
-
-                <span className={`flex-1 text-left tracking-tight transition-all duration-500 ${sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'}`}>
-                    {title}
-                </span>
-
-                {sidebarOpen && (
-                    <i
-                        className={`fas fa-chevron-right text-[10px] transition-all duration-500 ${expandedMenu ? "rotate-90 text-primary" : "rotate-0 opacity-40 group-hover:opacity-100"
-                            }`}
+                    <motion.div
+                        layoutId="active-indicator"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-glow"
                     />
                 )}
-            </button>
 
-            {/* Submenús con animación Premium */}
-            <div className={`overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${expandedMenu && sidebarOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
-                <ul className="space-y-1 ml-1 pl-2 border-l border-white/10 dark:border-white/5">
-                    {subItems.map((item) => {
-                        const isActive = route().current(item.route);
-                        return (
-                            <li key={item.route} className="relative group">
-                                {isActive && (
-                                    <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-glow" />
-                                )}
-                                <Link
-                                    href={route(item.route)}
-                                    className={`flex items-center px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 group !no-underline ${isActive
-                                        ? activeColor
-                                        : `${childColor} ${hoverBg} ${hoverText}`
-                                        }`}
-                                >
-                                    <i className={`${item.icon} text-base transition-all duration-300 ${isActive ? 'opacity-100 scale-110' : 'opacity-50 group-hover:opacity-100 group-hover:scale-110'} mr-3`} />
-                                    <span className={`truncate tracking-tight ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
-                                        {item.label}
-                                    </span>
-                                </Link>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </div>
+                <i className={`${icon} text-lg transition-all duration-300 ${expandedMenu && sidebarOpen ? 'opacity-100 scale-110' : 'opacity-60 group-hover:opacity-100'} ${sidebarOpen ? 'mr-3' : 'mr-0'}`} />
+
+                <AnimatePresence initial={false}>
+                    {sidebarOpen && (
+                        <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="flex-1 text-left tracking-tight"
+                        >
+                            {title}
+                        </motion.span>
+                    )}
+                </AnimatePresence>
+
+                {sidebarOpen && (
+                    <motion.i
+                        animate={{ rotate: expandedMenu ? 90 : 0 }}
+                        className={`fas fa-chevron-right text-[10px] ${expandedMenu ? "text-primary" : "opacity-40 group-hover:opacity-100"}`}
+                    />
+                )}
+            </motion.button>
+
+            <AnimatePresence>
+                {expandedMenu && sidebarOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+                        className="overflow-hidden"
+                    >
+                        <ul className="space-y-1 mt-1 ml-1 pl-2 border-l border-white/10 dark:border-white/5">
+                            {subItems.map((item) => {
+                                const isActive = route().current(item.route);
+                                return (
+                                    <li key={item.route} className="relative group">
+                                        {isActive && (
+                                            <motion.div
+                                                layoutId={`active-dot-${item.route}`}
+                                                className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-glow"
+                                            />
+                                        )}
+                                        <Link
+                                            href={route(item.route)}
+                                            className={`flex items-center px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 group !no-underline ${isActive
+                                                ? activeColor
+                                                : `${childColor} ${hoverBg} ${hoverText}`
+                                                }`}
+                                        >
+                                            <i className={`${item.icon} text-base transition-all duration-300 ${isActive ? 'opacity-100 scale-110' : 'opacity-50 group-hover:opacity-100 group-hover:scale-110'} mr-3`} />
+                                            <span className={`truncate tracking-tight ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
+                                                {item.label}
+                                            </span>
+                                        </Link>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </li>
     );
 };
