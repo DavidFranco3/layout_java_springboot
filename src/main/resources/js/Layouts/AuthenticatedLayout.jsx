@@ -75,10 +75,10 @@ export default function Authenticated({ auth, user, children }) {
 
     return (
         <div
-            className="min-h-screen bg-[var(--app-bg)] transition-colors duration-300"
+            className="min-h-screen bg-[var(--app-bg)] transition-colors duration-500 font-sans"
             style={{ '--app-primary': configuracion?.colores || '#005073' }}
         >
-            {/* Sidebar con transición suave */}
+            {/* Sidebar con transición premium */}
             <Menu
                 auth={auth}
                 configuracion={configuracion}
@@ -88,7 +88,12 @@ export default function Authenticated({ auth, user, children }) {
             />
 
             {/* Main Content Wrapper */}
-            <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
+            <div
+                className={`flex-1 flex flex-col min-h-screen transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]`}
+                style={{
+                    marginLeft: sidebarOpen ? 'var(--sidebar-width)' : 'var(--sidebar-collapsed-width)'
+                }}
+            >
 
                 <Header
                     auth={auth}
@@ -100,8 +105,25 @@ export default function Authenticated({ auth, user, children }) {
                     sidebarOpen={sidebarOpen}
                 />
 
-                <main className="flex-1 p-4 md:p-8 overflow-x-hidden animate-fade-in">
-                    <div className="max-w-[1700px] mx-auto">
+                <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
+                    <div className="max-w-[1700px] mx-auto animate-fade-in">
+                        {/* Portada / Breadcrumbs / Page Header Area could go here */}
+                        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                {((window.location.pathname === '/dashboard' || window.location.pathname === '/') || (window.route && window.route().current('dashboard'))) ? (
+                                    <>
+                                        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
+                                            <span className="w-2.5 h-10 bg-gradient-to-b from-primary to-blue-600 rounded-full hidden md:block" />
+                                            ¡Hola, <span className="text-primary">{auth?.user?.name || user?.name || 'Usuario'}</span>! 👋
+                                        </h1>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+                                            Qué gusto verte de nuevo • {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                        </p>
+                                    </>
+                                ) : null}
+                            </div>
+                        </div>
+
                         {children &&
                             React.cloneElement(children, {
                                 configuracion,

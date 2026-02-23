@@ -45,7 +45,7 @@ const DebouncedInput = ({
                 {...props}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                className="w-full pl-11 pr-10 h-11 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-inner focus:ring-4 focus:ring-primary/10 focus:border-primary bg-white/50 dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-300"
+                className="w-full !pl-11 !pr-10 !py-4 !h-auto !border !border-slate-200 dark:!border-slate-800 !rounded-2xl !shadow-sm focus:!ring-4 focus:!ring-primary/10 focus:!border-primary !bg-white dark:!bg-slate-950/50 !text-slate-900 dark:!text-slate-100 !placeholder-slate-400 dark:!placeholder-slate-500 !transition-all !duration-300"
                 placeholder={placeholder}
             />
             {value && (

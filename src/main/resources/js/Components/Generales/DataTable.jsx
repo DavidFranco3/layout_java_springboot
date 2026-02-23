@@ -12,6 +12,7 @@ const DataTablecustom = ({
     expandableRows = false,
     expandableRowsComponent = null,
     expandableRowExpanded = null,
+    isLoading = false,
     ...otherProps
 }) => {
     const [filterValue, setFilterValue] = useState("");
@@ -22,29 +23,31 @@ const DataTablecustom = ({
     const tableRef = useRef(null);
     const csvLinkRef = useRef();
 
-    const handleFilterChange = (searchValue) => {
-        // const searchValue = event.target.value.trim(); // Ya viene como string desde DebouncedInput
-        setFilterValue(searchValue);
+    // Skeletons para carga
+    const skeletonRows = Array(5).fill({});
+    const skeletonColumns = columnas.map(col => ({
+        ...col,
+        cell: () => <div className="h-4 w-full skeleton rounded-lg opacity-50" />
+    }));
 
+    const handleFilterChange = (searchValue) => {
+        setFilterValue(searchValue);
         if (!searchValue || searchValue.length === 0) {
             setFilteredData(datos);
             return;
         }
-
         const searchLower = searchValue.toLowerCase();
-
         const filtered = datos.filter((row) =>
             Object.values(row).some((value) => {
                 if (value === null || value === undefined) return false;
                 return String(value).toLowerCase().includes(searchLower);
             })
         );
-
         setFilteredData(filtered);
     };
 
     const handleDoubleClick = (row) => {
-        alert(JSON.stringify(row, null, 2));
+        // alert(JSON.stringify(row, null, 2));
     };
 
     useEffect(() => {
@@ -110,188 +113,136 @@ const DataTablecustom = ({
         setVisibleColumns([]);
     };
 
-    // ✅ Columnas visibles memoizadas
     const filteredColumns = useMemo(
         () => columnas.filter((col) => visibleColumns.includes(col.name)),
         [columnas, visibleColumns]
     );
 
-    const dynamicStyles = "";
-
     const processedColumns = filteredColumns.map((col) => {
-        const {
-            reorder,
-            ...safeProps
-        } = col;
-
+        const { reorder, ...safeProps } = col;
         return {
             ...safeProps,
-            sortable: true,
+            sortable: !isLoading,
+            center: true,
         };
     });
 
-
     const customStyles = {
+        header: {
+            style: {
+                minHeight: '0px',
+            },
+        },
         headRow: {
             style: {
-                backgroundColor: "var(--dt-header-bg)",
-                borderBottom: "2px solid var(--dt-border-color)",
-                fontWeight: "600",
-                fontSize: "14px",
-                color: "var(--dt-header-text)",
-                minHeight: "52px",
+                backgroundColor: 'transparent',
+                borderBottom: '1px solid var(--border-light)',
+                fontWeight: '700',
+                fontSize: '13px',
+                color: 'var(--text-muted)',
+                minHeight: '56px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
             },
         },
         headCells: {
             style: {
-                paddingLeft: "16px",
-                paddingRight: "16px",
-                whiteSpace: "nowrap",
-                justifyContent: "center",
-                textAlign: "center",
+                paddingLeft: '20px',
+                paddingRight: '20px',
             },
         },
         rows: {
             style: {
-                fontSize: "13px",
-                color: "var(--dt-row-text)",
-                backgroundColor: "var(--dt-bg)",
-                minHeight: "48px",
-                "&:hover": {
-                    backgroundColor: "var(--dt-row-hover-bg)",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s ease",
-                    color: "var(--dt-row-text)",
+                fontSize: '14px',
+                fontWeight: '500',
+                color: 'var(--text-main)',
+                backgroundColor: 'transparent',
+                '&:not(:last-of-type)': {
+                    borderBottom: '1px solid var(--border-light)',
                 },
-            },
-            stripedStyle: {
-                backgroundColor: "var(--dt-row-stripe-bg)",
-                color: "var(--dt-row-text)",
+                '&:hover': {
+                    backgroundColor: 'rgba(var(--color-primary-rgb, 0, 80, 115), 0.02) !important',
+                },
             },
         },
         cells: {
             style: {
-                paddingLeft: "16px",
-                paddingRight: "16px",
-                justifyContent: "center",
-                textAlign: "center",
+                paddingLeft: '20px',
+                paddingRight: '20px',
             },
         },
         pagination: {
             style: {
-                borderTop: "1px solid var(--dt-border-color)",
-                fontSize: "13px",
-                minHeight: "56px",
-                backgroundColor: "var(--dt-bg)",
-                color: "var(--dt-row-text)",
-            },
-            pageButtonsStyle: {
-                color: "var(--dt-row-text)",
-                fill: "var(--dt-row-text)",
-                "&:disabled": {
-                    color: "var(--dt-disabled-text)",
-                    fill: "var(--dt-disabled-text)",
-                },
-                "&:hover:not(:disabled)": {
-                    backgroundColor: "var(--dt-row-hover-bg)",
-                },
-                "&:focus": {
-                    outline: "none",
-                    backgroundColor: "var(--dt-row-hover-bg)",
-                },
+                borderTop: '1px solid var(--border-light)',
+                fontSize: '13px',
+                minHeight: '64px',
+                backgroundColor: 'transparent',
+                color: 'var(--text-muted)',
             },
         },
     };
 
     return (
-        <section className="bg-[var(--card-bg)] rounded-2xl shadow-premium border border-[var(--border-light)] overflow-hidden transition-all duration-300" ref={tableRef}>
-            <style>{`
-                ${dynamicStyles}
-                
-                .rdt_Table {
-                    background-color: transparent !important;
-                }
-                
-                .rdt_Pagination {
-                    background-color: var(--card-bg) !important;
-                    color: var(--text-main) !important;
-                    border-top: 1px solid var(--border-light) !important;
-                }
-            `}</style>
-
-            <div className="p-4 md:p-6 border-b border-[var(--border-light)] bg-slate-50/50 dark:bg-slate-900/50" hidden={hiddenOptions}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="w-full md:max-w-md">
+        <section className="bg-[var(--card-bg)] rounded-[32px] shadow-premium-lg border border-[var(--border-light)] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5" ref={tableRef}>
+            <div className="p-6 md:p-8 border-b border-[var(--border-light)] bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-950/20" hidden={hiddenOptions}>
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                    <div className="w-full xl:max-w-lg">
                         <DebouncedInput
                             value={filterValue}
                             onChange={handleFilterChange}
-                            placeholder="Buscar en todos los campos..."
+                            placeholder="Buscar en la tabla..."
                             className="w-full"
                         />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-bold border border-primary/20 uppercase tracking-tight">
-                            {filteredData.length} de {datos.length} registros
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                            <div className="hidden">
-                                <CSVLink
-                                    data={datos}
-                                    filename="data-export.csv"
-                                    ref={csvLinkRef}
-                                />
-                            </div>
-
+                    <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-center gap-2 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <CSVLink data={datos} filename="export.csv" ref={csvLinkRef} className="hidden" />
                             <button
                                 onClick={() => csvLinkRef.current.link.click()}
-                                className="group inline-flex items-center gap-2 px-4 h-10 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-xl text-[11px] font-bold transition-all duration-300 active:scale-95"
+                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all text-emerald-600 dark:text-emerald-400"
+                                title="Exportar CSV"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center transition-colors group-hover:bg-emerald-500/20">
-                                    <i className="fas fa-file-csv text-sm" />
-                                </div>
-                                <span className="uppercase tracking-wider">CSV</span>
+                                <i className="fas fa-file-csv text-base" />
+                                <span className="hidden sm:inline">CSV</span>
                             </button>
 
                             <button
                                 onClick={downloadPDF}
-                                className="group inline-flex items-center gap-2 px-4 h-10 bg-rose-500/5 hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-xl text-[11px] font-bold transition-all duration-300 active:scale-95 disabled:opacity-50"
+                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all text-rose-600 dark:text-rose-400 disabled:opacity-50"
                                 disabled={isExporting}
+                                title="Exportar PDF"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center transition-colors group-hover:bg-rose-500/20">
-                                    <i className="fas fa-file-pdf text-sm" />
-                                </div>
-                                <span className="uppercase tracking-wider">{isExporting ? "..." : "PDF"}</span>
+                                <i className={`fas ${isExporting ? 'fa-circle-notch fa-spin' : 'fa-file-pdf'} text-base`} />
+                                <span className="hidden sm:inline">PDF</span>
                             </button>
 
+                            <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+
                             <button
-                                className="group inline-flex items-center gap-2 px-4 h-10 bg-primary/5 hover:bg-primary/10 text-primary border border-primary/20 rounded-xl text-[11px] font-bold transition-all duration-300 active:scale-95"
                                 onClick={() => setShowModal(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all text-primary"
+                                title="Gestionar Columnas"
                             >
-                                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center transition-colors group-hover:bg-primary/20">
-                                    <i className="fas fa-columns text-sm" />
-                                </div>
-                                <span className="uppercase tracking-wider">Columnas</span>
+                                <i className="fas fa-columns text-base" />
+                                <span className="hidden sm:inline">VER</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="overflow-hidden">
+            <div className={`overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
                 <DataTable
-                    columns={processedColumns}
-                    data={filteredData}
+                    columns={isLoading ? skeletonColumns : processedColumns}
+                    data={isLoading ? skeletonRows : filteredData}
                     pagination
                     paginationPerPage={10}
                     paginationRowsPerPageOptions={[5, 10, 15, 20, 25, 50]}
-                    striped
-                    highlightOnHover
                     pointerOnHover
                     responsive
                     fixedHeader
-                    fixedHeaderScrollHeight="calc(100vh - 280px)"
+                    fixedHeaderScrollHeight="calc(100vh - 420px)"
                     onRowDoubleClicked={handleDoubleClick}
                     customStyles={customStyles}
                     expandableRows={expandableRows}
@@ -299,12 +250,12 @@ const DataTablecustom = ({
                     expandableRowExpanded={expandableRowExpanded}
                     {...otherProps}
                     noDataComponent={
-                        <div className="py-20 text-center animate-fade-in">
-                            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[var(--border-light)] shadow-sm">
-                                <i className="fas fa-inbox text-3xl text-slate-300 dark:text-slate-600" />
+                        <div className="py-24 text-center animate-scale-in">
+                            <div className="w-24 h-24 bg-gradient-to-tr from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-[32px] flex items-center justify-center mx-auto mb-6 border border-[var(--border-light)] shadow-sm">
+                                <i className="fas fa-folder-open text-4xl text-slate-300 dark:text-slate-600" />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Sin resultados</h3>
-                            <p className="text-slate-500 text-sm">No encontramos registros que coincidan con tu búsqueda</p>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Estamos vacíos por aquí</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 max-w-xs mx-auto">No hay registros que coincidan o la lista está vacía actualmente.</p>
                         </div>
                     }
                 />
