@@ -2,7 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.Inertia;
 import com.example.demo.model.AuditoriaLog;
-import com.example.demo.repository.AuditoriaLogRepository;
+import com.example.demo.service.AuditoriaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -16,16 +16,16 @@ import java.util.Map;
 @RequestMapping("/auditoria")
 public class AuditoriaLogController {
 
-    private final AuditoriaLogRepository auditoriaLogRepository;
+    private final AuditoriaService auditoriaService;
 
-    public AuditoriaLogController(AuditoriaLogRepository auditoriaLogRepository) {
-        this.auditoriaLogRepository = auditoriaLogRepository;
+    public AuditoriaLogController(AuditoriaService auditoriaService) {
+        this.auditoriaService = auditoriaService;
     }
 
     @GetMapping
     public Object index() {
         Map<String, Object> props = new HashMap<>();
-        props.put("auditorialogs", auditoriaLogRepository.findAll());
+        props.put("auditorialogs", auditoriaService.findAll());
         return Inertia.render("AuditoriaLogs/Index", props);
     }
 
@@ -36,7 +36,7 @@ public class AuditoriaLogController {
 
     @PostMapping
     public ResponseEntity<?> store(@RequestBody AuditoriaLog auditoriaLog) {
-        auditoriaLogRepository.save(auditoriaLog);
+        auditoriaService.save(auditoriaLog);
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/auditoria"))
                 .build();
@@ -45,14 +45,14 @@ public class AuditoriaLogController {
     @GetMapping("/{id}/edit")
     public Object edit(@PathVariable Long id) {
         Map<String, Object> props = new HashMap<>();
-        props.put("log", auditoriaLogRepository.findById(id).orElseThrow());
+        props.put("log", auditoriaService.findById(id).orElseThrow());
         return Inertia.render("AuditoriaLogs/Edit", props);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody AuditoriaLog auditoriaLog) {
         auditoriaLog.setId(id);
-        auditoriaLogRepository.save(auditoriaLog);
+        auditoriaService.save(auditoriaLog);
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/auditoria"))
                 .build();
@@ -60,7 +60,7 @@ public class AuditoriaLogController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> destroy(@PathVariable Long id) {
-        auditoriaLogRepository.deleteById(id);
+        auditoriaService.deleteById(id);
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/auditoria"))
                 .build();

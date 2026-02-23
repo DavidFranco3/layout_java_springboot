@@ -1,56 +1,51 @@
 package com.example.demo.controller;
 
 import com.example.demo.Inertia;
-import com.example.demo.model.Role;
-import com.example.demo.repository.RoleRepository;
-import com.example.demo.repository.PermissionRepository;
-import com.example.demo.repository.ModuloRepository;
+import com.example.demo.dto.RoleDTO;
+import com.example.demo.service.RoleService;
+import com.example.demo.service.PermissionService;
+import com.example.demo.service.ModuloService;
+import com.example.demo.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
-import com.example.demo.service.AuditoriaService;
-import com.example.demo.repository.UserRepository;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Controller
 @RequestMapping("/roles")
 public class RolesController {
 
-        private final RoleRepository roleRepository;
-        private final PermissionRepository permissionRepository;
-        private final ModuloRepository moduloRepository;
-        private final AuditoriaService auditoriaService;
-        private final UserRepository userRepository;
+        private final RoleService roleService;
+        private final PermissionService permissionService;
+        private final ModuloService moduloService;
+        private final UserService userService;
 
-        public RolesController(RoleRepository roleRepository, PermissionRepository permissionRepository,
-                        ModuloRepository moduloRepository, AuditoriaService auditoriaService,
-                        UserRepository userRepository) {
-                this.roleRepository = roleRepository;
-                this.permissionRepository = permissionRepository;
-                this.moduloRepository = moduloRepository;
-                this.auditoriaService = auditoriaService;
-                this.userRepository = userRepository;
+        public RolesController(RoleService roleService, PermissionService permissionService,
+                        ModuloService moduloService, UserService userService) {
+                this.roleService = roleService;
+                this.permissionService = permissionService;
+                this.moduloService = moduloService;
+                this.userService = userService;
         }
 
         @GetMapping
         public Object index() {
                 Map<String, Object> props = new HashMap<>();
-                props.put("roles", roleRepository.findAll());
+                props.put("roles", roleService.findAll());
                 return Inertia.render("Roles/Index", props);
         }
 
         @GetMapping("/{id}/edit")
         public Object edit(@PathVariable Long id) {
                 Map<String, Object> props = new HashMap<>();
-                Role role = roleRepository.findById(id).orElseThrow();
+                RoleDTO role = roleService.findById(id).orElseThrow();
                 props.put("role", role);
-                props.put("permissions", permissionRepository.findAll());
+                props.put("permissions", permissionService.findAll());
                 return Inertia.render("Roles/Edit", props);
         }
 
@@ -60,32 +55,8 @@ public class RolesController {
         }
 
         @PostMapping
-        public ResponseEntity<?> store(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
-                String name = (String) payload.get("name");
-                @SuppressWarnings("unchecked")
-                List<Integer> permisosIds = (List<Integer>) payload.get("permisos");
-
-                List<Long> permisosLongIds = permisosIds.stream()
-                                .map(Integer::longValue)
-                                .toList();
-
-                Role role = new Role();
-                role.setName(name);
-                role.setPermissions(permissionRepository.findAllById(permisosLongIds));
-                role = roleRepository.save(role);
-
-                Map<String, Object> newData = new HashMap<>();
-                newData.put("name", role.getName());
-                newData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
-
-                auditoriaService.registrarAuditoria(
-                                "POST",
-                                "Rol",
-                                role.getId(),
-                                null,
-                                newData,
-                                "Creación de rol",
-                                request);
+        public ResponseEntity<?> store(@RequestBody RoleDTO roleDTO) {
+                roleService.save(roleDTO);
 
                 return ResponseEntity.status(HttpStatus.SEE_OTHER)
                                 .location(URI.create("/roles"))
@@ -93,38 +64,9 @@ public class RolesController {
         }
 
         @PutMapping("/{id}")
-        public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload,
-                        HttpServletRequest request) {
-                String name = (String) payload.get("name");
-                @SuppressWarnings("unchecked")
-                List<Integer> permisosIds = (List<Integer>) payload.get("permisos");
-
-                List<Long> permisosLongIds = permisosIds.stream()
-                                .map(Integer::longValue)
-                                .toList();
-
-                Role role = roleRepository.findById(id).orElseThrow();
-
-                Map<String, Object> oldData = new HashMap<>();
-                oldData.put("name", role.getName());
-                oldData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
-
-                role.setName(name);
-                role.setPermissions(permissionRepository.findAllById(permisosLongIds));
-                roleRepository.save(role);
-
-                Map<String, Object> newData = new HashMap<>();
-                newData.put("name", role.getName());
-                newData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
-
-                auditoriaService.registrarAuditoria(
-                                "PUT",
-                                "Rol",
-                                role.getId(),
-                                oldData,
-                                newData,
-                                "Actualización de rol",
-                                request);
+        public ResponseEntity<?> update(@PathVariable Long id, @RequestBody RoleDTO roleDTO) {
+                roleDTO.setId(id);
+                roleService.save(roleDTO);
 
                 return ResponseEntity.status(HttpStatus.SEE_OTHER)
                                 .location(URI.create("/roles"))
@@ -133,9 +75,7 @@ public class RolesController {
 
         @DeleteMapping("/{id}")
         public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
-                Role role = roleRepository.findById(id).orElseThrow();
-
-                if (userRepository.countByRoleId(id) > 0) {
+                if (userService.countByRoleId(id) > 0) {
                         Map<String, String> errors = new HashMap<>();
                         errors.put("general", "No se puede eliminar el rol porque tiene usuarios asignados.");
                         request.getSession().setAttribute("errors", errors);
@@ -144,20 +84,10 @@ public class RolesController {
                                         .build();
                 }
 
-                Map<String, Object> oldData = new HashMap<>();
-                oldData.put("name", role.getName());
-                oldData.put("permisos", role.getPermissions().stream().map(p -> p.getId()).toList());
+                RoleDTO roleDTO = roleService.findById(id).orElseThrow();
+                roleDTO.setStatus(0);
+                roleService.save(roleDTO);
 
-                auditoriaService.registrarAuditoria(
-                                "DELETE",
-                                "Rol",
-                                role.getId(),
-                                oldData,
-                                null,
-                                "Eliminación de rol",
-                                request);
-                role.setStatus(0);
-                roleRepository.save(role);
                 return ResponseEntity.status(HttpStatus.SEE_OTHER)
                                 .location(URI.create("/roles"))
                                 .build();
@@ -169,7 +99,7 @@ public class RolesController {
                 return Map.of(
                                 "success", true,
                                 "message", "Permisos encontrados.",
-                                "data", permissionRepository.findAllWithModuloInfo());
+                                "data", permissionService.findAllWithModuloInfo());
         }
 
         @GetMapping("/getModulos")
@@ -178,7 +108,7 @@ public class RolesController {
                 return Map.of(
                                 "success", true,
                                 "message", "Módulos encontrados.",
-                                "data", moduloRepository.findAll());
+                                "data", moduloService.findAll());
         }
 
         @GetMapping("/getRoles")
@@ -187,6 +117,6 @@ public class RolesController {
                 return Map.of(
                                 "success", true,
                                 "message", "Roles encontrados.",
-                                "data", roleRepository.findAll());
+                                "data", roleService.findAll());
         }
 }

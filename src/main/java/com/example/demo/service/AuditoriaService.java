@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -80,5 +81,21 @@ public class AuditoriaService {
         } catch (Exception ex) {
             System.err.println("Falla al guardar log de auditoria: " + ex.getMessage());
         }
+    }
+
+    public List<AuditoriaLog> findAll() {
+        return auditoriaLogRepository.findAll();
+    }
+
+    public Optional<AuditoriaLog> findById(Long id) {
+        return auditoriaLogRepository.findById(id);
+    }
+
+    public void deleteById(Long id) {
+        auditoriaLogRepository.deleteById(id);
+    }
+
+    public AuditoriaLog save(AuditoriaLog log) {
+        return auditoriaLogRepository.save(log);
     }
 }

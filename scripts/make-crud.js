@@ -78,13 +78,55 @@ public interface ${entityName}Repository extends JpaRepository<${entityName}, Lo
 `;
 writeContent(repoFile, repoContent);
 
+// 2.5 Service
+ensureDir(path.join(JAVA_SRC_DIR, "service"));
+const serviceFile = path.join(JAVA_SRC_DIR, "service", `${entityName}Service.java`);
+const serviceContent = `package ${BASE_PACKAGE}.service;
+
+import ${BASE_PACKAGE}.model.${entityName};
+import ${BASE_PACKAGE}.repository.${entityName}Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ${entityName}Service {
+
+    private final ${entityName}Repository ${entityNameLower}Repository;
+
+    @Autowired
+    public ${entityName}Service(${entityName}Repository ${entityNameLower}Repository) {
+        this.${entityNameLower}Repository = ${entityNameLower}Repository;
+    }
+
+    public List<${entityName}> findAll() {
+        return ${entityNameLower}Repository.findAll();
+    }
+
+    public Optional<${entityName}> findById(Long id) {
+        return ${entityNameLower}Repository.findById(id);
+    }
+
+    public ${entityName} save(${entityName} ${entityNameLower}) {
+        return ${entityNameLower}Repository.save(${entityNameLower});
+    }
+
+    public void deleteById(Long id) {
+        ${entityNameLower}Repository.deleteById(id);
+    }
+}
+`;
+writeContent(serviceFile, serviceContent);
+
 // 3. Controller
 ensureDir(path.join(JAVA_SRC_DIR, "controller"));
 const controllerFile = path.join(JAVA_SRC_DIR, "controller", `${entityName}Controller.java`);
 const controllerContent = `package ${BASE_PACKAGE}.controller;
 
 import ${BASE_PACKAGE}.model.${entityName};
-import ${BASE_PACKAGE}.repository.${entityName}Repository;
+import ${BASE_PACKAGE}.service.${entityName}Service;
 import com.example.demo.Inertia;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -97,13 +139,17 @@ import java.util.Map;
 @RequestMapping("/${entityPluralLower}")
 public class ${entityName}Controller {
 
+    private final ${entityName}Service ${entityNameLower}Service;
+
     @Autowired
-    private ${entityName}Repository ${entityNameLower}Repository;
+    public ${entityName}Controller(${entityName}Service ${entityNameLower}Service) {
+        this.${entityNameLower}Service = ${entityNameLower}Service;
+    }
 
     @GetMapping
     public Object index() {
         return Inertia.render("${entityPlural}/Index", Map.of(
-            "${entityPluralLower}", ${entityNameLower}Repository.findAll()
+            "${entityPluralLower}", ${entityNameLower}Service.findAll()
         ));
     }
 
@@ -117,13 +163,13 @@ public class ${entityName}Controller {
 
     @PostMapping
     public String store(@ModelAttribute ${entityName} ${entityNameLower}) {
-        ${entityNameLower}Repository.save(${entityNameLower});
+        ${entityNameLower}Service.save(${entityNameLower});
         return "redirect:/${entityPluralLower}";
     }
 
     @GetMapping("/{id}/edit")
     public Object edit(@PathVariable Long id) {
-        return ${entityNameLower}Repository.findById(id)
+        return ${entityNameLower}Service.findById(id)
             .map(${entityNameLower} -> Inertia.render("${entityPlural}/Form", Map.of(
                 "mode", "update",
                 "routeBase", "${entityPluralLower}",
@@ -134,16 +180,16 @@ public class ${entityName}Controller {
 
     @PutMapping("/{id}")
     public String update(@PathVariable Long id, @ModelAttribute ${entityName} updateData) {
-        return ${entityNameLower}Repository.findById(id).map(${entityNameLower} -> {
+        return ${entityNameLower}Service.findById(id).map(${entityNameLower} -> {
             ${entityNameLower}.setCampoEjemplo(updateData.getCampoEjemplo());
-            ${entityNameLower}Repository.save(${entityNameLower});
+            ${entityNameLower}Service.save(${entityNameLower});
             return "redirect:/${entityPluralLower}";
         }).orElse("redirect:/${entityPluralLower}");
     }
 
     @DeleteMapping("/{id}")
     public String destroy(@PathVariable Long id) {
-        ${entityNameLower}Repository.deleteById(id);
+        ${entityNameLower}Service.deleteById(id);
         return "redirect:/${entityPluralLower}";
     }
 }
@@ -285,6 +331,39 @@ export default function Form(props) {
 }
 `;
 writeContent(formFile, formContent);
+
+// 5. Migration
+const migrationDir = path.join("src", "main", "resources", "db", "migration");
+ensureDir(migrationDir);
+
+const migrationFiles = fs.readdirSync(migrationDir).filter(f => f.startsWith('V') && f.endsWith('.sql'));
+let nextVersion = 1;
+
+if (migrationFiles.length > 0) {
+    let maxVersion = 0;
+    migrationFiles.forEach(file => {
+        const match = file.match(/^V(\d+)__/);
+        if (match) {
+            const version = parseInt(match[1]);
+            if (version > maxVersion) {
+                maxVersion = version;
+            }
+        }
+    });
+    nextVersion = maxVersion + 1;
+}
+
+const migrationFileName = `V${nextVersion}__create_${entityPluralLower}_table.sql`;
+const migrationFile = path.join(migrationDir, migrationFileName);
+const migrationContent = `CREATE TABLE IF NOT EXISTS ${entityPluralLower} (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    campo_ejemplo VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+`;
+
+writeContent(migrationFile, migrationContent);
 
 console.log("\n✅ CRUD generation completed successfully.");
 console.log("💡 Note: You will need to:");

@@ -2,8 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.Inertia;
 import com.example.demo.model.Configuracion;
-import com.example.demo.repository.ConfiguracionRepository;
-import com.example.demo.repository.EmpresaRepository;
+import com.example.demo.service.ConfiguracionService;
+import com.example.demo.service.EmpresaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -24,14 +24,14 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/configuracions")
 public class ConfiguracionController {
 
-    private final ConfiguracionRepository configuracionRepository;
-    private final EmpresaRepository empresaRepository; // Keep EmpresaRepository if still used
+    private final ConfiguracionService configuracionService;
+    private final EmpresaService empresaService;
     private final AuditoriaService auditoriaService;
 
-    public ConfiguracionController(ConfiguracionRepository configuracionRepository,
-            EmpresaRepository empresaRepository, AuditoriaService auditoriaService) {
-        this.configuracionRepository = configuracionRepository;
-        this.empresaRepository = empresaRepository; // Inject EmpresaRepository
+    public ConfiguracionController(ConfiguracionService configuracionService,
+            EmpresaService empresaService, AuditoriaService auditoriaService) {
+        this.configuracionService = configuracionService;
+        this.empresaService = empresaService;
         this.auditoriaService = auditoriaService;
     }
 
@@ -43,14 +43,14 @@ public class ConfiguracionController {
     @GetMapping
     public Object index() {
         Map<String, Object> props = new HashMap<>();
-        props.put("configuracions", configuracionRepository.findAll());
+        props.put("configuracions", configuracionService.findAll());
         return Inertia.render("Configuracions/Index", props);
     }
 
     @GetMapping("/api/list")
     @ResponseBody
     public Object listAll() {
-        return configuracionRepository.findAll();
+        return configuracionService.findAll();
     }
 
     @GetMapping("/create")
@@ -64,7 +64,7 @@ public class ConfiguracionController {
         Map<String, Object> props = new HashMap<>();
         props.put("mode", "create");
         props.put("routeBase", "configuracions");
-        props.put("empresas", empresaRepository.findAll()); // Keep if still needed
+        props.put("empresas", empresaService.findAll()); // Keep if still needed
         return Inertia.render("Configuracions/Form", props); // Changed to Form as per original logic, or Create if view
                                                              // name changed
     }
@@ -73,7 +73,7 @@ public class ConfiguracionController {
     public ResponseEntity<?> store(@ModelAttribute Configuracion configuracion,
             @RequestParam(value = "logo", required = false) MultipartFile logoFile,
             HttpServletRequest request) {
-        if (configuracionRepository.count() > 0) {
+        if (configuracionService.findAll().size() > 0) {
             return ResponseEntity.status(HttpStatus.SEE_OTHER)
                     .location(URI.create("/configuracions"))
                     .build();
@@ -93,7 +93,7 @@ public class ConfiguracionController {
             }
         }
 
-        configuracion = configuracionRepository.save(configuracion);
+        configuracion = configuracionService.save(configuracion);
 
         Map<String, Object> newData = new HashMap<>();
         newData.put("colores", configuracion.getColores());
@@ -117,13 +117,13 @@ public class ConfiguracionController {
 
     @GetMapping("/{id}/edit")
     public Object edit(@PathVariable Long id) {
-        Configuracion configuracion = configuracionRepository.findById(id)
+        Configuracion configuracion = configuracionService.findById(id)
                 .orElseThrow(() -> new RuntimeException("Configuracion not found"));
         Map<String, Object> props = new HashMap<>();
         props.put("mode", "update");
         props.put("routeBase", "configuracions");
         props.put("configuracion", configuracion);
-        props.put("empresas", empresaRepository.findAll()); // Keep if still needed
+        props.put("empresas", empresaService.findAll()); // Keep if still needed
         return Inertia.render("Configuracions/Form", props); // Changed to Form as per original logic, or Edit if view
                                                              // name changed
     }
@@ -133,7 +133,7 @@ public class ConfiguracionController {
             @RequestParam(value = "logo", required = false) MultipartFile logoFile,
             HttpServletRequest request) {
         configuracion.setId(id);
-        Configuracion currentConfig = configuracionRepository.findById(id).orElseThrow();
+        Configuracion currentConfig = configuracionService.findById(id).orElseThrow();
 
         Map<String, Object> oldData = new HashMap<>();
         oldData.put("colores", currentConfig.getColores());
@@ -159,7 +159,7 @@ public class ConfiguracionController {
         }
 
         configuracion.setId(id);
-        configuracionRepository.save(configuracion);
+        configuracionService.save(configuracion);
 
         Map<String, Object> newData = new HashMap<>();
         newData.put("colores", configuracion.getColores());
@@ -183,7 +183,7 @@ public class ConfiguracionController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
-        Configuracion configuracion = configuracionRepository.findById(id).orElseThrow();
+        Configuracion configuracion = configuracionService.findById(id).orElseThrow();
 
         Map<String, Object> oldData = new HashMap<>();
         oldData.put("colores", configuracion.getColores());
@@ -200,7 +200,7 @@ public class ConfiguracionController {
                 request);
 
         configuracion.setStatus(0);
-        configuracionRepository.save(configuracion);
+        configuracionService.save(configuracion);
         return ResponseEntity.status(HttpStatus.SEE_OTHER)
                 .location(URI.create("/configuracions"))
                 .build();

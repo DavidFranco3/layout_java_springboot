@@ -14,7 +14,7 @@ public class CrudGenerator {
     private static final String JAVA_SRC_DIR = "src/main/java/" + BASE_PACKAGE.replace('.', '/');
     private static final String REACT_PAGES_DIR = "src/main/resources/js/Pages";
 
-    public static void main(String[] args) {
+    public static void runGenerator(String[] args) {
         String entityName;
 
         if (args.length > 0) {
@@ -42,8 +42,10 @@ public class CrudGenerator {
         try {
             generateModel(entityName);
             generateRepository(entityName);
+            generateService(entityName);
             generateController(entityName, entityNameLower, entityPlural, entityPluralLower);
             generateReactViews(entityName, entityNameLower, entityPlural, entityPluralLower);
+            generateMigration(entityName, entityPluralLower);
 
             System.out.println("\n✅ CRUD generation completed successfully.");
             System.out.println("💡 Note: You will need to:");
@@ -110,6 +112,51 @@ public class CrudGenerator {
         System.out.println("✅ Created Repository: " + file.getPath());
     }
 
+    private static void generateService(String entityName) throws IOException {
+        String dir = JAVA_SRC_DIR + "/service";
+        createDirIfNotExists(dir);
+        File file = new File(dir, entityName + "Service.java");
+
+        if (file.exists()) {
+            System.out.println("⚠️ Service " + file.getName() + " already exists. Skipping.");
+            return;
+        }
+
+        String entityNameLower = entityName.substring(0, 1).toLowerCase() + entityName.substring(1);
+
+        String content = "package " + BASE_PACKAGE + ".service;\n\n" +
+                "import " + BASE_PACKAGE + ".model." + entityName + ";\n" +
+                "import " + BASE_PACKAGE + ".repository." + entityName + "Repository;\n" +
+                "import org.springframework.beans.factory.annotation.Autowired;\n" +
+                "import org.springframework.stereotype.Service;\n\n" +
+                "import java.util.List;\n" +
+                "import java.util.Optional;\n\n" +
+                "@Service\n" +
+                "public class " + entityName + "Service {\n\n" +
+                "    private final " + entityName + "Repository " + entityNameLower + "Repository;\n\n" +
+                "    @Autowired\n" +
+                "    public " + entityName + "Service(" + entityName + "Repository " + entityNameLower
+                + "Repository) {\n" +
+                "        this." + entityNameLower + "Repository = " + entityNameLower + "Repository;\n" +
+                "    }\n\n" +
+                "    public List<" + entityName + "> findAll() {\n" +
+                "        return " + entityNameLower + "Repository.findAll();\n" +
+                "    }\n\n" +
+                "    public Optional<" + entityName + "> findById(Long id) {\n" +
+                "        return " + entityNameLower + "Repository.findById(id);\n" +
+                "    }\n\n" +
+                "    public " + entityName + " save(" + entityName + " " + entityNameLower + ") {\n" +
+                "        return " + entityNameLower + "Repository.save(" + entityNameLower + ");\n" +
+                "    }\n\n" +
+                "    public void deleteById(Long id) {\n" +
+                "        " + entityNameLower + "Repository.deleteById(id);\n" +
+                "    }\n" +
+                "}\n";
+
+        writeToFile(file, content);
+        System.out.println("✅ Created Service: " + file.getPath());
+    }
+
     private static void generateController(String entityName, String entityNameLower, String entityPlural,
             String entityPluralLower) throws IOException {
         String dir = JAVA_SRC_DIR + "/controller";
@@ -123,23 +170,26 @@ public class CrudGenerator {
 
         String content = "package " + BASE_PACKAGE + ".controller;\n\n" +
                 "import " + BASE_PACKAGE + ".model." + entityName + ";\n" +
-                "import " + BASE_PACKAGE + ".repository." + entityName + "Repository;\n" +
+                "import " + BASE_PACKAGE + ".service." + entityName + "Service;\n" +
                 "import com.example.demo.Inertia;\n" +
                 "import org.springframework.beans.factory.annotation.Autowired;\n" +
                 "import org.springframework.stereotype.Controller;\n" +
                 "import org.springframework.web.bind.annotation.*;\n" +
                 "import org.springframework.web.servlet.ModelAndView;\n\n" +
-                "import java.util.HashMap;\n" +
                 "import java.util.Map;\n\n" +
                 "@Controller\n" +
                 "@RequestMapping(\"/" + entityPluralLower + "\")\n" +
                 "public class " + entityName + "Controller {\n\n" +
+                "    private final " + entityName + "Service " + entityNameLower + "Service;\n\n" +
                 "    @Autowired\n" +
-                "    private " + entityName + "Repository " + entityNameLower + "Repository;\n\n" +
+                "    public " + entityName + "Controller(" + entityName + "Service " + entityNameLower + "Service) {\n"
+                +
+                "        this." + entityNameLower + "Service = " + entityNameLower + "Service;\n" +
+                "    }\n\n" +
                 "    @GetMapping\n" +
                 "    public ModelAndView index() {\n" +
                 "        return Inertia.render(\"" + entityPlural + "/Index\", Map.of(\n" +
-                "            \"" + entityPluralLower + "\", " + entityNameLower + "Repository.findAll()\n" +
+                "            \"" + entityPluralLower + "\", " + entityNameLower + "Service.findAll()\n" +
                 "        ));\n" +
                 "    }\n\n" +
                 "    @GetMapping(\"/create\")\n" +
@@ -151,12 +201,12 @@ public class CrudGenerator {
                 "    }\n\n" +
                 "    @PostMapping\n" +
                 "    public String store(@ModelAttribute " + entityName + " " + entityNameLower + ") {\n" +
-                "        " + entityNameLower + "Repository.save(" + entityNameLower + ");\n" +
+                "        " + entityNameLower + "Service.save(" + entityNameLower + ");\n" +
                 "        return \"redirect:/" + entityPluralLower + "\";\n" +
                 "    }\n\n" +
                 "    @GetMapping(\"/{id}/edit\")\n" +
                 "    public ModelAndView edit(@PathVariable Long id) {\n" +
-                "        return " + entityNameLower + "Repository.findById(id)\n" +
+                "        return " + entityNameLower + "Service.findById(id)\n" +
                 "            .map(" + entityNameLower + " -> Inertia.render(\"" + entityPlural + "/Form\", Map.of(\n" +
                 "                \"mode\", \"update\",\n" +
                 "                \"routeBase\", \"" + entityPluralLower + "\",\n" +
@@ -166,15 +216,15 @@ public class CrudGenerator {
                 "    }\n\n" +
                 "    @PutMapping(\"/{id}\")\n" +
                 "    public String update(@PathVariable Long id, @ModelAttribute " + entityName + " updateData) {\n" +
-                "        return " + entityNameLower + "Repository.findById(id).map(" + entityNameLower + " -> {\n" +
+                "        return " + entityNameLower + "Service.findById(id).map(" + entityNameLower + " -> {\n" +
                 "            " + entityNameLower + ".setCampoEjemplo(updateData.getCampoEjemplo());\n" +
-                "            " + entityNameLower + "Repository.save(" + entityNameLower + ");\n" +
+                "            " + entityNameLower + "Service.save(" + entityNameLower + ");\n" +
                 "            return \"redirect:/" + entityPluralLower + "\";\n" +
                 "        }).orElse(\"redirect:/" + entityPluralLower + "\");\n" +
                 "    }\n\n" +
                 "    @DeleteMapping(\"/{id}\")\n" +
                 "    public String destroy(@PathVariable Long id) {\n" +
-                "        " + entityNameLower + "Repository.deleteById(id);\n" +
+                "        " + entityNameLower + "Service.deleteById(id);\n" +
                 "        return \"redirect:/" + entityPluralLower + "\";\n" +
                 "    }\n" +
                 "}\n";
@@ -328,6 +378,52 @@ public class CrudGenerator {
         } else {
             System.out.println("⚠️ React View " + formFile.getName() + " already exists. Skipping.");
         }
+    }
+
+    private static void generateMigration(String entityName, String entityPluralLower) throws IOException {
+        String dir = "src/main/resources/db/migration";
+        createDirIfNotExists(dir);
+
+        File migrationDir = new File(dir);
+        File[] files = migrationDir.listFiles((d, name) -> name.startsWith("V") && name.endsWith(".sql"));
+
+        int nextVersion = 1;
+        if (files != null && files.length > 0) {
+            int maxVersion = 0;
+            for (File file : files) {
+                String name = file.getName();
+                try {
+                    int underscoreIndex = name.indexOf("__");
+                    if (underscoreIndex > 1) {
+                        int version = Integer.parseInt(name.substring(1, underscoreIndex));
+                        if (version > maxVersion) {
+                            maxVersion = version;
+                        }
+                    }
+                } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                    // Ignore files that don't follow the pattern
+                }
+            }
+            nextVersion = maxVersion + 1;
+        }
+
+        String fileName = String.format("V%d__create_%s_table.sql", nextVersion, entityPluralLower);
+        File file = new File(dir, fileName);
+
+        if (file.exists()) {
+            System.out.println("⚠️ Migration " + fileName + " already exists. Skipping.");
+            return;
+        }
+
+        String content = "CREATE TABLE IF NOT EXISTS " + entityPluralLower + " (\n" +
+                "    id BIGINT AUTO_INCREMENT PRIMARY KEY,\n" +
+                "    campo_ejemplo VARCHAR(255) NOT NULL,\n" +
+                "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n" +
+                "    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n" +
+                ");\n";
+
+        writeToFile(file, content);
+        System.out.println("✅ Created Migration: " + file.getPath());
     }
 
     private static void createDirIfNotExists(String dirPath) throws IOException {

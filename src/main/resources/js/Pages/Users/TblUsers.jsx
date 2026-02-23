@@ -75,7 +75,7 @@ const TblUsers = ({ users, roles, permisos }) => {
         // Columna para mostrar el nombre del usuario
         {
             name: "Nombre",
-            selector: (row) => row.name,
+            selector: (row) => row.nombre,
             sortable: true
         },
         // Columna para mostrar el rol del usuario

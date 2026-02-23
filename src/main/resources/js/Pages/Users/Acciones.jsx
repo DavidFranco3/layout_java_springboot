@@ -144,10 +144,10 @@ const Acciones = ({ setShow, data, accion, roles }) => {
                     <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary/20">
-                                {data?.name?.charAt(0)}
+                                {data?.nombre?.charAt(0)}
                             </div>
                             <div className="min-w-0 flex-1">
-                                <h5 className="text-sm font-bold text-slate-900 dark:text-white truncate">{data?.name}</h5>
+                                <h5 className="text-sm font-bold text-slate-900 dark:text-white truncate">{data?.nombre}</h5>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                                     <FontAwesomeIcon icon={faEnvelope} className="mr-1 opacity-70" /> {data?.email}
                                 </p>

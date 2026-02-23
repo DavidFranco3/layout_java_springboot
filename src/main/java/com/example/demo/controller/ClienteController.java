@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.Cliente;
-import com.example.demo.repository.ClienteRepository;
+import com.example.demo.dto.ClienteDTO;
+import com.example.demo.service.ClienteService;
 import com.example.demo.Inertia;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -14,13 +14,17 @@ import java.util.Map;
 @RequestMapping("/clientes")
 public class ClienteController {
 
+    private final ClienteService clienteService;
+
     @Autowired
-    private ClienteRepository clienteRepository;
+    public ClienteController(ClienteService clienteService) {
+        this.clienteService = clienteService;
+    }
 
     @GetMapping
     public Object index() {
         return Inertia.render("Clientes/Index", Map.of(
-                "clientes", clienteRepository.findAll()));
+                "clientes", clienteService.findAll()));
     }
 
     @GetMapping("/create")
@@ -31,14 +35,14 @@ public class ClienteController {
     }
 
     @PostMapping
-    public String store(@ModelAttribute Cliente cliente) {
-        clienteRepository.save(cliente);
+    public String store(@ModelAttribute ClienteDTO clienteDTO) {
+        clienteService.save(clienteDTO);
         return "redirect:/clientes";
     }
 
     @GetMapping("/{id}/edit")
     public Object edit(@PathVariable Long id) {
-        return clienteRepository.findById(id)
+        return clienteService.findById(id)
                 .map(cliente -> Inertia.render("Clientes/Form", Map.of(
                         "mode", "update",
                         "routeBase", "clientes",
@@ -47,17 +51,17 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute Cliente updateData) {
-        return clienteRepository.findById(id).map(cliente -> {
+    public String update(@PathVariable Long id, @ModelAttribute ClienteDTO updateData) {
+        return clienteService.findById(id).map(cliente -> {
             cliente.setCampoEjemplo(updateData.getCampoEjemplo());
-            clienteRepository.save(cliente);
+            clienteService.save(cliente);
             return "redirect:/clientes";
         }).orElse("redirect:/clientes");
     }
 
     @DeleteMapping("/{id}")
     public String destroy(@PathVariable Long id) {
-        clienteRepository.deleteById(id);
+        clienteService.deleteById(id);
         return "redirect:/clientes";
     }
 }
