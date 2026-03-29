@@ -1,17 +1,37 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { Link } from "@inertiajs/react";
+import { Link, useNavigate } from "react-router-dom";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
 import DangerButton from "@/Components/DangerButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faUserTie, faEdit, faTrash, faUsers } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-import { router } from "@inertiajs/react";
+import axios from "axios";
+import useAuth from "@/hooks/useAuth";
 
-const Index = (props) => {
-    const { auth, errors, clientes } = props;
+const Index = () => {
+    const [clientes, setClientes] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchClientes();
+    }, []);
+
+    const fetchClientes = async () => {
+        try {
+            const res = await axios.get("/api/clientes");
+            setClientes(res.data);
+        } catch (err) {
+            console.error("Error al cargar clientes:", err);
+            Swal.fire("Error", "No se pudieron cargar los clientes", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const eliminarCliente = (id) => {
         Swal.fire({
@@ -25,21 +45,28 @@ const Index = (props) => {
             cancelButtonText: "Cancelar",
             background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
             color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                router.delete(route("clientes.destroy", id));
+                try {
+                    await axios.delete(`/api/clientes/${id}`);
+                    Swal.fire("Eliminado", "El cliente ha sido eliminado", "success");
+                    fetchClientes();
+                } catch (err) {
+                    Swal.fire("Error", "No se pudo eliminar el cliente", "error");
+                }
             }
         });
     };
 
+    if (loading) return <div>Cargando...</div>;
+
     return (
-        <Authenticated auth={auth} errors={errors}>
+        <Authenticated user={user}>
             <ContainerLaravel
                 titulo="Gestión de Clientes"
                 icono={faUsers}
             >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-2">
-                    {/* Bento Block: Info */}
                     <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
                             <FontAwesomeIcon icon={faUsers} className="text-xl" />
@@ -52,10 +79,9 @@ const Index = (props) => {
                         </div>
                     </div>
 
-                    {/* Bento Block: Action */}
                     <Link
-                        href={route("clientes.create")}
-                        className="group relative overflow-hidden p-6 rounded-3xl border border-dashed border-primary/30 bg-transparent hover:bg-primary/5 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10 active:scale-95"
+                        to="/clientes/create"
+                        className="group relative overflow-hidden p-6 rounded-3xl border border-dashed border-primary/30 bg-transparent hover:bg-primary/5 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10 active:scale-95 text-decoration-none"
                     >
                         <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
                             <FontAwesomeIcon icon={faPlus} className="text-xl" />
@@ -94,7 +120,7 @@ const Index = (props) => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex justify-center gap-2">
-                                            <Link href={route("clientes.edit", cliente.id)}>
+                                            <Link to={`/clientes/${cliente.id}/edit`}>
                                                 <SecondaryButton className="!p-2 w-9 h-9 flex items-center justify-center">
                                                     <FontAwesomeIcon icon={faEdit} className="text-xs" />
                                                 </SecondaryButton>

@@ -1,33 +1,57 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const navigate = useNavigate();
+    const [data, setData] = useState({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
     });
+    const [errors, setErrors] = useState({});
+    const [processing, setProcessing] = useState(false);
+
+    const handleDataChange = (key, value) => {
+        setData(prev => ({ ...prev, [key]: value }));
+    };
 
     useEffect(() => {
-        return () => {
-            reset('password', 'password_confirmation');
-        };
+        document.title = "Crear Cuenta | HidalQro";
     }, []);
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
-        post(route('register'));
+        setProcessing(true);
+        setErrors({});
+
+        try {
+            const res = await axios.post('/register', data);
+            if (res.status === 201 || res.status === 200) {
+                // Success: Redirect to login or dashboard
+                navigate('/login', { state: { message: 'Cuenta creada con éxito. Por favor inicia sesión.' } });
+            }
+        } catch (err) {
+            if (err.response?.data?.errors) {
+                setErrors(err.response.data.errors);
+            } else if (err.response?.data?.message) {
+                setErrors({ email: err.response.data.message });
+            } else {
+                setErrors({ email: "Error al registrar la cuenta. Intenta de nuevo." });
+            }
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-[#0f172a] selection:bg-indigo-500/30 selection:text-indigo-900 font-outfit relative overflow-hidden px-4">
-            <Head title="Crear Cuenta | HidalQro" />
 
             <style dangerouslySetInnerHTML={{
                 __html: `
@@ -44,7 +68,7 @@ export default function Register() {
             <div className="w-full max-w-xl relative z-10 py-12">
                 {/* Branding / Logo centered */}
                 <div className="flex flex-col items-center mb-10 text-center">
-                    <Link href="/" className="group flex items-center gap-3 mb-6">
+                    <Link to="/" className="group flex items-center gap-3 mb-6">
                         <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20 group-hover:rotate-12 transition-transform duration-300">
                             <i className="fas fa-cube text-white text-2xl"></i>
                         </div>
@@ -74,7 +98,7 @@ export default function Register() {
                                     className="pl-12 block w-full bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-opacity-50 text-slate-900 dark:text-white h-14 rounded-2xl font-semibold transition-all shadow-sm focus:shadow-indigo-500/10"
                                     autoComplete="name"
                                     isFocused={true}
-                                    onChange={(e) => setData('name', e.target.value)}
+                                    onChange={(e) => handleDataChange('name', e.target.value)}
                                     required
                                     placeholder="Nombre completo"
                                 />
@@ -96,7 +120,7 @@ export default function Register() {
                                     value={data.email}
                                     className="pl-12 block w-full bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-opacity-50 text-slate-900 dark:text-white h-14 rounded-2xl font-semibold transition-all shadow-sm focus:shadow-indigo-500/10"
                                     autoComplete="username"
-                                    onChange={(e) => setData('email', e.target.value)}
+                                    onChange={(e) => handleDataChange('email', e.target.value)}
                                     required
                                     placeholder="email@ejemplo.com"
                                 />
@@ -119,7 +143,7 @@ export default function Register() {
                                         value={data.password}
                                         className="pl-12 block w-full bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-opacity-50 text-slate-900 dark:text-white h-14 rounded-2xl font-semibold transition-all shadow-sm focus:shadow-indigo-500/10"
                                         autoComplete="new-password"
-                                        onChange={(e) => setData('password', e.target.value)}
+                                        onChange={(e) => handleDataChange('password', e.target.value)}
                                         required
                                         placeholder="••••••••"
                                     />
@@ -140,7 +164,7 @@ export default function Register() {
                                         value={data.password_confirmation}
                                         className="pl-12 block w-full bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-opacity-50 text-slate-900 dark:text-white h-14 rounded-2xl font-semibold transition-all shadow-sm focus:shadow-indigo-500/10"
                                         autoComplete="new-password"
-                                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                                        onChange={(e) => handleDataChange('password_confirmation', e.target.value)}
                                         required
                                         placeholder="••••••••"
                                     />
@@ -172,7 +196,7 @@ export default function Register() {
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest">
                             ¿Ya eres miembro?{' '}
                             <Link
-                                href={route('login')}
+                                to="/login"
                                 className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-all border-b-2 border-indigo-600/20 hover:border-indigo-600 ml-1"
                             >
                                 Inicia sesión aquí

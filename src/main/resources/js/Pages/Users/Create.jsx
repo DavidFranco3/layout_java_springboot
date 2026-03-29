@@ -1,5 +1,6 @@
-import React from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
@@ -10,8 +11,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faKey, faShieldAlt, faSave, faTimes } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-export default function Create({ cerrarModal, roles }) {
-    const { user, rolNombre, hasPermission } = useAuth();
+export default function Create({ cerrarModal, roles, onRefresh }) {
+    const { hasPermission } = useAuth();
+    const [serverErrors, setServerErrors] = useState({});
+    const [processing, setProcessing] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            nombre: "",
+            email: "",
+            password: "",
+            rol_id: "",
+        },
+    });
 
     if (!hasPermission('crear users')) {
         return (
@@ -26,43 +42,40 @@ export default function Create({ cerrarModal, roles }) {
         );
     }
 
-    const { data, setData, post, processing, reset, errors } = useForm({
-        nombre: "",
-        email: "",
-        password: "",
-        rol_id: "",
-    });
+    const onSubmit = async (data) => {
+        setProcessing(true);
+        setServerErrors({});
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post(route("users.store"), {
-            onSuccess: () => {
-                Swal.fire({
-                    icon: "success",
-                    title: "¡Logrado!",
-                    text: "Usuario registrado con éxito",
-                    showConfirmButton: false,
-                    timer: 2000,
-                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
-                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
-                });
-                cerrarModal();
-                reset();
-            },
-            onError: () => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Oops...",
-                    text: "Hubo un problema al registrar el usuario",
-                    confirmButtonColor: "var(--app-primary)",
-                });
-            },
-        });
+        try {
+            await axios.post("/api/users", data);
+            Swal.fire({
+                icon: "success",
+                title: "¡Logrado!",
+                text: "Usuario registrado con éxito",
+                showConfirmButton: false,
+                timer: 2000,
+                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+            });
+            if (onRefresh) onRefresh();
+            cerrarModal();
+        } catch (err) {
+            if (err.response?.data?.errors) {
+                setServerErrors(err.response.data.errors);
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Oops...",
+                text: err.response?.data?.message || "Hubo un problema al registrar el usuario",
+                confirmButtonColor: "var(--app-primary)",
+            });
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in p-1">
-            {/* Header del Formulario Interno (Opcional, pero da jerarquía) */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fade-in p-1">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-sm">
                     <FontAwesomeIcon icon={faUser} />
@@ -74,7 +87,6 @@ export default function Create({ cerrarModal, roles }) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Nombre */}
                 <div className="space-y-1.5">
                     <InputLabel htmlFor="nombre" value="Nombre Completo" />
                     <div className="relative">
@@ -84,16 +96,14 @@ export default function Create({ cerrarModal, roles }) {
                         <TextInput
                             id="nombre"
                             className="w-full pl-10 h-11"
-                            value={data.nombre}
                             placeholder="Ej. Juan Pérez"
-                            onChange={(e) => setData("nombre", e.target.value)}
-                            required
+                            isError={!!errors.nombre || !!serverErrors.nombre}
+                            {...register("nombre", { required: "El nombre es requerido" })}
                         />
                     </div>
-                    <InputError message={errors.nombre} />
+                    <InputError message={errors.nombre?.message || serverErrors.nombre} />
                 </div>
 
-                {/* Email */}
                 <div className="space-y-1.5">
                     <InputLabel htmlFor="email" value="Correo Electrónico" />
                     <div className="relative">
@@ -104,16 +114,17 @@ export default function Create({ cerrarModal, roles }) {
                             id="email"
                             type="email"
                             className="w-full pl-10 h-11"
-                            value={data.email}
                             placeholder="juan@ejemplo.com"
-                            onChange={(e) => setData("email", e.target.value)}
-                            required
+                            isError={!!errors.email || !!serverErrors.email}
+                            {...register("email", {
+                                required: "El correo es requerido",
+                                pattern: { value: /^\S+@\S+$/i, message: "Correo inválido" },
+                            })}
                         />
                     </div>
-                    <InputError message={errors.email} />
+                    <InputError message={errors.email?.message || serverErrors.email} />
                 </div>
 
-                {/* Rol */}
                 <div className="space-y-1.5">
                     <InputLabel htmlFor="rol_id" value="Asignar Rol" />
                     <div className="relative">
@@ -123,9 +134,7 @@ export default function Create({ cerrarModal, roles }) {
                         <select
                             id="rol_id"
                             className="w-full pl-10 h-11 rounded-xl border-slate-200 bg-white/50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 transition-all focus:ring-4 focus:ring-primary/10 focus:border-primary"
-                            value={data.rol_id}
-                            onChange={(e) => setData("rol_id", e.target.value)}
-                            required
+                            {...register("rol_id", { required: "Debes seleccionar un rol" })}
                         >
                             <option value="">Selecciona un rol...</option>
                             {roles.map((rol) => (
@@ -133,10 +142,9 @@ export default function Create({ cerrarModal, roles }) {
                             ))}
                         </select>
                     </div>
-                    <InputError message={errors.rol_id} />
+                    <InputError message={errors.rol_id?.message || serverErrors.rol_id} />
                 </div>
 
-                {/* Password */}
                 <div className="space-y-1.5">
                     <InputLabel htmlFor="password" value="Contraseña" />
                     <div className="relative">
@@ -147,17 +155,18 @@ export default function Create({ cerrarModal, roles }) {
                             id="password"
                             type="password"
                             className="w-full pl-10 h-11"
-                            value={data.password}
                             placeholder="••••••••"
-                            onChange={(e) => setData("password", e.target.value)}
-                            required
+                            isError={!!errors.password || !!serverErrors.password}
+                            {...register("password", {
+                                required: "La contraseña es requerida",
+                                minLength: { value: 8, message: "Mínimo 8 caracteres" },
+                            })}
                         />
                     </div>
-                    <InputError message={errors.password} />
+                    <InputError message={errors.password?.message || serverErrors.password} />
                 </div>
             </div>
 
-            {/* Footer de Acciones dentro del Formulario */}
             <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
                 <SecondaryButton
                     type="button"

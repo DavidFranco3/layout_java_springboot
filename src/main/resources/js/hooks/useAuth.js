@@ -6,21 +6,37 @@
  * acceder a los props compartidos de autenticación.
  */
 
-import { usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const useAuth = () => {
-    const { auth } = usePage().props;
-    
-    // Información básica del usuario
-    const user = auth?.user || null;
-    const isAuthenticated = !!user;
-    
-    // Información del rol
-    const rolId = user?.rol_id || null;
-    const rolNombre = user?.rol_nombre || null;
-    
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+
     // Array de permisos
     const permisos = user?.permisos || [];
+    
+    // Información del rol
+    const rolNombre = user?.rol_nombre || null;
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await axios.get('/api/profile');
+                if (res.status === 200) {
+                    setUser(res.data);
+                    setIsAuthenticated(true);
+                }
+            } catch (err) {
+                console.error("Not authenticated");
+                setIsAuthenticated(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
     
     // Funciones helper para verificación de roles
     const hasRole = (roleName) => {
@@ -55,22 +71,13 @@ const useAuth = () => {
     };
     
     return {
-        // Información básica
         user,
         isAuthenticated,
-        
-        // Información de rol
-        rolId,
-        rolNombre,
-        
-        // Permisos
+        loading,
         permisos,
-        
-        // Funciones de verificación de roles
+        rolNombre,
         hasRole,
         hasAnyRole,
-        
-        // Funciones de verificación de permisos
         hasPermission,
         hasAnyPermission,
         hasModuleAccess,

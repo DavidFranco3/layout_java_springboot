@@ -1,32 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
-import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
-        remember: false,
+    const navigate = useNavigate();
+    const [processing, setProcessing] = useState(false);
+    const [serverErrors, setServerErrors] = useState({});
+
+    const { register, handleSubmit, formState: { errors } } = useForm({
+        defaultValues: { email: '', password: '', remember: false },
     });
 
     useEffect(() => {
-        return () => {
-            reset('password');
-        };
+        document.title = "Acceso | HidalQro";
     }, []);
 
-    const submit = (e) => {
-        e.preventDefault();
-        post(route('login'));
+    const onSubmit = async (data) => {
+        setProcessing(true);
+        setServerErrors({});
+
+        try {
+            const res = await axios.post('/login', data);
+            if (res.status === 200) {
+                window.location.href = '/dashboard';
+            }
+        } catch (err) {
+            if (err.response?.data?.errors) {
+                setServerErrors(err.response.data.errors);
+            } else if (err.response?.data?.message) {
+                setServerErrors({ email: err.response.data.message });
+            } else {
+                setServerErrors({ email: "Error al iniciar sesión. Intenta de nuevo." });
+            }
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-[#0f172a] selection:bg-indigo-500/30 selection:text-indigo-900 font-outfit relative overflow-hidden px-4">
-            <Head title="Acceso | HidalQro" />
 
             <style dangerouslySetInnerHTML={{
                 __html: `
@@ -43,7 +61,7 @@ export default function Login({ status, canResetPassword }) {
             <div className="w-full max-w-md relative z-10">
                 {/* Branding / Logo centered */}
                 <div className="flex flex-col items-center mb-10">
-                    <Link href="/" className="group flex items-center gap-3 mb-6">
+                    <Link to="/" className="group flex items-center gap-3 mb-6">
                         <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/20 group-hover:rotate-12 transition-transform duration-300">
                             <i className="fas fa-cube text-white text-2xl"></i>
                         </div>
@@ -64,7 +82,7 @@ export default function Login({ status, canResetPassword }) {
                         </div>
                     )}
 
-                    <form onSubmit={submit} className="space-y-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
                             <InputLabel htmlFor="email" value="Correo electrónico" className="font-bold text-slate-900 dark:text-slate-200 uppercase text-[10px] tracking-widest mb-1.5 ml-1" />
                             <div className="relative group">
@@ -74,16 +92,18 @@ export default function Login({ status, canResetPassword }) {
                                 <TextInput
                                     id="email"
                                     type="email"
-                                    name="email"
-                                    value={data.email}
                                     className="pl-12 block w-full bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-opacity-50 text-slate-900 dark:text-white h-14 rounded-2xl font-semibold transition-all shadow-sm focus:shadow-indigo-500/10 placeholder:text-slate-300 dark:placeholder:text-slate-700"
                                     autoComplete="username"
                                     isFocused={true}
-                                    onChange={(e) => setData('email', e.target.value)}
                                     placeholder="admin@hidalqro.com"
+                                    isError={!!errors.email || !!serverErrors.email}
+                                    {...register("email", {
+                                        required: "El correo es requerido",
+                                        pattern: { value: /^\S+@\S+$/i, message: "Correo inválido" },
+                                    })}
                                 />
                             </div>
-                            <InputError message={errors.email} className="mt-2 text-xs font-bold text-rose-500 ml-1 uppercase" />
+                            <InputError message={errors.email?.message || serverErrors.email} className="mt-2 text-xs font-bold text-rose-500 ml-1 uppercase" />
                         </div>
 
                         <div>
@@ -91,7 +111,7 @@ export default function Login({ status, canResetPassword }) {
                                 <InputLabel htmlFor="password" value="Contraseña" className="font-bold text-slate-900 dark:text-slate-200 uppercase text-[10px] tracking-widest" />
                                 {canResetPassword && (
                                     <Link
-                                        href={route('password.request')}
+                                        to="/password/request"
                                         className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest hover:text-indigo-700 transition-colors"
                                     >
                                         ¿Olvidaste tu contraseña?
@@ -105,24 +125,22 @@ export default function Login({ status, canResetPassword }) {
                                 <TextInput
                                     id="password"
                                     type="password"
-                                    name="password"
-                                    value={data.password}
                                     className="pl-12 block w-full bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-opacity-50 text-slate-900 dark:text-white h-14 rounded-2xl font-semibold transition-all shadow-sm focus:shadow-indigo-500/10 placeholder:text-slate-300 dark:placeholder:text-slate-700"
                                     autoComplete="current-password"
-                                    onChange={(e) => setData('password', e.target.value)}
                                     placeholder="••••••••"
+                                    isError={!!errors.password || !!serverErrors.password}
+                                    {...register("password", { required: "La contraseña es requerida" })}
                                 />
                             </div>
-                            <InputError message={errors.password} className="mt-2 text-xs font-bold text-rose-500 ml-1 uppercase" />
+                            <InputError message={errors.password?.message || serverErrors.password} className="mt-2 text-xs font-bold text-rose-500 ml-1 uppercase" />
                         </div>
 
                         <div className="flex items-center">
                             <label className="flex items-center group cursor-pointer">
                                 <Checkbox
                                     name="remember"
-                                    checked={data.remember}
-                                    onChange={(e) => setData('remember', e.target.checked)}
                                     className="w-5 h-5 rounded-lg border-slate-300 dark:border-slate-800 text-indigo-600 focus:ring-indigo-500 dark:bg-slate-900"
+                                    {...register("remember")}
                                 />
                                 <span className="ml-3 text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-indigo-600 transition-colors tracking-tight">Mantener sesión activa</span>
                             </label>
@@ -151,7 +169,7 @@ export default function Login({ status, canResetPassword }) {
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-500 uppercase tracking-widest">
                             ¿No tienes acceso?{' '}
                             <Link
-                                href={route('register')}
+                                to="/register"
                                 className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-all border-b-2 border-indigo-600/20 hover:border-indigo-600 ml-1"
                             >
                                 Regístrate aquí

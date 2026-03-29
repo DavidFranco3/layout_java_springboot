@@ -1,5 +1,6 @@
-import React from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import InputLabel from "@/Components/InputLabel";
@@ -8,36 +9,63 @@ import InputError from "@/Components/InputError";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faBriefcase, faIdCard, faPhone, faEnvelope, faCheckCircle, faSave, faTimes, faUserCircle, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faBriefcase, faIdCard, faPhone, faEnvelope, faSave, faTimes, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-import { Link } from "@inertiajs/react";
+import axios from "axios";
+import useAuth from "@/hooks/useAuth";
 
-export default function Form(props) {
-    const { mode, routeBase, empresa } = props;
+export default function Form({ mode }) {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const isEdit = mode === "update";
 
-    const { data, setData, post, put, processing, errors } = useForm({
-        nombre: isEdit ? empresa?.nombre || "" : "",
-        razon_social: isEdit ? empresa?.razon_social || "" : "",
-        rfc: isEdit ? empresa?.rfc || "" : "",
-        tipo_persona: isEdit ? empresa?.tipo_persona || "Moral" : "Moral",
-        calle: isEdit ? empresa?.calle || "" : "",
-        numero_exterior: isEdit ? empresa?.numero_exterior || "" : "",
-        numero_interior: isEdit ? empresa?.numero_interior || "" : "",
-        colonia: isEdit ? empresa?.colonia || "" : "",
-        municipio: isEdit ? empresa?.municipio || "" : "",
-        estado: isEdit ? empresa?.estado || "" : "",
-        cp: isEdit ? empresa?.cp || "" : "",
-        telefono: isEdit ? empresa?.telefono || "" : "",
-        email: isEdit ? empresa?.email || "" : "",
-        giro: isEdit ? empresa?.giro || "" : "",
-        status: isEdit ? empresa?.status || true : true,
+    const [loading, setLoading] = useState(isEdit);
+    const [processing, setProcessing] = useState(false);
+    const [serverErrors, setServerErrors] = useState({});
+
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+        defaultValues: {
+            nombre: "", razon_social: "", rfc: "", tipo_persona: "Moral",
+            calle: "", numero_exterior: "", numero_interior: "", colonia: "",
+            municipio: "", estado: "", cp: "", telefono: "", email: "", giro: "", status: true,
+        },
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const watchedNombre = watch("nombre");
 
-        const onSuccess = () => {
+    const fetchEmpresa = useCallback(async () => {
+        if (!id) return;
+        try {
+            const response = await axios.get(`/api/empresas/${id}`);
+            const empresa = response.data;
+            Object.keys(empresa).forEach(key => {
+                if (key in empresa) setValue(key, empresa[key] ?? "");
+            });
+        } catch (error) {
+            console.error("Error fetching company:", error);
+            Swal.fire({ icon: "error", title: "Error", text: "No se pudo cargar la información de la empresa." });
+            navigate("/empresas");
+        } finally {
+            setLoading(false);
+        }
+    }, [id, navigate, setValue]);
+
+    useEffect(() => {
+        if (isEdit) fetchEmpresa();
+    }, [isEdit, fetchEmpresa]);
+
+    const onSubmit = async (data) => {
+        setProcessing(true);
+        setServerErrors({});
+
+        try {
+            if (isEdit) {
+                await axios.put(`/api/empresas/${id}`, data);
+            } else {
+                await axios.post("/api/empresas", data);
+            }
+
             Swal.fire({
                 icon: "success",
                 title: isEdit ? "Actualización Exitosa" : "Registro Exitoso",
@@ -47,42 +75,34 @@ export default function Form(props) {
                 background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
                 color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
             });
-        };
-
-        const onError = () => {
+            navigate("/empresas");
+        } catch (error) {
+            if (error.response?.data?.errors) {
+                setServerErrors(error.response.data.errors);
+            }
             Swal.fire({
                 icon: "error",
                 title: "Error en el Formulario",
-                text: "Por favor revisa los campos marcados en rojo.",
+                text: error.response?.data?.message || "Por favor revisa los campos marcados en rojo.",
                 confirmButtonColor: "var(--app-primary)",
             });
-        };
-
-        if (isEdit && empresa?.id) {
-            put(`/${routeBase}/${empresa.id}`, { onSuccess, onError });
-        } else {
-            post(`/${routeBase}`, { onSuccess, onError });
+        } finally {
+            setProcessing(false);
         }
     };
 
+    if (loading) return <div>Cargando...</div>;
+
     return (
-        <Authenticated auth={props.auth} errors={props.errors}>
+        <Authenticated user={user}>
             <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-fade-in text-slate-900 dark:text-slate-100">
-                <Link
-                    href={route("empresas.index")}
-                    className="inline-flex items-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 hover:text-primary transition-all mb-4 group"
-                >
+                <Link to="/empresas" className="inline-flex items-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 hover:text-primary transition-all mb-4 group">
                     <FontAwesomeIcon icon={faChevronLeft} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                     Volver al listado
                 </Link>
-                <ContainerLaravel
-                    titulo={isEdit ? `Editando: ${empresa?.nombre}` : "Nueva Empresa"}
-                    icono={isEdit ? faBuilding : faBuilding}
-                >
-                    <form onSubmit={handleSubmit} className="space-y-8 py-4">
-
+                <ContainerLaravel titulo={isEdit ? `Editando: ${watchedNombre}` : "Nueva Empresa"} icono={faBuilding}>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 py-4">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
                             {/* BENTO BOX 1: INFORMACIÓN GENERAL Y CONTACTO */}
                             <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-[var(--border-light)] shadow-sm space-y-6">
                                 <div className="flex items-center gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800/50">
@@ -99,74 +119,55 @@ export default function Form(props) {
                                     <div className="space-y-1.5">
                                         <InputLabel htmlFor="nombre" value="Nombre Comercial" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                                                <FontAwesomeIcon icon={faBuilding} />
-                                            </span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><FontAwesomeIcon icon={faBuilding} /></span>
                                             <TextInput
                                                 id="nombre"
                                                 className="w-full pl-11 h-12"
-                                                value={data.nombre}
                                                 placeholder="Nombre público"
-                                                onChange={(e) => setData("nombre", e.target.value)}
-                                                required
+                                                isError={!!errors.nombre || !!serverErrors.nombre}
+                                                {...register("nombre", { required: "El nombre es requerido" })}
                                             />
                                         </div>
+                                        <InputError message={errors.nombre?.message || serverErrors.nombre} />
                                     </div>
 
                                     <div className="space-y-1.5">
                                         <InputLabel htmlFor="giro" value="Giro / Sector" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                                                <FontAwesomeIcon icon={faBriefcase} />
-                                            </span>
-                                            <TextInput
-                                                id="giro"
-                                                className="w-full pl-11 h-12"
-                                                value={data.giro}
-                                                placeholder="Ej. Servicios, Alimentos"
-                                                onChange={(e) => setData("giro", e.target.value)}
-                                            />
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><FontAwesomeIcon icon={faBriefcase} /></span>
+                                            <TextInput id="giro" className="w-full pl-11 h-12" placeholder="Ej. Servicios, Alimentos" isError={!!serverErrors.giro} {...register("giro")} />
                                         </div>
+                                        <InputError message={serverErrors.giro} />
                                     </div>
 
                                     <div className="space-y-1.5">
                                         <InputLabel htmlFor="telefono" value="Teléfono de Contacto" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                                                <FontAwesomeIcon icon={faPhone} />
-                                            </span>
-                                            <TextInput
-                                                id="telefono"
-                                                className="w-full pl-11 h-12"
-                                                value={data.telefono}
-                                                placeholder="10 dígitos"
-                                                onChange={(e) => setData("telefono", e.target.value)}
-                                            />
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><FontAwesomeIcon icon={faPhone} /></span>
+                                            <TextInput id="telefono" className="w-full pl-11 h-12" placeholder="10 dígitos" isError={!!serverErrors.telefono} {...register("telefono")} />
                                         </div>
-                                        <InputError message={errors.telefono} />
+                                        <InputError message={serverErrors.telefono} />
                                     </div>
 
                                     <div className="space-y-1.5">
                                         <InputLabel htmlFor="email" value="Correo Electrónico" />
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                                                <FontAwesomeIcon icon={faEnvelope} />
-                                            </span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"><FontAwesomeIcon icon={faEnvelope} /></span>
                                             <TextInput
                                                 id="email"
                                                 type="email"
                                                 className="w-full pl-11 h-12"
-                                                value={data.email}
                                                 placeholder="contacto@empresa.com"
-                                                onChange={(e) => setData("email", e.target.value)}
+                                                isError={!!errors.email || !!serverErrors.email}
+                                                {...register("email", { pattern: { value: /^\S+@\S+$/i, message: "Correo inválido" } })}
                                             />
                                         </div>
-                                        <InputError message={errors.email} />
+                                        <InputError message={errors.email?.message || serverErrors.email} />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* BENTO BOX 3: DATOS FISCALES (Ancho completo o Grid) */}
+                            {/* BENTO BOX 2: DATOS FISCALES */}
                             <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-[var(--border-light)] shadow-sm space-y-6 text-slate-900 dark:text-slate-100">
                                 <div className="flex items-center gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800/50">
                                     <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 shadow-sm">
@@ -181,34 +182,21 @@ export default function Form(props) {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="md:col-span-2 space-y-1.5">
                                         <InputLabel htmlFor="razon_social" value="Razón Social" />
-                                        <TextInput
-                                            id="razon_social"
-                                            className="w-full h-12"
-                                            value={data.razon_social}
-                                            placeholder="Nombre legal completo"
-                                            onChange={(e) => setData("razon_social", e.target.value)}
-                                        />
-                                        <InputError message={errors.razon_social} />
+                                        <TextInput id="razon_social" className="w-full h-12" placeholder="Nombre legal completo" isError={!!serverErrors.razon_social} {...register("razon_social")} />
+                                        <InputError message={serverErrors.razon_social} />
                                     </div>
                                     <div className="space-y-1.5">
                                         <InputLabel htmlFor="rfc" value="RFC" />
-                                        <TextInput
-                                            id="rfc"
-                                            className="w-full h-12 uppercase"
-                                            value={data.rfc}
-                                            maxLength={13}
-                                            placeholder="ABC123456XYZ"
-                                            onChange={(e) => setData("rfc", e.target.value)}
-                                        />
-                                        <InputError message={errors.rfc} />
+                                        <TextInput id="rfc" className="w-full h-12 uppercase" maxLength={13} placeholder="ABC123456XYZ" isError={!!serverErrors.rfc} {...register("rfc")} />
+                                        <InputError message={serverErrors.rfc} />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* BENTO BOX 4: DOMICILIO FISCAL (Ancho completo) */}
+                            {/* BENTO BOX 3: DOMICILIO FISCAL */}
                             <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-[var(--border-light)] shadow-sm space-y-6">
                                 <div className="flex items-center gap-3 pb-4 border-b border-slate-200/50 dark:border-slate-800/50">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 shadow-sm text-slate-900 dark:text-slate-100">
+                                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 shadow-sm">
                                         <FontAwesomeIcon icon={faBuilding} />
                                     </div>
                                     <div>
@@ -220,65 +208,28 @@ export default function Form(props) {
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                                     <div className="md:col-span-6 space-y-1.5">
                                         <InputLabel htmlFor="calle" value="Calle" />
-                                        <TextInput
-                                            id="calle"
-                                            className="w-full h-12"
-                                            value={data.calle}
-                                            placeholder="Nombre de la calle"
-                                            onChange={(e) => setData("calle", e.target.value)}
-                                        />
+                                        <TextInput id="calle" className="w-full h-12" placeholder="Nombre de la calle" {...register("calle")} />
+                                        <InputError message={serverErrors.calle} />
                                     </div>
                                     <div className="md:col-span-3 space-y-1.5">
                                         <InputLabel htmlFor="numero_exterior" value="Ext." />
-                                        <TextInput
-                                            id="numero_exterior"
-                                            className="w-full h-12"
-                                            value={data.numero_exterior}
-                                            placeholder="Ext."
-                                            onChange={(e) => setData("numero_exterior", e.target.value)}
-                                        />
+                                        <TextInput id="numero_exterior" className="w-full h-12" placeholder="Ext." {...register("numero_exterior")} />
                                     </div>
                                     <div className="md:col-span-3 space-y-1.5">
                                         <InputLabel htmlFor="numero_interior" value="Int." />
-                                        <TextInput
-                                            id="numero_interior"
-                                            className="w-full h-12"
-                                            value={data.numero_interior}
-                                            placeholder="Int."
-                                            onChange={(e) => setData("numero_interior", e.target.value)}
-                                        />
+                                        <TextInput id="numero_interior" className="w-full h-12" placeholder="Int." {...register("numero_interior")} />
                                     </div>
-
                                     <div className="md:col-span-4 space-y-1.5">
                                         <InputLabel htmlFor="colonia" value="Colonia" />
-                                        <TextInput
-                                            id="colonia"
-                                            className="w-full h-12"
-                                            value={data.colonia}
-                                            placeholder="Nombre de la colonia"
-                                            onChange={(e) => setData("colonia", e.target.value)}
-                                        />
+                                        <TextInput id="colonia" className="w-full h-12" placeholder="Nombre de la colonia" {...register("colonia")} />
                                     </div>
                                     <div className="md:col-span-4 space-y-1.5">
                                         <InputLabel htmlFor="municipio" value="Municipio" />
-                                        <TextInput
-                                            id="municipio"
-                                            className="w-full h-12"
-                                            value={data.municipio}
-                                            placeholder="Nombre del municipio"
-                                            onChange={(e) => setData("municipio", e.target.value)}
-                                        />
+                                        <TextInput id="municipio" className="w-full h-12" placeholder="Nombre del municipio" {...register("municipio")} />
                                     </div>
-                                    <div className="md:col-span-4 space-y-1.5 text-slate-900 dark:text-slate-100">
+                                    <div className="md:col-span-4 space-y-1.5">
                                         <InputLabel htmlFor="cp" value="CP" />
-                                        <TextInput
-                                            id="cp"
-                                            className="w-full h-12"
-                                            value={data.cp}
-                                            maxLength={5}
-                                            placeholder="54321"
-                                            onChange={(e) => setData("cp", e.target.value)}
-                                        />
+                                        <TextInput id="cp" className="w-full h-12" maxLength={5} placeholder="54321" {...register("cp")} />
                                     </div>
                                 </div>
                             </div>
@@ -286,26 +237,16 @@ export default function Form(props) {
 
                         {/* ACCIONES DEL FORMULARIO */}
                         <div className="flex items-center justify-end gap-4 pt-8 border-t border-slate-200 dark:border-slate-800">
-                            <SecondaryButton
-                                type="button"
-                                onClick={() => window.history.back()}
-                                className="h-14 px-10 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em]"
-                            >
+                            <SecondaryButton type="button" onClick={() => navigate(-1)} className="h-14 px-10 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em]">
                                 <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
                             </SecondaryButton>
-
-                            <PrimaryButton
-                                type="submit"
-                                disabled={processing}
-                                className="h-14 px-12 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-primary/20"
-                            >
+                            <PrimaryButton type="submit" disabled={processing} className="h-14 px-12 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-primary/20">
                                 <div className="flex items-center gap-2">
                                     <FontAwesomeIcon icon={faSave} />
                                     <span>{processing ? "Guardando..." : (isEdit ? "Actualizar Empresa" : "Crear Empresa")}</span>
                                 </div>
                             </PrimaryButton>
                         </div>
-
                     </form>
                 </ContainerLaravel>
             </div>

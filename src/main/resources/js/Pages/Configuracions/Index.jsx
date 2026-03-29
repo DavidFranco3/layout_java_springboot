@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
@@ -12,12 +12,32 @@ import localizedFormat from "dayjs/plugin/localizedFormat";
 import PrimaryButton from "@/Components/PrimaryButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faCog, faWrench, faPalette, faImage, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import useAuth from "@/hooks/useAuth";
+import axios from "axios";
 
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const Index = (props) => {
-    const { auth, errors, configuracions } = props;
+const Index = () => {
+    const { user } = useAuth();
+    const [configuracions, setConfiguracions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchConfiguraciones = async () => {
+        try {
+            const res = await axios.get("/api/configuracion");
+            const data = Array.isArray(res.data) ? res.data : (res.data.data || []);
+            setConfiguracions(data);
+        } catch (error) {
+            console.error("Error fetching configurations:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchConfiguraciones();
+    }, []);
 
     const [showModal, setShowModal] = useState(false);
     const [contentModal, setContentModal] = useState(null);
@@ -94,7 +114,7 @@ const Index = (props) => {
                             label: "Configurar",
                             icon: "fas fa-pen",
                             color: "text-amber-500",
-                            href: route("configuracions.edit", row.id)
+                        href: `/configuracion/${row.id}/edit`
                         },
                         {
                             label: "Eliminar",
@@ -109,6 +129,7 @@ const Index = (props) => {
                                     setShow={setShowModal}
                                     data={row}
                                     accion="eliminar"
+                                    onRefresh={fetchConfiguraciones}
                                 />
                             )
                         }
@@ -122,8 +143,10 @@ const Index = (props) => {
         },
     ];
 
+    if (loading) return <Authenticated user={user}><div>Cargando...</div></Authenticated>;
+
     return (
-        <Authenticated auth={auth} errors={errors}>
+        <Authenticated user={user}>
             <ContainerLaravel
                 titulo="Configuración del Sistema"
                 icono={faCog}
@@ -145,7 +168,7 @@ const Index = (props) => {
                     {/* Bento Block: Action */}
                     {configuracions.length === 0 ? (
                         <Link
-                            href={route("configuracions.create")}
+                            to="/configuracion/create"
                             className="group relative overflow-hidden p-6 rounded-3xl border border-dashed border-primary/30 bg-transparent hover:bg-primary/5 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10 active:scale-95"
                         >
                             <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">

@@ -2,16 +2,14 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ClienteDTO;
 import com.example.demo.service.ClienteService;
-import com.example.demo.Inertia;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Map;
+import java.util.List;
 
-@Controller
-@RequestMapping("/clientes")
+@RestController
+@RequestMapping("/api/clientes")
 public class ClienteController {
 
     private final ClienteService clienteService;
@@ -22,46 +20,33 @@ public class ClienteController {
     }
 
     @GetMapping
-    public Object index() {
-        return Inertia.render("Clientes/Index", Map.of(
-                "clientes", clienteService.findAll()));
-    }
-
-    @GetMapping("/create")
-    public Object create() {
-        return Inertia.render("Clientes/Form", Map.of(
-                "mode", "create",
-                "routeBase", "clientes"));
+    public List<ClienteDTO> index() {
+        return clienteService.findAll();
     }
 
     @PostMapping
-    public String store(@ModelAttribute ClienteDTO clienteDTO) {
-        clienteService.save(clienteDTO);
-        return "redirect:/clientes";
+    public ResponseEntity<ClienteDTO> store(@RequestBody ClienteDTO clienteDTO) {
+        return ResponseEntity.ok(clienteService.save(clienteDTO));
     }
 
-    @GetMapping("/{id}/edit")
-    public Object edit(@PathVariable Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<ClienteDTO> show(@PathVariable Long id) {
         return clienteService.findById(id)
-                .map(cliente -> Inertia.render("Clientes/Form", Map.of(
-                        "mode", "update",
-                        "routeBase", "clientes",
-                        "cliente", cliente)))
-                .orElseGet(() -> new ModelAndView("redirect:/clientes"));
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute ClienteDTO updateData) {
+    public ResponseEntity<ClienteDTO> update(@PathVariable Long id, @RequestBody ClienteDTO updateData) {
         return clienteService.findById(id).map(cliente -> {
-            cliente.setCampoEjemplo(updateData.getCampoEjemplo());
-            clienteService.save(cliente);
-            return "redirect:/clientes";
-        }).orElse("redirect:/clientes");
+            cliente.setNombre(updateData.getNombre());
+            return ResponseEntity.ok(clienteService.save(cliente));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public String destroy(@PathVariable Long id) {
+    public ResponseEntity<Void> destroy(@PathVariable Long id) {
         clienteService.deleteById(id);
-        return "redirect:/clientes";
+        return ResponseEntity.ok().build();
     }
 }

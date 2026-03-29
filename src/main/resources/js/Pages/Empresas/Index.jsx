@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
@@ -8,18 +8,36 @@ import utc from "dayjs/plugin/utc";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
+import axios from "axios";
+import useAuth from "@/hooks/useAuth";
 
 dayjs.extend(utc);
 dayjs.extend(localizedFormat);
 
-const Index = (props) => {
-    const { auth, errors, empresas } = props;
-
-    const isAuditor = auth?.user?.id_rol === 5;
-
+const Index = () => {
+    const { user } = useAuth();
+    const [empresas, setEmpresas] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [contentModal, setContentModal] = useState(null);
     const [titulosModal, setTitulosModal] = useState(null);
+
+    const isAuditor = user?.id_rol === 5;
+
+    const fetchEmpresas = useCallback(async () => {
+        try {
+            const response = await axios.get("/api/empresas");
+            setEmpresas(response.data);
+        } catch (error) {
+            console.error("Error fetching companies:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchEmpresas();
+    }, [fetchEmpresas]);
 
     const abrirModal = (titulo, contenido) => {
         setTitulosModal(titulo);
@@ -87,7 +105,7 @@ const Index = (props) => {
                                 label: "Editar",
                                 icon: "fas fa-pen",
                                 color: "text-amber-500",
-                                href: route("empresas.edit", row.id)
+                                to: `/empresas/${row.id}/edit`
                             },
                             {
                                 label: "Eliminar",
@@ -99,6 +117,7 @@ const Index = (props) => {
                                         setShow={setShowModal}
                                         data={row}
                                         accion="eliminar"
+                                        onRefresh={fetchEmpresas}
                                     />
                                 )
                             }
@@ -114,14 +133,15 @@ const Index = (props) => {
         },
     ];
 
+    if (loading) return <div>Cargando...</div>;
+
     return (
-        <Authenticated auth={auth} errors={errors}>
+        <Authenticated user={user}>
             <ContainerLaravel
                 titulo={"Información de la Empresa"}
                 icono={"nav-icon bi bi-building"}
             >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 mt-2">
-                    {/* Bento Block: Info */}
                     <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 shrink-0">
                             <i className="fas fa-building text-xl" />
@@ -136,7 +156,6 @@ const Index = (props) => {
                 </div>
 
                 <div className="mt-4">
-                    {/* DataTable */}
                     <DataTablecustom datos={empresas} columnas={columns} />
                 </div>
 
@@ -154,3 +173,4 @@ const Index = (props) => {
 };
 
 export default Index;
+

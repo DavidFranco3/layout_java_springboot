@@ -53,9 +53,10 @@ const StatCard = ({ title, value, icon, color, trend }) => (
     </div>
 );
 
-export default function Dashboard(props) {
-    const { auth, errors } = props;
-    const { user } = useAuth();
+export default function Dashboard() {
+    const { user, loading } = useAuth();
+
+    if (loading) return <div>Cargando...</div>;
 
     const chartData = {
         labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
@@ -74,7 +75,8 @@ export default function Dashboard(props) {
             },
         ],
     };
-
+    
+    // ... rest of chartOptions same ...
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -102,7 +104,7 @@ export default function Dashboard(props) {
     };
 
     return (
-        <Authenticated auth={auth} errors={errors}>
+        <Authenticated user={user}>
             <div className="space-y-8 pb-12">
 
                 {/* Header Section / Welcome Banner */}
@@ -118,7 +120,7 @@ export default function Dashboard(props) {
                                 Sistema Activo
                             </div>
                             <h1 className="text-4xl md:text-5xl font-black leading-tight">
-                                Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-indigo-400">{user?.name}</span> 👋
+                                Hola, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-indigo-400">{user?.nombre || user?.name || 'Usuario'}</span> 👋
                             </h1>
                             <p className="text-slate-400 text-lg leading-relaxed">
                                 Bienvenido de nuevo a tu panel de control. El sistema está funcionando correctamente y tienes <span className="text-white font-bold">12 nuevas notificaciones</span> pendientes de revisión.
@@ -140,7 +142,7 @@ export default function Dashboard(props) {
                             </div>
                             <div className="bg-primary/20 p-6 rounded-3xl backdrop-blur-sm border border-primary/20 text-center space-y-2 min-w-[140px]">
                                 <p className="text-[10px] font-bold text-primary-soft uppercase tracking-widest uppercase">Empresas</p>
-                                <p className="text-3xl font-black">{props.empresas_count || 42}</p>
+                                <p className="text-3xl font-black">42</p>
                             </div>
                         </div>
                     </div>

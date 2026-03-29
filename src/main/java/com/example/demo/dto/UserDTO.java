@@ -9,7 +9,7 @@ public class UserDTO {
     private Long id;
     private String nombre;
     private String email;
-    private Integer status;
+    private Integer status = 1;
     private Long rol_id;
     private String rol_nombre;
     private LocalDateTime email_verified_at;

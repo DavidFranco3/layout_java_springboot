@@ -14,8 +14,8 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String campoEjemplo;
+    @Column(nullable = false, name = "nombre")
+    private String nombre;
 
     @Column(columnDefinition = "Integer default 1")
     private Integer status = 1;
@@ -54,12 +54,12 @@ public class Cliente {
         this.id = id;
     }
 
-    public String getCampoEjemplo() {
-        return campoEjemplo;
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setCampoEjemplo(String campoEjemplo) {
-        this.campoEjemplo = campoEjemplo;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public Integer getStatus() {

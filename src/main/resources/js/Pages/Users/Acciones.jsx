@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { router } from '@inertiajs/react';
+import axios from "axios";
 import InputLabel from "@/Components/InputLabel";
 import InputError from "@/Components/InputError";
 import PrimaryButton from "@/Components/PrimaryButton";
@@ -12,11 +12,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faShieldAlt, faTrash, faSave, faTimes, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-const Acciones = ({ setShow, data, accion, roles }) => {
-    const { user, rolNombre, hasPermission } = useAuth();
+const Acciones = ({ setShow, data, accion, roles, onRefresh }) => {
+    const { hasPermission } = useAuth();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm({
         defaultValues: {
-            name: data?.name || '',
+            name: data?.nombre || '',
             rol_id: data?.rol_id || ''
         }
     });
@@ -42,7 +42,7 @@ const Acciones = ({ setShow, data, accion, roles }) => {
 
     useEffect(() => {
         if (data && accion === 'editar') {
-            setValue('name', data.name || '');
+            setValue('name', data.nombre || '');
             setValue('rol_id', data.rol_id || '');
         }
     }, [data, accion, setValue]);
@@ -51,57 +51,40 @@ const Acciones = ({ setShow, data, accion, roles }) => {
         setIsLoading(true);
         try {
             if (accion === "editar") {
-                router.put(route('users.update', data.id), {
-                    rol_id: formData.rol_id
-                }, {
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Actualizado",
-                            text: "Usuario actualizado correctamente",
-                            showConfirmButton: false,
-                            timer: 2000,
-                            background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
-                            color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
-                        });
-                        setShow(false);
-                    },
-                    onError: (errors) => {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "Hubo un problema al actualizar",
-                            confirmButtonColor: "var(--app-primary)",
-                        });
-                    },
-                    onFinish: () => setIsLoading(false)
+                await axios.put(`/api/users/${data.id}`, { rol_id: formData.rol_id });
+                Swal.fire({
+                    icon: "success",
+                    title: "Actualizado",
+                    text: "Usuario actualizado correctamente",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
                 });
+                if (onRefresh) onRefresh();
+                setShow(false);
             } else if (accion === "eliminar") {
-                router.delete(route('users.destroy', data.id), {
-                    onSuccess: () => {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Eliminado",
-                            text: "Usuario eliminado con éxito",
-                            showConfirmButton: false,
-                            timer: 2000,
-                            background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
-                            color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
-                        });
-                        setShow(false);
-                    },
-                    onError: () => {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "No se pudo eliminar el usuario",
-                            confirmButtonColor: "#ef4444",
-                        });
-                    },
-                    onFinish: () => setIsLoading(false)
+                await axios.delete(`/api/users/${data.id}`);
+                Swal.fire({
+                    icon: "success",
+                    title: "Eliminado",
+                    text: "Usuario eliminado con éxito",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
                 });
+                if (onRefresh) onRefresh();
+                setShow(false);
             }
         } catch (error) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error.response?.data?.message || "No se pudo realizar la acción",
+                confirmButtonColor: "#ef4444",
+            });
+        } finally {
             setIsLoading(false);
         }
     };

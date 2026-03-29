@@ -1,10 +1,13 @@
-import { Link, Head } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import useAuth from '@/hooks/useAuth';
 
-export default function Welcome({ auth, laravelVersion, phpVersion }) {
+export default function Welcome({ laravelVersion, phpVersion }) {
+    const { user, isAuthenticated } = useAuth();
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
+        document.title = "Bienvenido | HidalQro";
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
         };
@@ -14,7 +17,6 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
 
     return (
         <>
-            <Head title="Bienvenido | HidalQro" />
             <div className="min-h-screen bg-[#fafafa] dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-500/30 selection:text-indigo-900 transition-colors duration-500">
 
                 {/* Modern Fixed Navbar */}
@@ -36,9 +38,9 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {auth.user ? (
+                            {isAuthenticated ? (
                                 <Link
-                                    href={route('dashboard')}
+                                    to="/dashboard"
                                     className="relative px-6 py-2.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm transition-all hover:scale-105 active:scale-95 shadow-xl"
                                 >
                                     Ir al Panel
@@ -46,13 +48,13 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             ) : (
                                 <>
                                     <Link
-                                        href={route('login')}
+                                        to="/login"
                                         className="hidden sm:block text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold text-sm transition-colors"
                                     >
                                         Acceso
                                     </Link>
                                     <Link
-                                        href={route('register')}
+                                        to="/register"
                                         className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-sm transition-all shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0"
                                     >
                                         Comenzar Ahora
@@ -90,7 +92,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             </p>
 
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-6">
-                                <Link href={route('register')} className="group flex items-center justify-between gap-12 w-full sm:w-auto px-8 py-5 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-xl hover:scale-105 transition-all duration-300 shadow-2xl">
+                                <Link to="/register" className="group flex items-center justify-between gap-12 w-full sm:w-auto px-8 py-5 rounded-3xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-xl hover:scale-105 transition-all duration-300 shadow-2xl">
                                     <span>Crear mi cuenta</span>
                                     <div className="w-8 h-8 rounded-full bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center text-white group-hover:translate-x-2 transition-transform">
                                         <i className="fas fa-arrow-right text-sm"></i>

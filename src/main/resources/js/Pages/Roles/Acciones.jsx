@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { router } from "@inertiajs/react";
+import axios from "axios";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
@@ -10,9 +10,8 @@ import DangerButton from "@/Components/DangerButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShieldAlt, faCheckCircle, faSave, faTimes, faTrash, faExclamationTriangle, faLayerGroup, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-import axios from "axios";
 
-const Acciones = ({ setShow, data: rol, accion }) => {
+const Acciones = ({ setShow, data: rol, accion, onRefresh, initialPermisos }) => {
     const isEdit = accion === "editar";
     const isEliminar = accion === "eliminar";
 
@@ -23,7 +22,7 @@ const Acciones = ({ setShow, data: rol, accion }) => {
         }
     });
 
-    const [permisos, setPermisos] = useState([]);
+    const [permisos, setPermisos] = useState(initialPermisos || []);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('');
     const [permisosPorModulo, setPermisosPorModulo] = useState({});
@@ -32,13 +31,13 @@ const Acciones = ({ setShow, data: rol, accion }) => {
     const watchedPermisos = watch('permisos');
 
     useEffect(() => {
-        getPermisos();
         if (rol && isEdit) {
             setValue('name', rol.name || '');
-            const initialPermisos = Array.isArray(rol.permisos)
-                ? rol.permisos.map(p => typeof p === 'object' ? p.id : p)
+            const currentPermisos = rol.permisos || [];
+            const initialPermisosIds = Array.isArray(currentPermisos)
+                ? currentPermisos.map(p => typeof p === 'object' ? p.id : p)
                 : [];
-            setValue('permisos', initialPermisos);
+            setValue('permisos', initialPermisosIds);
         }
     }, [rol, accion]);
 
@@ -60,15 +59,6 @@ const Acciones = ({ setShow, data: rol, accion }) => {
         }
     }, [permisos]);
 
-    const getPermisos = async () => {
-        try {
-            const response = await axios.get(route('roles.getPermisos'));
-            setPermisos(response.data.data);
-        } catch (error) {
-            console.error("Error fetching permissions:", error);
-        }
-    }
-
     const togglePermiso = (id) => {
         if (!isEdit) return;
         const current = watchedPermisos || [];
@@ -80,39 +70,46 @@ const Acciones = ({ setShow, data: rol, accion }) => {
 
     const onFormSubmit = async (formData) => {
         setIsLoading(true);
-        const onSuccess = (msg) => {
-            Swal.fire({
-                icon: "success",
-                title: "Éxito",
-                text: msg,
-                showConfirmButton: false,
-                timer: 2000,
-                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
-                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
-            });
-            setShow(false);
-        };
-
-        const onError = () => {
+        try {
+            if (isEdit) {
+                await axios.put(`/api/roles/${rol.id}`, {
+                    name: formData.name,
+                    permisos: formData.permisos
+                });
+                Swal.fire({
+                    icon: "success",
+                    title: "Éxito",
+                    text: "Rol actualizado correctamente",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                });
+                if (onRefresh) onRefresh();
+                setShow(false);
+            } else if (isEliminar) {
+                await axios.delete(`/api/roles/${rol.id}`);
+                Swal.fire({
+                    icon: "success",
+                    title: "Éxito",
+                    text: "Rol eliminado correctamente",
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                });
+                if (onRefresh) onRefresh();
+                setShow(false);
+            }
+        } catch (error) {
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Ocurrió un problema al procesar la solicitud.",
+                text: error.response?.data?.message || "Ocurrió un problema al procesar la solicitud.",
                 confirmButtonColor: "var(--app-primary)",
             });
+        } finally {
             setIsLoading(false);
-        };
-
-        if (isEdit) {
-            router.put(route('roles.update', rol.id), {
-                name: formData.name,
-                permisos: formData.permisos
-            }, { onSuccess: () => onSuccess("Rol actualizado correctamente"), onError });
-        } else if (isEliminar) {
-            router.delete(route('roles.destroy', rol.id), {
-                onSuccess: () => onSuccess("Rol eliminado correctamente"),
-                onError
-            });
         }
     };
 

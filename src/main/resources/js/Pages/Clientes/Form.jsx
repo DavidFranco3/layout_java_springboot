@@ -1,5 +1,5 @@
-import React from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import InputLabel from "@/Components/InputLabel";
@@ -10,50 +10,87 @@ import SecondaryButton from "@/Components/SecondaryButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faSave, faTimes, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-import { Link } from "@inertiajs/react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import useAuth from "@/hooks/useAuth";
 
-export default function Form(props) {
-    const { mode, cliente } = props;
+export default function Form({ mode }) {
+    const { id } = useParams();
     const isEdit = mode === "update";
+    const navigate = useNavigate();
+    const { user } = useAuth();
+    
+    const [processing, setProcessing] = useState(false);
+    const [serverErrors, setServerErrors] = useState({});
+    const [loading, setLoading] = useState(isEdit);
 
-    const { data, setData, post, put, processing, errors } = useForm({
-        nombre: isEdit ? cliente?.nombre || "" : "",
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+        defaultValues: { nombre: "" },
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const action = isEdit ? put : post;
-        const url = isEdit ? route("clientes.update", cliente.id) : route("clientes.store");
+    useEffect(() => {
+        if (isEdit && id) {
+            fetchCliente();
+        }
+    }, [isEdit, id]);
 
-        action(url, {
-            onSuccess: () => {
-                Swal.fire({
-                    icon: "success",
-                    title: isEdit ? "¡Cliente Actualizado!" : "¡Cliente Registrado!",
-                    text: isEdit ? "Los cambios han sido guardados." : "El nuevo cliente ha sido agregado con éxito.",
-                    showConfirmButton: false,
-                    timer: 2000,
-                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
-                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
-                });
-            },
-            onError: () => {
-                Swal.fire({
-                    icon: "error",
-                    title: "Error",
-                    text: "Por favor revisa los campos del formulario.",
-                    confirmButtonColor: "var(--app-primary)",
-                });
-            }
-        });
+    const fetchCliente = async () => {
+        try {
+            const res = await axios.get(`/api/clientes/${id}`);
+            setValue("nombre", res.data.nombre);
+        } catch (err) {
+            console.error("Error al cargar cliente:", err);
+            Swal.fire("Error", "No se pudo cargar la información del cliente", "error");
+            navigate("/clientes");
+        } finally {
+            setLoading(false);
+        }
     };
 
+    const onSubmit = async (data) => {
+        setProcessing(true);
+        setServerErrors({});
+
+        try {
+            if (isEdit) {
+                await axios.put(`/api/clientes/${id}`, data);
+            } else {
+                await axios.post("/api/clientes", data);
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: isEdit ? "¡Cliente Actualizado!" : "¡Cliente Registrado!",
+                text: isEdit ? "Los cambios han sido guardados." : "El nuevo cliente ha sido agregado con éxito.",
+                showConfirmButton: false,
+                timer: 2000,
+                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+            });
+            navigate("/clientes");
+        } catch (err) {
+            if (err.response?.data?.errors) {
+                setServerErrors(err.response.data.errors);
+            }
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: err.response?.data?.message || "Por favor revisa los campos del formulario.",
+                confirmButtonColor: "var(--app-primary)",
+            });
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    if (loading) return <div>Cargando...</div>;
+
     return (
-        <Authenticated auth={props.auth} errors={props.errors}>
+        <Authenticated user={user}>
             <div className="max-w-4xl mx-auto py-8 px-4">
                 <Link
-                    href={route("clientes.index")}
-                    className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors mb-6 group"
+                    to="/clientes"
+                    className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors mb-6 group text-decoration-none"
                 >
                     <FontAwesomeIcon icon={faChevronLeft} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                     Volver al listado
@@ -63,7 +100,7 @@ export default function Form(props) {
                     titulo={isEdit ? "Editar Cliente" : "Nuevo Cliente"}
                     icono={faUser}
                 >
-                    <form onSubmit={handleSubmit} className="space-y-8 p-2">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-2">
                         <section className="space-y-4">
                             <div className="flex items-center gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
                                 <span className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -79,19 +116,17 @@ export default function Form(props) {
                                         <TextInput
                                             className="w-full h-12"
                                             placeholder="Ingresa el nombre del cliente"
-                                            value={data.nombre}
-                                            onChange={(e) => setData("nombre", e.target.value)}
-                                            isError={!!errors.nombre}
-                                            required
+                                            isError={!!errors.nombre || !!serverErrors.nombre}
+                                            {...register("nombre", { required: "El nombre es requerido" })}
                                         />
                                     </div>
-                                    <InputError message={errors.nombre} />
+                                    <InputError message={errors.nombre?.message || serverErrors.nombre} />
                                 </div>
                             </div>
                         </section>
 
                         <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
-                            <Link href={route("clientes.index")}>
+                            <Link to="/clientes">
                                 <SecondaryButton type="button" className="h-12 px-6">
                                     <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
                                 </SecondaryButton>

@@ -11,16 +11,49 @@ import useAuth from "@/hooks/useAuth";
 import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
 
-const Index = (props) => {
-    const { auth, errors, users } = props;
+const Index = () => {
     const { user, rolNombre, hasModuleAccess, hasPermission } = useAuth();
-
-    const [modalOpen, setModalOpen] = useState(false);
+    const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+
+    const fetchUsers = async () => {
+        try {
+            const response = await axios.get("/api/users");
+            setUsers(response.data);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    };
+
+    const getRoles = async () => {
+        try {
+            const response = await axios.get("/api/roles/list");
+            setRoles(response.data);
+        } catch (error) {
+            console.error("Error fetching roles:", error);
+        }
+    }
+
+    useEffect(() => {
+        const loadData = async () => {
+            if (hasModuleAccess('Users') && hasPermission('ver users')) {
+                await Promise.all([fetchUsers(), getRoles()]);
+            }
+            setLoading(false);
+        };
+        loadData();
+    }, [hasModuleAccess, hasPermission]);
+
+    const abrirModal = () => setModalOpen(true);
+    const cerrarModal = () => setModalOpen(false);
+
+    if (loading) return <div>Cargando...</div>;
 
     if (!hasModuleAccess('Users')) {
         return (
-            <Authenticated auth={auth} errors={errors}>
+            <Authenticated user={user}>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="max-w-md w-full bg-rose-50 dark:bg-rose-900/10 border border-rose-100 dark:border-rose-900/20 p-8 rounded-2xl text-center shadow-xl">
                         <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center text-rose-600 dark:text-rose-500 mx-auto mb-4">
@@ -42,7 +75,7 @@ const Index = (props) => {
 
     if (!hasPermission('ver users')) {
         return (
-            <Authenticated auth={auth} errors={errors}>
+            <Authenticated user={user}>
                 <div className="flex items-center justify-center min-h-[400px]">
                     <div className="max-w-md w-full bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 p-8 rounded-2xl text-center shadow-xl">
                         <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-500 mx-auto mb-4">
@@ -62,30 +95,13 @@ const Index = (props) => {
         );
     }
 
-    const abrirModal = () => setModalOpen(true);
-    const cerrarModal = () => setModalOpen(false);
-
-    const getRoles = async () => {
-        try {
-            const response = await axios.get(route('roles.getRoles'));
-            setRoles(response.data.data);
-        } catch (error) {
-            console.error("Error fetching roles:", error);
-        }
-    }
-
-    useEffect(() => {
-        getRoles();
-    }, []);
-
     return (
-        <Authenticated auth={auth} errors={errors}>
+        <Authenticated user={user}>
             <ContainerLaravel
                 titulo="Gestión de Usuarios"
                 icono={faUsers}
             >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {/* Bento Block: Info */}
                     <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
                             <FontAwesomeIcon icon={faUserShield} className="text-xl" />
@@ -98,7 +114,6 @@ const Index = (props) => {
                         </div>
                     </div>
 
-                    {/* Bento Block: Action */}
                     <button
                         onClick={hasPermission('crear users') ? abrirModal : null}
                         disabled={!hasPermission('crear users')}
@@ -128,6 +143,7 @@ const Index = (props) => {
                     <TblUsers
                         users={users}
                         roles={roles}
+                        onRefresh={fetchUsers}
                         permisos={{
                             editar: hasPermission('editar users'),
                             eliminar: hasPermission('eliminar users')
@@ -150,7 +166,7 @@ const Index = (props) => {
                             </div>
                         </ModalCustom.Header>
                         <ModalCustom.Body>
-                            <Create cerrarModal={cerrarModal} roles={roles} />
+                            <Create cerrarModal={cerrarModal} roles={roles} onRefresh={fetchUsers} />
                         </ModalCustom.Body>
                     </ModalCustom>
                 )}

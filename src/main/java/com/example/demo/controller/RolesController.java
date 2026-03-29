@@ -1,23 +1,19 @@
 package com.example.demo.controller;
 
-import com.example.demo.Inertia;
 import com.example.demo.dto.RoleDTO;
 import com.example.demo.service.RoleService;
 import com.example.demo.service.PermissionService;
 import com.example.demo.service.ModuloService;
 import com.example.demo.service.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 
-import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-@Controller
-@RequestMapping("/roles")
+@RestController
+@RequestMapping("/api/roles")
 public class RolesController {
 
         private final RoleService roleService;
@@ -34,67 +30,44 @@ public class RolesController {
         }
 
         @GetMapping
-        public Object index() {
-                Map<String, Object> props = new HashMap<>();
-                props.put("roles", roleService.findAll());
-                return Inertia.render("Roles/Index", props);
+        public List<RoleDTO> index() {
+                return roleService.findAll();
         }
 
-        @GetMapping("/{id}/edit")
-        public Object edit(@PathVariable Long id) {
-                Map<String, Object> props = new HashMap<>();
-                RoleDTO role = roleService.findById(id).orElseThrow();
-                props.put("role", role);
-                props.put("permissions", permissionService.findAll());
-                return Inertia.render("Roles/Edit", props);
-        }
-
-        @GetMapping("/create")
-        public Object create() {
-                return Inertia.render("Roles/Create", new HashMap<>());
+        @GetMapping("/{id}")
+        public ResponseEntity<RoleDTO> show(@PathVariable Long id) {
+                return roleService.findById(id)
+                                .map(ResponseEntity::ok)
+                                .orElse(ResponseEntity.notFound().build());
         }
 
         @PostMapping
-        public ResponseEntity<?> store(@RequestBody RoleDTO roleDTO) {
-                roleService.save(roleDTO);
-
-                return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                                .location(URI.create("/roles"))
-                                .build();
+        public ResponseEntity<RoleDTO> store(@RequestBody RoleDTO roleDTO) {
+                return ResponseEntity.ok(roleService.save(roleDTO));
         }
 
         @PutMapping("/{id}")
-        public ResponseEntity<?> update(@PathVariable Long id, @RequestBody RoleDTO roleDTO) {
+        public ResponseEntity<RoleDTO> update(@PathVariable Long id, @RequestBody RoleDTO roleDTO) {
                 roleDTO.setId(id);
-                roleService.save(roleDTO);
-
-                return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                                .location(URI.create("/roles"))
-                                .build();
+                return ResponseEntity.ok(roleService.save(roleDTO));
         }
 
         @DeleteMapping("/{id}")
-        public ResponseEntity<?> destroy(@PathVariable Long id, HttpServletRequest request) {
+        public ResponseEntity<?> destroy(@PathVariable Long id) {
                 if (userService.countByRoleId(id) > 0) {
                         Map<String, String> errors = new HashMap<>();
                         errors.put("general", "No se puede eliminar el rol porque tiene usuarios asignados.");
-                        request.getSession().setAttribute("errors", errors);
-                        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                                        .location(URI.create("/roles"))
-                                        .build();
+                        return ResponseEntity.badRequest().body(errors);
                 }
 
-                RoleDTO roleDTO = roleService.findById(id).orElseThrow();
-                roleDTO.setStatus(0);
-                roleService.save(roleDTO);
-
-                return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                                .location(URI.create("/roles"))
-                                .build();
+                return roleService.findById(id).map(roleDTO -> {
+                        roleDTO.setStatus(0);
+                        roleService.save(roleDTO);
+                        return ResponseEntity.ok().build();
+                }).orElse(ResponseEntity.notFound().build());
         }
 
         @GetMapping("/getPermisos")
-        @ResponseBody
         public Map<String, Object> getPermisos() {
                 return Map.of(
                                 "success", true,
@@ -103,7 +76,6 @@ public class RolesController {
         }
 
         @GetMapping("/getModulos")
-        @ResponseBody
         public Map<String, Object> getModulos() {
                 return Map.of(
                                 "success", true,
@@ -112,7 +84,6 @@ public class RolesController {
         }
 
         @GetMapping("/getRoles")
-        @ResponseBody
         public Map<String, Object> getRoles() {
                 return Map.of(
                                 "success", true,

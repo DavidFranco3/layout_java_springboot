@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useForm, Controller } from "react-hook-form";
+import axios from "axios";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
 import InputLabel from "@/Components/InputLabel";
@@ -9,84 +11,135 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import CustomSelect from "@/Components/Generales/CustomSelect";
-import { faCog, faSave, faTimes, faImage, faPalette, faCheckCircle, faUpload, faChevronLeft, faBuilding } from "@fortawesome/free-solid-svg-icons";
+import { faCog, faSave, faTimes, faImage, faPalette, faCheckCircle, faUpload, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
-import { Link } from "@inertiajs/react";
+import useAuth from "@/hooks/useAuth";
 
-export default function Form(props) {
-    const { mode, configuracion, empresas = [] } = props;
+const PRESET_COLORS = [
+    "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef",
+    "#f43f5e", "#ef4444", "#f59e0b", "#10b981", "#06b6d4", "#1e293b",
+];
+
+export default function Form({ mode }) {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const isEdit = mode === "update";
 
-    const [previewLogo, setPreviewLogo] = useState(
-        isEdit && configuracion?.logo ? `/storage/${configuracion.logo}` : null
-    );
+    const [previewLogo, setPreviewLogo] = useState(null);
+    const [logoFile, setLogoFile] = useState(null);
+    const [empresas, setEmpresas] = useState([]);
+    const [loading, setLoading] = useState(isEdit);
+    const [processing, setProcessing] = useState(false);
+    const [serverErrors, setServerErrors] = useState({});
 
-    const { data, setData, post, processing, errors } = useForm({
-        nombre_comercial: isEdit ? configuracion?.nombre_comercial || "" : "",
-        idDatosEmpresa: isEdit ? configuracion?.idDatosEmpresa || "" : "",
-        colores: isEdit ? configuracion?.colores || "#3b82f6" : "#3b82f6",
-        logo: null,
-        status: isEdit ? (configuracion?.status === 1 || configuracion?.status === true) : true,
+    const {
+        register,
+        handleSubmit,
+        control,
+        setValue,
+        watch,
+        formState: { errors },
+    } = useForm({
+        defaultValues: {
+            nombre_comercial: "",
+            idDatosEmpresa: "",
+            colores: "#3b82f6",
+            status: true,
+        },
     });
 
-    const empresaOptions = empresas.map(emp => ({
-        value: emp.id,
-        label: emp.nombre
-    }));
+    const selectedColor = watch("colores");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const resEmpresas = await axios.get("/api/empresas");
+                setEmpresas(resEmpresas.data);
+
+                if (isEdit && id) {
+                    const resConfig = await axios.get(`/api/configuracion/${id}`);
+                    const config = resConfig.data;
+                    setValue("nombre_comercial", config.nombre_comercial || "");
+                    setValue("idDatosEmpresa", config.idDatosEmpresa || "");
+                    setValue("colores", config.colores || "#3b82f6");
+                    setValue("status", config.status === 1 || config.status === true);
+                    if (config.logo) {
+                        setPreviewLogo(`/storage/${config.logo}`);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching form data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [isEdit, id, setValue]);
+
+    const empresaOptions = empresas.map(emp => ({ value: emp.id, label: emp.nombre }));
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setData("logo", file);
+            setLogoFile(file);
             setPreviewLogo(URL.createObjectURL(file));
         }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const onSubmit = async (data) => {
+        setProcessing(true);
+        setServerErrors({});
 
-        const onSuccess = () => {
-            Swal.fire({
-                icon: "success",
-                title: isEdit ? "¡Configuración Actualizada!" : "¡Configuración Guardada!",
-                text: "Los cambios se han aplicado correctamente al sistema.",
-                timer: 2000,
-                showConfirmButton: false,
-                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
-                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+        const formData = new FormData();
+        formData.append("nombre_comercial", data.nombre_comercial);
+        formData.append("idDatosEmpresa", data.idDatosEmpresa);
+        formData.append("colores", data.colores);
+        formData.append("status", data.status ? "1" : "0");
+        if (logoFile) {
+            formData.append("logo", logoFile);
+        }
+
+        try {
+            const url = isEdit ? `/api/configuracion/${id}` : "/api/configuracion";
+            const res = await axios.post(url, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
             });
-        };
 
-        const onError = () => {
+            if (res.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: isEdit ? "¡Configuración Actualizada!" : "¡Configuración Guardada!",
+                    text: "Los cambios se han aplicado correctamente al sistema.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+                });
+                navigate("/configuracion");
+            }
+        } catch (err) {
+            if (err.response?.data?.errors) {
+                setServerErrors(err.response.data.errors);
+            }
             Swal.fire({
                 icon: "error",
-                title: "Error de Validación",
-                text: "Por favor revisa los campos marcados en rojo.",
+                title: "Error",
+                text: err.response?.data?.message || "Por favor revisa los campos marcados en rojo.",
                 confirmButtonColor: "var(--app-primary)",
             });
-        };
-
-        if (isEdit && configuracion?.id) {
-            post(route("configuracions.update", configuracion.id), {
-                data: { ...data, _method: "PUT" },
-                forceFormData: true,
-                onSuccess,
-                onError,
-            });
-        } else {
-            post(route("configuracions.store"), {
-                forceFormData: true,
-                onSuccess,
-                onError,
-            });
+        } finally {
+            setProcessing(false);
         }
     };
 
+    if (loading) return <Authenticated user={user}><div>Cargando...</div></Authenticated>;
+
     return (
-        <Authenticated auth={props.auth} errors={props.errors}>
+        <Authenticated user={user}>
             <div className="max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-fade-in text-slate-900 dark:text-slate-100">
                 <Link
-                    href={route("configuracions.index")}
+                    to="/configuracion"
                     className="inline-flex items-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 hover:text-primary transition-all mb-4 group"
                 >
                     <FontAwesomeIcon icon={faChevronLeft} className="mr-2 group-hover:-translate-x-1 transition-transform" />
@@ -97,9 +150,9 @@ export default function Form(props) {
                     titulo={isEdit ? "Editar Identidad Visual" : "Nueva Configuración de Layout"}
                     icono={faCog}
                 >
-                    <form onSubmit={handleSubmit} className="space-y-8 p-2">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 p-2">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            {/* Columna Izquierda: Información y Colores */}
+                            {/* Columna Izquierda */}
                             <div className="lg:col-span-2 space-y-6">
                                 <section className="space-y-4">
                                     <div className="flex items-center gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -115,91 +168,71 @@ export default function Form(props) {
                                             <TextInput
                                                 className="w-full h-12"
                                                 placeholder="Ej. Mi Plataforma SaaS"
-                                                value={data.nombre_comercial}
-                                                onChange={(e) => setData("nombre_comercial", e.target.value)}
-                                                isError={!!errors.nombre_comercial}
-                                                required
+                                                isError={!!errors.nombre_comercial || !!serverErrors.nombre_comercial}
+                                                {...register("nombre_comercial", { required: "El nombre comercial es requerido" })}
                                             />
-                                            <InputError message={errors.nombre_comercial} />
+                                            <InputError message={errors.nombre_comercial?.message || serverErrors.nombre_comercial} />
                                         </div>
 
                                         <div className="space-y-2">
                                             <InputLabel value="Empresa Titular" />
-                                            <CustomSelect
-                                                dataOptions={empresaOptions}
-                                                preDefaultValue={data.idDatosEmpresa}
-                                                setValue={(val) => setData("idDatosEmpresa", val)}
-                                                placeholder="Selecciona una empresa"
+                                            <Controller
+                                                name="idDatosEmpresa"
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <CustomSelect
+                                                        dataOptions={empresaOptions}
+                                                        preDefaultValue={field.value}
+                                                        setValue={(val) => field.onChange(val)}
+                                                        placeholder="Selecciona una empresa"
+                                                    />
+                                                )}
                                             />
-                                            <InputError message={errors.idDatosEmpresa} />
+                                            <InputError message={serverErrors.idDatosEmpresa} />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-4">
-                                            <InputLabel value="Color Identitario (Marca)" />
-                                            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
-                                                {[
-                                                    "#3b82f6", // Blue
-                                                    "#6366f1", // Indigo
-                                                    "#8b5cf6", // Violet
-                                                    "#d946ef", // Fuchsia
-                                                    "#f43f5e", // Rose
-                                                    "#ef4444", // Red
-                                                    "#f59e0b", // Amber
-                                                    "#10b981", // Emerald
-                                                    "#06b6d4", // Cyan
-                                                    "#1e293b", // Slate
-                                                ].map((color) => (
-                                                    <button
-                                                        key={color}
-                                                        type="button"
-                                                        onClick={() => setData("colores", color)}
-                                                        className={`w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110 active:scale-95 ${data.colores === color
-                                                            ? "border-slate-400 dark:border-white ring-2 ring-primary/20 scale-110 shadow-lg"
-                                                            : "border-transparent"
-                                                            }`}
-                                                        style={{ backgroundColor: color }}
-                                                        title={color}
-                                                    />
-                                                ))}
-
-                                                <div className="relative flex items-center justify-center w-8 h-8 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-primary transition-colors group">
-                                                    <input
-                                                        type="color"
-                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                        value={data.colores}
-                                                        onChange={(e) => setData("colores", e.target.value)}
-                                                    />
-                                                    <FontAwesomeIcon
-                                                        icon={faPalette}
-                                                        className={`text-xs ${![
-                                                            "#3b82f6", "#6366f1", "#8b5cf6", "#d946ef", "#f43f5e",
-                                                            "#ef4444", "#f59e0b", "#10b981", "#06b6d4", "#1e293b"
-                                                        ].includes(data.colores)
-                                                            ? "text-primary"
-                                                            : "text-slate-400"
-                                                            }`}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div
-                                                    className="w-4 h-4 rounded shadow-sm border border-black/10"
-                                                    style={{ backgroundColor: data.colores }}
+                                    <div className="space-y-4">
+                                        <InputLabel value="Color Identitario (Marca)" />
+                                        <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                            {PRESET_COLORS.map((color) => (
+                                                <button
+                                                    key={color}
+                                                    type="button"
+                                                    onClick={() => setValue("colores", color)}
+                                                    className={`w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110 active:scale-95 ${selectedColor === color
+                                                        ? "border-slate-400 dark:border-white ring-2 ring-primary/20 scale-110 shadow-lg"
+                                                        : "border-transparent"
+                                                        }`}
+                                                    style={{ backgroundColor: color }}
+                                                    title={color}
                                                 />
-                                                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
-                                                    Seleccionado: {data.colores}
-                                                </span>
-                                            </div>
-                                            <InputError message={errors.colores} />
-                                        </div>
+                                            ))}
 
+                                            <div className="relative flex items-center justify-center w-8 h-8 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-primary transition-colors group">
+                                                <input
+                                                    type="color"
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    value={selectedColor}
+                                                    onChange={(e) => setValue("colores", e.target.value)}
+                                                />
+                                                <FontAwesomeIcon
+                                                    icon={faPalette}
+                                                    className={`text-xs ${!PRESET_COLORS.includes(selectedColor) ? "text-primary" : "text-slate-400"}`}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 rounded shadow-sm border border-black/10" style={{ backgroundColor: selectedColor }} />
+                                            <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">
+                                                Seleccionado: {selectedColor}
+                                            </span>
+                                        </div>
                                     </div>
                                 </section>
                             </div>
 
-                            {/* Columna Derecha: Logo y Preview */}
+                            {/* Columna Derecha: Logo */}
                             <div className="space-y-6">
                                 <section className="space-y-4">
                                     <div className="flex items-center gap-3 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -236,7 +269,6 @@ export default function Form(props) {
                                             accept="image/*"
                                             onChange={handleFileChange}
                                         />
-                                        <InputError message={errors.logo} />
 
                                         <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20">
                                             <div className="flex gap-3">
@@ -252,7 +284,7 @@ export default function Form(props) {
                         </div>
 
                         <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
-                            <Link href={route("configuracions.index")}>
+                            <Link to="/configuracion">
                                 <SecondaryButton type="button" className="h-12 px-6">
                                     <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar
                                 </SecondaryButton>

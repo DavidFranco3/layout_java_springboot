@@ -16,7 +16,7 @@ import DropdownActions from "@/Components/Generales/DropdownActions"; // Importa
 import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
 
-const TblUsers = ({ users, roles, permisos }) => {
+const TblUsers = ({ users, roles, permisos, onRefresh }) => {
     // Estado para manejar los usuarios filtrados (útil para futuras funcionalidades de búsqueda)
     const [filteredUsers, setFilteredUsers] = useState(users);
 
@@ -114,6 +114,7 @@ const TblUsers = ({ users, roles, permisos }) => {
                                                 data={row}
                                                 accion={"editar"}
                                                 roles={roles}
+                                                onRefresh={onRefresh}
                                             />
                                         )
                                     }] : []),
@@ -127,6 +128,7 @@ const TblUsers = ({ users, roles, permisos }) => {
                                                 data={row}
                                                 accion={"eliminar"}
                                                 roles={roles}
+                                                onRefresh={onRefresh}
                                             />
                                         )
                                     }] : [])

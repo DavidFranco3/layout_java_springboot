@@ -22,7 +22,7 @@ public class EmpresaDTO {
     private String cp;
     private String regimen_fiscal;
     private String uso_cfdi;
-    private Integer status;
+    private Integer status = 1;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

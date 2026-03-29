@@ -7,50 +7,64 @@ import ModalCustom from "@/Components/Generales/ModalCustom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faShieldAlt } from "@fortawesome/free-solid-svg-icons";
 import TblRoles from "./TblRoles";
-import PrimaryButton from "@/Components/PrimaryButton";
+import useAuth from "@/hooks/useAuth";
 
-const Index = (props) => {
-    const { auth, errors, roles } = props;
-
+const Index = () => {
+    const { user } = useAuth();
+    const [roles, setRoles] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [permisos, setPermisos] = useState([]);
     const [modulos, setModulos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const abrirModal = () => setModalOpen(true);
     const cerrarModal = () => setModalOpen(false);
 
-    useEffect(() => {
-        getPermisos();
-        getModulos();
-    }, []);
+    const fetchRoles = async () => {
+        try {
+            const response = await axios.get("/api/roles");
+            setRoles(response.data);
+        } catch (error) {
+            console.error("Error fetching roles:", error);
+        }
+    };
 
     const getPermisos = async () => {
         try {
-            const response = await axios.get(route('roles.getPermisos'));
+            const response = await axios.get("/api/roles/getPermisos");
             setPermisos(response.data.data);
         } catch (error) {
             console.error("Error fetching permissions:", error);
         }
-    }
+    };
 
     const getModulos = async () => {
         try {
-            const response = await axios.get(route('roles.getModulos'));
+            const response = await axios.get("/api/roles/getModulos");
             setModulos(response.data.data);
         } catch (error) {
             console.error("Error fetching modules:", error);
             setModulos([]);
         }
-    }
+    };
+
+    useEffect(() => {
+        const loadData = async () => {
+            await Promise.all([fetchRoles(), getPermisos(), getModulos()]);
+            setLoading(false);
+        };
+        loadData();
+    }, []);
+
+    if (loading) return <div>Cargando...</div>;
 
     return (
-        <Authenticated auth={auth} errors={errors}>
+        <Authenticated user={user}>
             <ContainerLaravel
                 titulo="Control de Roles y Accesos"
                 icono={faShieldAlt}
             >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {/* Bento Block: Info */}
                     <div className="lg:col-span-2 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-3xl border border-[var(--border-light)] flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
                             <FontAwesomeIcon icon={faShieldAlt} className="text-xl" />
@@ -63,7 +77,6 @@ const Index = (props) => {
                         </div>
                     </div>
 
-                    {/* Bento Block: Action */}
                     <button
                         onClick={abrirModal}
                         className="group relative overflow-hidden p-6 rounded-3xl border border-dashed border-primary/30 bg-transparent hover:bg-primary/5 transition-all duration-500 flex flex-col items-center justify-center gap-3 text-center cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10 active:scale-95"
@@ -83,7 +96,7 @@ const Index = (props) => {
                 </div>
 
                 <div className="mt-4">
-                    <TblRoles roles={roles} />
+                    <TblRoles roles={roles} onRefresh={fetchRoles} permisos={permisos} modulos={modulos} />
                 </div>
 
                 <ModalCustom
@@ -100,7 +113,7 @@ const Index = (props) => {
                         </div>
                     </ModalCustom.Header>
                     <ModalCustom.Body>
-                        <Create cerrarModal={cerrarModal} permisos={permisos} modulos={modulos} />
+                        <Create cerrarModal={cerrarModal} permisos={permisos} modulos={modulos} onRefresh={fetchRoles} />
                     </ModalCustom.Body>
                 </ModalCustom>
             </ContainerLaravel>

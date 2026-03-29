@@ -40,16 +40,7 @@ export default function Authenticated({ auth, user, children }) {
 
     const getConfiguracion = async () => {
         try {
-            const storedConfigRaw = localStorage.getItem("configuracion");
-            let storedConfig = storedConfigRaw ? JSON.parse(storedConfigRaw) : null;
-            let yaSeteadoDesdeStorage = false;
-
-            if (storedConfig) {
-                setConfiguracion(storedConfig);
-                yaSeteadoDesdeStorage = true;
-            }
-
-            const res = await axios.get("/configuracions/api/list");
+            const res = await axios.get("/api/configuracion");
 
             if (res.status === 200 && res.data.length > 0) {
                 const nuevaConfig = {
@@ -57,29 +48,20 @@ export default function Authenticated({ auth, user, children }) {
                     colores: res.data[0].colores || "#005073",
                     logo: res.data[0].logo || null,
                 };
-
-                const esDiferente =
-                    !storedConfig ||
-                    JSON.stringify(storedConfig) !== JSON.stringify(nuevaConfig);
-
-                if (esDiferente) {
-                    localStorage.setItem("configuracion", JSON.stringify(nuevaConfig));
-                    setConfiguracion(nuevaConfig);
-                } else if (!yaSeteadoDesdeStorage) {
-                    setConfiguracion(nuevaConfig);
-                }
+                setConfiguracion(nuevaConfig);
             }
         } catch (err) {
             console.error("Error al obtener configuración:", err);
         }
     };
 
+    const isDashboard = window.location.pathname === '/dashboard' || window.location.pathname === '/';
+
     return (
         <div
             className="min-h-screen bg-[var(--app-bg)] transition-colors duration-500 font-sans"
             style={{ '--app-primary': configuracion?.colores || '#005073' }}
         >
-            {/* Sidebar con transición premium */}
             <Menu
                 auth={auth}
                 configuracion={configuracion}
@@ -88,14 +70,12 @@ export default function Authenticated({ auth, user, children }) {
                 darkMode={darkMode}
             />
 
-            {/* Main Content Wrapper */}
             <div
                 className={`flex-1 flex flex-col min-h-screen transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]`}
                 style={{
                     marginLeft: sidebarOpen ? 'var(--sidebar-width)' : 'var(--sidebar-collapsed-width)'
                 }}
             >
-
                 <Header
                     auth={auth}
                     user={user}
@@ -116,14 +96,13 @@ export default function Authenticated({ auth, user, children }) {
                             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                             className="max-w-[1700px] mx-auto"
                         >
-                            {/* Portada / Breadcrumbs / Page Header Area could go here */}
                             <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div>
-                                    {((window.location.pathname === '/dashboard' || window.location.pathname === '/') || (window.route && window.route().current('dashboard'))) ? (
+                                    {isDashboard ? (
                                         <>
                                             <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
                                                 <span className="w-2.5 h-10 bg-gradient-to-b from-primary to-blue-600 rounded-full hidden md:block" />
-                                                ¡Hola, <span className="text-primary">{auth?.user?.name || user?.name || 'Usuario'}</span>! 👋
+                                                ¡Hola, <span className="text-primary">{auth?.user?.name || user?.nombre || user?.name || 'Usuario'}</span>! 👋
                                             </h1>
                                             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
                                                 Qué gusto verte de nuevo • {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -133,12 +112,7 @@ export default function Authenticated({ auth, user, children }) {
                                 </div>
                             </div>
 
-                            {children &&
-                                React.cloneElement(children, {
-                                    configuracion,
-                                    darkMode,
-                                    toggleDarkMode: () => setDarkMode(!darkMode),
-                                })}
+                            {children}
                         </motion.div>
                     </AnimatePresence>
                 </main>

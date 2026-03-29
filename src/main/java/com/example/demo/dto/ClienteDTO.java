@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 @Data
 public class ClienteDTO {
     private Long id;
-    private String campoEjemplo;
-    private Integer status;
+    private String nombre;
+    private Integer status = 1;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

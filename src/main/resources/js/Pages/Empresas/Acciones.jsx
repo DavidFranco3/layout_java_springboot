@@ -1,5 +1,4 @@
-import React, { useEffect } from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState } from "react";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
@@ -7,28 +6,40 @@ import PrimaryButton from "@/Components/PrimaryButton";
 import SecondaryButton from "@/Components/SecondaryButton";
 import DangerButton from "@/Components/DangerButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faIdCard, faPhone, faEnvelope, faTrash, faSave, faTimes, faExclamationTriangle, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faIdCard, faPhone, faEnvelope, faTrash, faSave, faTimes, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
+import axios from "axios";
 
-const Acciones = ({ setShow, data: empresa, accion }) => {
+const Acciones = ({ setShow, data: empresa, accion, onRefresh }) => {
     const isEdit = accion === "editar";
     const isEliminar = accion === "eliminar";
 
-    const { data, setData, put, processing, errors, delete: destroy } = useForm({
-        nombre: isEdit ? empresa?.nombre || "" : "",
-        razon_social: isEdit ? empresa?.razon_social || "" : "",
-        rfc: isEdit ? empresa?.rfc || "" : "",
-        tipo_persona: isEdit ? empresa?.tipo_persona || "Moral" : "Moral",
-        telefono: isEdit ? empresa?.telefono || "" : "",
-        email: isEdit ? empresa?.email || "" : "",
-        giro: isEdit ? empresa?.giro || "" : "",
-        status: isEdit ? empresa?.status : true,
+    const [data, setData] = useState({
+        nombre: empresa?.nombre || "",
+        razon_social: empresa?.razon_social || "",
+        rfc: empresa?.rfc || "",
+        tipo_persona: empresa?.tipo_persona || "Moral",
+        telefono: empresa?.telefono || "",
+        email: empresa?.email || "",
+        giro: empresa?.giro || "",
+        status: empresa?.status ?? true,
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const [errors, setErrors] = useState({});
+    const [processing, setProcessing] = useState(false);
 
-        const onSuccess = () => {
+    const handleSubmit = async (e) => {
+        if (e) e.preventDefault();
+        setProcessing(true);
+        setErrors({});
+
+        try {
+            if (isEliminar) {
+                await axios.delete(`/api/empresas/${empresa.id}`);
+            } else if (isEdit) {
+                await axios.put(`/api/empresas/${empresa.id}`, data);
+            }
+
             Swal.fire({
                 icon: "success",
                 title: isEliminar ? "Eliminado" : "Éxito",
@@ -40,23 +51,27 @@ const Acciones = ({ setShow, data: empresa, accion }) => {
                 background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
                 color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
             });
-            setShow(false);
-        };
 
-        const onError = () => {
+            if (onRefresh) onRefresh();
+            setShow(false);
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.errors) {
+                setErrors(error.response.data.errors);
+            }
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Ocurrió un problema al procesar la solicitud.",
+                text: error.response?.data?.message || "Ocurrió un problema al procesar la solicitud.",
                 confirmButtonColor: "var(--app-primary)",
             });
-        };
-
-        if (isEliminar) {
-            destroy(route("empresas.destroy", empresa.id), { onSuccess, onError });
-        } else if (isEdit) {
-            put(route("empresas.update", empresa.id), { onSuccess, onError });
+        } finally {
+            setProcessing(false);
         }
+    };
+
+    const handleChange = (e) => {
+        const { id, value } = e.target;
+        setData(prev => ({ ...prev, [id]: value }));
     };
 
     if (isEliminar) {
@@ -98,69 +113,76 @@ const Acciones = ({ setShow, data: empresa, accion }) => {
         <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in p-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                    <InputLabel value="Nombre Comercial" />
+                    <InputLabel htmlFor="nombre" value="Nombre Comercial" />
                     <TextInput
+                        id="nombre"
                         className="w-full h-11"
                         value={data.nombre}
-                        onChange={(e) => setData("nombre", e.target.value)}
+                        onChange={handleChange}
                         required
                     />
                     <InputError message={errors.nombre} />
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel value="Razón Social" />
+                    <InputLabel htmlFor="razon_social" value="Razón Social" />
                     <TextInput
+                        id="razon_social"
                         className="w-full h-11"
                         value={data.razon_social}
-                        onChange={(e) => setData("razon_social", e.target.value)}
+                        onChange={handleChange}
                     />
                     <InputError message={errors.razon_social} />
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel value="RFC" />
+                    <InputLabel htmlFor="rfc" value="RFC" />
                     <TextInput
+                        id="rfc"
                         className="w-full h-11 uppercase"
                         value={data.rfc}
-                        onChange={(e) => setData("rfc", e.target.value)}
+                        onChange={handleChange}
                     />
                     <InputError message={errors.rfc} />
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel value="Tipo Persona" />
+                    <InputLabel htmlFor="tipo_persona" value="Tipo Persona" />
                     <select
+                        id="tipo_persona"
                         className="w-full h-11 rounded-xl border-slate-200 bg-white/50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 transition-all focus:ring-4 focus:ring-primary/10 focus:border-primary"
                         value={data.tipo_persona}
-                        onChange={(e) => setData("tipo_persona", e.target.value)}
+                        onChange={handleChange}
                     >
                         <option value="Moral">Moral</option>
                         <option value="Física">Física</option>
                     </select>
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel value="Teléfono" />
+                    <InputLabel htmlFor="telefono" value="Teléfono" />
                     <TextInput
+                        id="telefono"
                         className="w-full h-11"
                         value={data.telefono}
-                        onChange={(e) => setData("telefono", e.target.value)}
+                        onChange={handleChange}
                     />
                     <InputError message={errors.telefono} />
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel value="Email" />
+                    <InputLabel htmlFor="email" value="Email" />
                     <TextInput
+                        id="email"
                         type="email"
                         className="w-full h-11"
                         value={data.email}
-                        onChange={(e) => setData("email", e.target.value)}
+                        onChange={handleChange}
                     />
                     <InputError message={errors.email} />
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel value="Giro" />
+                    <InputLabel htmlFor="giro" value="Giro" />
                     <TextInput
+                        id="giro"
                         className="w-full h-11"
                         value={data.giro}
-                        onChange={(e) => setData("giro", e.target.value)}
+                        onChange={handleChange}
                     />
                     <InputError message={errors.giro} />
                 </div>
@@ -189,3 +211,4 @@ const Acciones = ({ setShow, data: empresa, accion }) => {
 };
 
 export default Acciones;
+

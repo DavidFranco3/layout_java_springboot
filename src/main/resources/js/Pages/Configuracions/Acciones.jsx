@@ -1,22 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useForm } from "@inertiajs/react";
+import React, { useState } from "react";
+import axios from "axios";
 import { Spinner, Button, Form, Row, Col } from 'react-bootstrap';
 import Swal from "sweetalert2";
 
-const Acciones = ({ setShow, data: config, accion }) => {
+const Acciones = ({ setShow, data: config, accion, onRefresh }) => {
     const isEdit = accion === "editar";
     const isEliminar = accion === "eliminar";
 
-    const [previewLogo, setPreviewLogo] = useState(
-        isEdit && config?.logo ? `/storage/${config.logo}` : null
-    );
-
-    const { data, setData, post, processing, errors, delete: destroy } = useForm({
-        nombre_comercial: isEdit ? config?.nombre_comercial || "" : "",
-        colores: isEdit ? config?.colores || "#000000" : "#000000",
-        logo: null,
-        status: isEdit ? config?.status : true,
-    });
+    const [processing, setProcessing] = useState(false);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -26,41 +17,32 @@ const Acciones = ({ setShow, data: config, accion }) => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setProcessing(true);
 
-        const onSuccess = () => {
-            Swal.fire({
-                icon: "success",
-                title: isEliminar ? "Eliminado" : "Éxito",
-                text: isEliminar
-                    ? "Configuración eliminada correctamente"
-                    : `Configuración ${isEdit ? "actualizada" : "creada"} correctamente`,
-                timer: 2000,
-                showConfirmButton: false,
-            });
-            setShow(false);
-        };
-
-        const onError = (err) => {
+        try {
+            if (isEliminar) {
+                await axios.delete(`/api/configuracion/${config.id}`);
+                Swal.fire({
+                    icon: "success",
+                    title: "Eliminado",
+                    text: "Configuración eliminada correctamente",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+                if (onRefresh) onRefresh();
+                setShow(false);
+            }
+        } catch (err) {
             console.error(err);
             Swal.fire({
                 icon: "error",
                 title: "Error",
-                text: "Ocurrió un problema al procesar la solicitud.",
+                text: err.response?.data?.message || "Ocurrió un problema al procesar la solicitud.",
             });
-        };
-
-        if (isEliminar) {
-            destroy(route("configuracions.destroy", config.id), { onSuccess, onError });
-        } else if (isEdit) {
-            // FormData for file upload requires POST with _method PUT
-            post(route("configuracions.update", config.id), {
-                data: { ...data, _method: "PUT" },
-                forceFormData: true,
-                onSuccess,
-                onError,
-            });
+        } finally {
+            setProcessing(false);
         }
     };
 

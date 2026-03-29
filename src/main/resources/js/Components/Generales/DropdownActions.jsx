@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from '@inertiajs/react';
+import { Link } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 
@@ -122,9 +122,9 @@ const DropdownActions = ({
                                                                 </>
                                                             );
 
-                                                            if (action.href) {
+                                                            if (action.to || action.href) {
                                                                 return (
-                                                                    <Link href={action.href} className={baseClasses} method={action.method || 'get'} as={action.as}>
+                                                                    <Link to={action.to || action.href} className={baseClasses}>
                                                                         {content}
                                                                     </Link>
                                                                 );
@@ -154,13 +154,11 @@ const DropdownActions = ({
 };
 
 // Subcomponente Link Manual
-const DropdownLink = ({ href, icon, children, color, method = 'get', as }) => (
+const DropdownLink = ({ to, icon, children, color }) => (
     <Menu.Item>
         {({ active }) => (
             <Link
-                href={href}
-                method={method}
-                as={as}
+                to={to}
                 className={`${active ? 'bg-gray-50 dark:bg-slate-700' : ''} group flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 transition-colors`}
             >
                 {icon && (
@@ -193,3 +191,4 @@ DropdownActions.Link = DropdownLink;
 DropdownActions.Button = DropdownButton;
 
 export default DropdownActions;
+

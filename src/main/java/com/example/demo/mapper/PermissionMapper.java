@@ -13,6 +13,8 @@ public interface PermissionMapper {
     @Mapping(target = "modulo_nombre", expression = "java(permission.getModulo() != null ? permission.getModulo().getNombre() : null)")
     PermissionDTO toDTO(Permission permission);
 
+    @Mapping(target = "modulo", ignore = true)
+    @Mapping(target = "roles", ignore = true)
     Permission toEntity(PermissionDTO permissionDTO);
 
     List<PermissionDTO> toDTOs(List<Permission> permissions);

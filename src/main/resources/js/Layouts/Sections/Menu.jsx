@@ -1,21 +1,19 @@
 import React from "react";
-import { Link } from "@inertiajs/react";
+import { Link, useLocation } from "react-router-dom";
 import SubMenu from "@/Components/Generales/SubMenu";
 import useAuth from "@/hooks/useAuth";
 import { isColorDark, shadeColor } from "@/utils/Color";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
-    // Hook para acceso a información de autenticación
-    const { user, rolNombre, hasModuleAccess } = useAuth();
+    const { user, hasModuleAccess } = useAuth();
+    const location = useLocation();
 
-    // Lógica de color dinámica basada en la configuración
     const corporateColor = configuracion?.colores || "#0f172a";
 
-    // Usar el color real en la medida de lo posible
     const sidebarBg = darkMode
-        ? shadeColor(corporateColor, -0.7) // Versión oscura para dark mode
-        : corporateColor; // COLOR REAL en light mode
+        ? shadeColor(corporateColor, -0.7)
+        : corporateColor;
 
     const isSidebarDark = isColorDark(sidebarBg);
 
@@ -26,8 +24,6 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
     const inactiveLinkClasses = isSidebarDark
         ? "text-white/70 hover:text-white hover:bg-white/10"
         : "text-slate-800/80 hover:text-slate-900 hover:bg-black/5";
-
-    const sectionTitleClasses = isSidebarDark ? "text-white/40" : "text-slate-500/60";
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -44,9 +40,10 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
         visible: { opacity: 1, x: 0 }
     };
 
+    const isCurrent = (path) => location.pathname === path;
+
     return (
         <>
-            {/* Overlay para móvil con backdrop blur */}
             <AnimatePresence>
                 {sidebarOpen && (
                     <motion.div
@@ -64,10 +61,9 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                     ${sidebarOpen ? 'w-[var(--sidebar-width)]' : 'w-24 -translate-x-full lg:translate-x-0'}`}
                 style={{ backgroundColor: sidebarBg }}
             >
-                {/* Logo Area Premium */}
                 <div className={`relative h-[var(--header-height)] flex items-center shrink-0 overflow-hidden border-b ${isSidebarDark ? 'border-white/5' : 'border-black/5'}`}>
                     <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-                    <Link href={route("dashboard")} className={`flex items-center justify-center w-full h-full transition-all duration-500 !no-underline ${sidebarOpen ? 'px-4' : 'px-0'}`}>
+                    <Link to="/dashboard" className={`flex items-center justify-center w-full h-full transition-all duration-500 !no-underline ${sidebarOpen ? 'px-4' : 'px-0'}`}>
                         {configuracion?.logo ? (
                             <motion.img
                                 layout
@@ -79,7 +75,7 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                             <div className="flex items-center justify-center gap-4">
                                 <motion.div
                                     layout
-                                    className="w-14 h-14 rounded-[20px] bg-white text-primary flex items-center justify-center text-2xl font-black shadow-2xl shadow-black/40 group-hover:scale-110 transition-transform duration-500">
+                                    className="w-14 h-14 rounded-[20px] bg-white text-primary flex items-center justify-center text-2xl font-black shadow-2xl shadow-black/40">
                                     {configuracion?.nombre_comercial?.charAt(0) || 'D'}
                                 </motion.div>
                                 <AnimatePresence>
@@ -98,7 +94,6 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                     </Link>
                 </div>
 
-                {/* User Context Card Premium */}
                 <div className={`px-2 py-6 transition-all duration-500`}>
                     <motion.div
                         layout
@@ -106,7 +101,7 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                         <div className={`flex items-center ${sidebarOpen ? 'gap-3' : 'flex-col gap-3'}`}>
                             <div className="relative shrink-0">
                                 <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white text-lg font-black shadow-xl ring-2 ring-white/10 group-hover:ring-white/30 transition-all duration-500">
-                                    {user?.name?.charAt(0) || 'U'}
+                                    {user?.nombre?.charAt(0) || user?.name?.charAt(0) || 'U'}
                                 </div>
                                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-[3px] border-slate-900 rounded-full animate-pulse shadow-glow"></div>
                             </div>
@@ -120,11 +115,11 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                                         className="flex flex-col min-w-0"
                                     >
                                         <h4 className="text-sm font-black text-white truncate drop-shadow-sm">
-                                            {user?.name?.split(' ')[0]}
+                                            {user?.nombre || user?.name?.split(' ')[0]}
                                         </h4>
                                         <div className="flex items-center gap-1.5 mt-0.5">
                                             <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">
-                                                Administrador
+                                                {user?.rolNombre || 'Usuario'}
                                             </span>
                                         </div>
                                     </motion.div>
@@ -134,7 +129,6 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                     </motion.div>
                 </div>
 
-                {/* Navigation Premium */}
                 <nav className="flex-1 overflow-y-auto px-2 space-y-4 custom-scrollbar pb-10">
                     <motion.div
                         variants={containerVariants}
@@ -144,11 +138,11 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                         <ul className="space-y-1">
                             <motion.li variants={itemVariants}>
                                 <Link
-                                    href={route("dashboard")}
+                                    to="/dashboard"
                                     className={`flex items-center h-12 rounded-2xl transition-all duration-500 group !no-underline relative overflow-hidden ${sidebarOpen ? 'px-4' : 'justify-center'}
-                                        ${route().current("dashboard") ? activeLinkClasses + ' ring-1 ring-white/10' : inactiveLinkClasses}`}
+                                        ${isCurrent("/dashboard") ? activeLinkClasses + ' ring-1 ring-white/10' : inactiveLinkClasses}`}
                                 >
-                                    {route().current("dashboard") && (
+                                    {isCurrent("/dashboard") && (
                                         <motion.div
                                             layoutId="nav-pill"
                                             className="absolute inset-0 bg-white/10"
@@ -180,7 +174,6 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                         animate="visible"
                     >
                         <ul className="space-y-1">
-                            {/* SubMenus with balanced alignment */}
                             {hasModuleAccess('Users') && (
                                 <motion.li variants={itemVariants}>
                                     <SubMenu
@@ -191,7 +184,7 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                                         toggleSidebar={toggleSidebar}
                                         subItems={[
                                             ...(hasModuleAccess('Users') ? [{
-                                                route: "users.index",
+                                                to: "/users",
                                                 label: "Usuarios",
                                                 icon: "bi bi-person-badge",
                                             }] : []),
@@ -200,39 +193,34 @@ const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
                                 </motion.li>
                             )}
 
-                            {(hasModuleAccess('Configuracion') || hasModuleAccess('Empresas') || hasModuleAccess('Auditoria') || hasModuleAccess('Roles')) && (
-                                <motion.li variants={itemVariants}>
-                                    <SubMenu
-                                        title="Configuración"
-                                        icon="fas fa-rocket"
-                                        isDark={isSidebarDark}
-                                        sidebarOpen={sidebarOpen}
-                                        toggleSidebar={toggleSidebar}
-                                        subItems={[
-                                            ...(hasModuleAccess('Configuracion') ? [{
-                                                route: "configuracions.index",
-                                                label: "Parámetros",
-                                                icon: "bi bi-sliders2",
-                                            }] : []),
-                                            ...(hasModuleAccess('Empresas') ? [{
-                                                route: "empresas.index",
-                                                label: "Mi Empresa",
-                                                icon: "fas fa-building",
-                                            }] : []),
-                                            ...(hasModuleAccess('Auditoria') ? [{
-                                                route: "auditoria.index",
-                                                label: "Seguridad",
-                                                icon: "fas fa-fingerprint",
-                                            }] : []),
-                                            ...(hasModuleAccess('Roles') ? [{
-                                                route: "roles.index",
-                                                label: "Roles",
-                                                icon: "bi bi-shield-lock",
-                                            }] : []),
-                                        ]}
-                                    />
-                                </motion.li>
-                            )}
+                            <motion.li variants={itemVariants}>
+                                <SubMenu
+                                    title="Catálogos"
+                                    icon="fas fa-folder-open"
+                                    isDark={isSidebarDark}
+                                    sidebarOpen={sidebarOpen}
+                                    toggleSidebar={toggleSidebar}
+                                    subItems={[
+                                        { to: "/clientes", label: "Clientes", icon: "fas fa-users" },
+                                    ]}
+                                />
+                            </motion.li>
+
+                            <motion.li variants={itemVariants}>
+                                <SubMenu
+                                    title="Configuración"
+                                    icon="fas fa-rocket"
+                                    isDark={isSidebarDark}
+                                    sidebarOpen={sidebarOpen}
+                                    toggleSidebar={toggleSidebar}
+                                    subItems={[
+                                        { to: "/configuracion", label: "Parámetros", icon: "bi bi-sliders2" },
+                                        { to: "/empresas", label: "Mi Empresa", icon: "fas fa-building" },
+                                        { to: "/auditoria", label: "Seguridad", icon: "fas fa-fingerprint" },
+                                        { to: "/roles", label: "Roles", icon: "bi bi-shield-lock" },
+                                    ]}
+                                />
+                            </motion.li>
                         </ul>
                     </motion.div>
                 </nav>

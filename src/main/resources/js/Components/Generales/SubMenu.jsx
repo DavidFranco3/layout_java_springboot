@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, toggleSidebar }) => {
-    const isAnyChildActive = subItems.some(item => route().current(item.route));
+    const location = useLocation();
+    const isAnyChildActive = subItems.some(item => location.pathname === item.to);
     const [expandedMenu, setExpandedMenu] = useState(isAnyChildActive);
 
     const toggleSubMenu = (e) => {
@@ -76,17 +77,17 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
                     >
                         <ul className="space-y-1 mt-1 ml-1 pl-2 border-l border-white/10 dark:border-white/5">
                             {subItems.map((item) => {
-                                const isActive = route().current(item.route);
+                                const isActive = location.pathname === item.to;
                                 return (
-                                    <li key={item.route} className="relative group">
+                                    <li key={item.to} className="relative group">
                                         {isActive && (
                                             <motion.div
-                                                layoutId={`active-dot-${item.route}`}
+                                                layoutId={`active-dot-${item.to}`}
                                                 className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-glow"
                                             />
                                         )}
                                         <Link
-                                            href={route(item.route)}
+                                            to={item.to}
                                             className={`flex items-center px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 group !no-underline ${isActive
                                                 ? activeColor
                                                 : `${childColor} ${hoverBg} ${hoverText}`

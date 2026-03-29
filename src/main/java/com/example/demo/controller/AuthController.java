@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,16 +32,11 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody(required = false) LoginRequest payload,
             HttpServletRequest request) {
         logger.info("====== LOGIN ATTEMPT ======");
-        logger.info("Content-Type: {}", request.getContentType());
-        logger.info("Payload received: {}", payload);
-
+        
         String email = payload != null ? payload.getEmail() : null;
         String password = payload != null ? payload.getPassword() : null;
+        
         try {
-            logger.info("Extracted email: {}", email);
-            // Don't log passwords in real apps, but for debugging this prototype:
-            logger.info("Extracted password: {}", password != null ? "[HAS_VALUE]" : "[NULL]");
-
             UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(email, password);
             Authentication authentication = authenticationManager.authenticate(authRequest);
 
@@ -54,26 +47,19 @@ public class AuthController {
 
             logger.info("✅ Login successful for user: {}", email);
 
-            // Inertia properly handles 303 See Other
-            return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                    .location(URI.create("/dashboard"))
-                    .build();
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Login exitoso");
+            response.put("user", email);
+            
+            return ResponseEntity.ok(response);
+            
         } catch (AuthenticationException e) {
-            logger.error("！！！ AUTHENTICATION FAILED ！！！");
-            logger.error("Email attempted: [{}]", email);
-            logger.error("Failure reason: {}", e.getMessage());
-            logger.error("Exception type: {}", e.getClass().getName());
-            // e.printStackTrace();
+            logger.error("！！！ AUTHENTICATION FAILED ！！！: {}", e.getMessage());
 
-            // Error handling, redirect back to login
-            HttpSession session = request.getSession(true);
             Map<String, String> errors = new HashMap<>();
             errors.put("email", "Las credenciales no coinciden con nuestros registros.");
-            session.setAttribute("errors", errors);
-
-            return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                    .location(URI.create("/login"))
-                    .build();
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errors);
         }
     }
 
@@ -85,8 +71,6 @@ public class AuthController {
         }
         SecurityContextHolder.clearContext();
 
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/login"))
-                .build();
+        return ResponseEntity.ok().build();
     }
 }

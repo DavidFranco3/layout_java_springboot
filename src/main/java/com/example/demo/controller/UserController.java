@@ -1,20 +1,16 @@
 package com.example.demo.controller;
 
-import com.example.demo.Inertia;
 import com.example.demo.dto.UserDTO;
 import com.example.demo.service.UserService;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
 
-import java.net.URI;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Controller
-@RequestMapping("/users")
+@RestController
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
@@ -24,38 +20,30 @@ public class UserController {
     }
 
     @GetMapping
-    public Object index() {
-        Map<String, Object> props = new HashMap<>();
-        props.put("users", userService.findAll());
-        return Inertia.render("Users/Index", props);
+    public List<UserDTO> index() {
+        return userService.findAll();
     }
 
     @PostMapping
-    public ResponseEntity<?> store(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<UserDTO> store(@RequestBody Map<String, Object> payload) {
         UserDTO userDTO = new UserDTO();
         userDTO.setNombre((String) payload.get("nombre"));
         userDTO.setEmail((String) payload.get("email"));
 
-        // Role handling
         Object roleIdObj = payload.get("rol_id");
         if (roleIdObj != null && !roleIdObj.toString().isEmpty()) {
             userDTO.setRol_id(Long.valueOf(roleIdObj.toString()));
         }
 
-        // Password handling
         if (payload.containsKey("password")) {
             userDTO.setPassword((String) payload.get("password"));
         }
 
-        userService.save(userDTO);
-
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/users"))
-                .build();
+        return ResponseEntity.ok(userService.save(userDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         Optional<UserDTO> userOpt = userService.findById(id);
         if (userOpt.isPresent()) {
             UserDTO userDTO = userOpt.get();
@@ -76,25 +64,20 @@ public class UserController {
             if (payload.containsKey("password")) {
                 userDTO.setPassword((String) payload.get("password"));
             }
-            userService.save(userDTO);
+            return ResponseEntity.ok(userService.save(userDTO));
         }
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/users"))
-                .build();
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable Long id) {
+    public ResponseEntity<Void> destroy(@PathVariable Long id) {
         Optional<UserDTO> userOpt = userService.findById(id);
         if (userOpt.isPresent()) {
             UserDTO userDTO = userOpt.get();
             userDTO.setStatus(0);
             userService.save(userDTO);
-            // Alternatively, use a real delete:
-            // userService.deleteById(id);
+            return ResponseEntity.ok().build();
         }
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/users"))
-                .build();
+        return ResponseEntity.notFound().build();
     }
 }

@@ -22,6 +22,7 @@ public interface UserMapper {
     @Mapping(target = "emailVerifiedAt", source = "email_verified_at")
     @Mapping(target = "createdAt", source = "created_at")
     @Mapping(target = "updatedAt", source = "updated_at")
+    @Mapping(target = "rememberToken", ignore = true)
     User toEntity(UserDTO userDTO);
 
     List<UserDTO> toDTOs(List<User> users);

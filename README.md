@@ -1,56 +1,58 @@
-# 🚀 Spring Boot + React + Inertia.js Layout
+# 🚀 Spring Boot + React (REST API) Layout
 
-Este proyecto es una estructura base (layout) fullstack profesional diseñada para acelerar el desarrollo de aplicaciones web de alto rendimiento. Utiliza **Spring Boot** en el backend, **React** con **Vite** en el frontend, y **Inertia.js** como el puente que elimina la necesidad de crear una API REST tradicional.
+Este proyecto es una estructura base (layout) fullstack profesional diseñada para acelerar el desarrollo de aplicaciones web de alto rendimiento. Utiliza **Spring Boot** en el backend como una API RESTful robusta, y una Single Page Application (SPA) integrada construida con **React**, **Vite** y **React Router DOM** en el frontend.
 
-Inspirado en el ecosistema de Laravel, este proyecto incluye herramientas avanzadas como un generador de CRUD y una CLI tipo Artisan para Spring Boot.
+Inspirado en ecosistemas ágiles modernos, este proyecto incluye herramientas avanzadas como un generador automático de código (CRUD) y una CLI tipo Artisan para gestionar recursos directamente desde la consola.
 
 ## ✨ Características Principales
 
-- **🔄 Integración de Inertia.js**: Disfruta de la experiencia de usuario de una Single Page App (SPA) utilizando controladores y rutas de servidor clásicas.
-- **🏗 Generador de CRUD**: Comando automático para crear Modelo, Repositorio, Servicio, Controlador, Vistas React (Índice y Formulario) y Migración SQL en segundos.
-- **🛠 Spring Boot Artisan CLI**: Comandos personalizados para gestionar semillas, escaneo de módulos, permisos y migraciones desde la terminal.
-- **🔐 Seguridad Integrada**: Configuración robusta de Spring Security.
-- **📊 Gestión de Base de Datos**: Flyway para migraciones controladas de versiones de base de datos.
-- **🎨 Diseño Moderno**: Frontend con Tailwind CSS 4, Framer Motion para animaciones, y SweetAlert2 para notificaciones.
+- **🔄 Arquitectura RESTful SPA**: Separación limpia entre el backend (JSON API) y frontend (navegación del lado del cliente vía React Router), servidos y coordinados eficientemente bajo un único empaquetado.
+- **🏗 Generador de CRUD REST**: Comando automático para crear la Entidad, el Repositorio, Servicio, Controlador API, DTO, Mapeador (MapStruct), Vistas en React (Tabla y Formularios adaptados a `react-hook-form`) y su respectiva Migración de base de datos SQL. ¡Todo en segundos!
+- **📋 Formularios Dinámicos**: Integración completa con `react-hook-form` para validación fluida en el cliente y sincronización estricta de validaciones del servidor.
+- **🛠 Spring Boot Artisan CLI**: Comandos de consola personalizados implementados como scripts Node para inicializar semillas (seeders), escanear permisos y rutas, o despachar migraciones fácilmente.
+- **🔐 Seguridad y Roles**: Gestión dinámica de usuarios, roles y permisos usando un enfoque desacoplado, auditado vía AOP y protegido por Spring Security.
+- **📊 Gestión de Base de Datos**: Migraciones controladas por versiones utilizando **Flyway**.
+- **🎨 Diseño Moderno y UI Premium**: Frontend impulsado nativamente por **Tailwind CSS 4**, con animaciones fluidas (Framer Motion) y librerías de alerta (SweetAlert2).
 
 ## 🛠 Stack Tecnológico
 
 ### Backend
 - **Java**: 21
-- **Framework**: Spring Boot 3.4.3
+- **Framework**: Spring Boot 3.4.x
+- **Arquitectura**: RESTful JSON API
 - **ORM**: Spring Data JPA (Hibernate)
 - **Seguridad**: Spring Security
-- **Documentación**: SpringDoc OpenAPI (Swagger UI)
-- **Utilidades**: Lombok, MapStruct, AOP
-- **Migraciones**: Flyway
+- **Documentación API**: SpringDoc OpenAPI (Swagger UI)
+- **Autogeneración y Utilidades**: Lombok, MapStruct, AspectJ (AOP)
+- **Control de Esquemas**: FlywayDb
 
 ### Frontend
-- **Framework**: React 19
-- **Bundler**: Vite 7
-- **Routing/State**: Inertia.js
-- **Estilos**: Tailwind CSS 4, Bootstrap 5 (Soporte mixto)
-- **Animaciones**: Framer Motion
-- **Iconos**: React Icons, FontAwesome
-- **Gráficos**: Chart.js
-- **Utilidades**: Axios, React Hook Form, DayJS, XLSX, PDF Generation
+- **Librería Core**: React 19
+- **Bundler y Servidor**: Vite 7
+- **Enrutamiento**: React Router DOM (v6/v7)
+- **Gestión de Formularios**: React Hook Form
+- **Peticiones HTTP**: Axios
+- **Estilos**: Tailwind CSS 4 + Componentes modulares
+- **Animaciones e Interfaz**: Framer Motion, FontAwesome Elementos
+- **Utilidades Extra**: SweetAlert2, DayJS, herramientas de exportación PDF/XLSX.
 
 ## ⚙️ Requisitos Previos
 
 - **JDK**: Versión 21 o superior.
 - **Node.js**: Versión 18 o superior.
-- **Base de Datos**: MySQL (Configurada por defecto).
-- **Maven**: (Incluido mediante `mvnw`).
+- **Base de Datos**: MySQL (La estructura soporta portabilidad mediante dialectos JPA).
+- **Maven**: Se incluye su Wrapper (`mvnw`).
 
 ## 📦 Instalación y Configuración
 
-1. **Clonar el repositorio**:
+1. **Clonar el repositorio y entrar al proyecto**:
    ```bash
    git clone <url-del-repositorio>
    cd layout_java_springboot
    ```
 
 2. **Configurar el entorno**: 
-   Edita el archivo `src/main/resources/application.properties` con tus credenciales de base de Datos:
+   Edita el archivo `src/main/resources/application.properties` con tus credenciales de base de Datos para tu entorno local:
    ```properties
    db.host=127.0.0.1
    db.port=3306
@@ -66,19 +68,21 @@ Inspirado en el ecosistema de Laravel, este proyecto incluye herramientas avanza
 
 ## 💻 Uso en Desarrollo
 
-Para iniciar el proyecto en modo desarrollo (Backend + Frontend con HMR):
+Para iniciar el proyecto en modo desarrollo completo (Backend con auto-recarga y Frontend con Hot Module Replacement HMR):
 
 ```bash
 npm run dev
 ```
 
-Esto ejecutará simultáneamente:
-- Spring Boot en `http://localhost:8080`
-- Vite Dev Server en `http://localhost:5173`
+Esto ejecutará simultáneamente mediante `concurrently`:
+1. El compilador de Spring Boot (`mvnw spring-boot:run`) sirviendo la API REST en `http://localhost:8080`.
+2. Vite Dev Server escuchando los cambios de UI en `http://localhost:5173`.
+
+> **Nota**: Vite expone los asests para la SPA y redirige peticiones de la API de `/api/*` hacia el servidor backend, permitiendo evitar problemas de CORS durante desarrollo.
 
 ## 🏗 Generador de CRUD
 
-Puedes generar un módulo completo (Backend y Frontend) ejecutando el siguiente comando:
+Puedes generar un módulo completo fullstack (Backend REST y UI Frontend) ejecutando:
 
 ```bash
 npm run make:crud-react <NombreDeEntidad>
@@ -86,36 +90,36 @@ npm run make:crud-react <NombreDeEntidad>
 
 **Ejemplo:**
 ```bash
-npm run make:crud-react Producto
+npm run make:crud-react Empresa
 ```
 
-Esto generará automáticamente:
-- `Producto.java` (Entidad JPA)
-- `ProductoRepository.java`
-- `ProductoService.java`
-- `ProductoController.java` (Con endpoints de Inertia)
-- `src/main/resources/js/Pages/Productos/Index.jsx` (Listado)
-- `src/main/resources/js/Pages/Productos/Form.jsx` (Creación/Edición)
-- `V<N>__create_productos_table.sql` (Migración Flyway)
+Esto andamiará las siguientes capas de arquitectura automáticamente:
+- `Empresa.java` (Entidad JPA) y `EmpresaDTO.java`
+- `EmpresaMapper.java` (MapStruct)
+- `EmpresaRepository.java` y `EmpresaService.java`
+- `EmpresaController.java` (Endpoints REST: GET, POST, PUT, DELETE)
+- `src/main/resources/js/Pages/Empresas/Index.jsx` (Listado y Data Table asíncrono)
+- `src/main/resources/js/Pages/Empresas/Form.jsx` (Formulario conectado con `react-hook-form` y validación de errores del backend).
+- `V<NN>__create_empresas_table.sql` (Migración automática detectada en Flyway)
 
-## 🛠 Comandos Artisan (CLI)
+## 🛠 Comandos CLI Tipo Artisan
 
-Hemos implementado una interfaz similar a Laravel Artisan para tareas comunes:
+Disponemos de utilidades estilo Laravel Artisan portadas a Node en la carpeta `scripts/` para simplificar operaciones repetitivas de desarrollo:
 
-- **Listar comandos**: `npm run artisan`
-- **Poblar Base de Datos**: `npm run artisan db:seed`
-- **Escanear Módulos/Permisos**: `npm run artisan modulos:scan`
-- **Asignar Admin**: `npm run artisan admin:asignar <email>`
-- **Ejecutar Migraciones**: `npm run artisan migrate`
+- **Listar comandos disponibles**: `npm run artisan`
+- **Poblar Base de Datos (Seeder)**: `npm run artisan db:seed`
+- **Escanear y Autoregistrar Módulos/Permisos**: `npm run artisan modulos:scan`
+- **Crear/Asignar Super Admin**: `npm run artisan admin:asignar <email>`
+- **Despachar Migraciones Manuales**: `npm run artisan migrate`
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Estructura General del Proyecto
 
-- `src/main/java`: Código fuente Java (Spring Boot).
-- `src/main/resources/js`: Código fuente React e Inertia.
-- `src/main/resources/js/Pages`: Componentes de página (Vistas).
-- `src/main/resources/db/migration`: Archivos de migración de Flyway (SQL).
-- `scripts/`: Scripts de utilidad para la CLI y generación de código.
-- `vite.config.js`: Configuración de compilación del frontend.
-- `pom.xml`: Dependencias y plugins de Maven.
+- `src/main/java`: Backend código Java Spring Boot estructurado en paquetes MVC y servicios.
+- `src/main/resources/js`: Código fuente Frontend (React + Router + Componentes).
+- `src/main/resources/js/Pages`: Views / Páginas SPA del Frontend.
+- `src/main/resources/db/migration`: Archivos de control de versión de estructura SQL (Flyway).
+- `scripts/`: Herramientas custom de Node JS implementadas para automatizaciones (CLI Crud y Artisan).
+- `vite.config.js`: Configuración del HMR de UI y Webpack moderno.
+- `pom.xml`: Administrador de dependencias (Maven).

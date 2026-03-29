@@ -1,19 +1,14 @@
 package com.example.demo.controller;
 
-import com.example.demo.Inertia;
 import com.example.demo.model.AuditoriaLog;
 import com.example.demo.service.AuditoriaService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-@Controller
-@RequestMapping("/auditoria")
+@RestController
+@RequestMapping("/api/auditoria")
 public class AuditoriaLogController {
 
     private final AuditoriaService auditoriaService;
@@ -23,46 +18,31 @@ public class AuditoriaLogController {
     }
 
     @GetMapping
-    public Object index() {
-        Map<String, Object> props = new HashMap<>();
-        props.put("auditorialogs", auditoriaService.findAll());
-        return Inertia.render("AuditoriaLogs/Index", props);
+    public List<AuditoriaLog> index() {
+        return auditoriaService.findAll();
     }
 
-    @GetMapping("/create")
-    public Object create() {
-        return Inertia.render("AuditoriaLogs/Create", new HashMap<>());
+    @GetMapping("/{id}")
+    public ResponseEntity<AuditoriaLog> show(@PathVariable Long id) {
+        return auditoriaService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<?> store(@RequestBody AuditoriaLog auditoriaLog) {
-        auditoriaService.save(auditoriaLog);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/auditoria"))
-                .build();
-    }
-
-    @GetMapping("/{id}/edit")
-    public Object edit(@PathVariable Long id) {
-        Map<String, Object> props = new HashMap<>();
-        props.put("log", auditoriaService.findById(id).orElseThrow());
-        return Inertia.render("AuditoriaLogs/Edit", props);
+    public ResponseEntity<AuditoriaLog> store(@RequestBody AuditoriaLog auditoriaLog) {
+        return ResponseEntity.ok(auditoriaService.save(auditoriaLog));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody AuditoriaLog auditoriaLog) {
+    public ResponseEntity<AuditoriaLog> update(@PathVariable Long id, @RequestBody AuditoriaLog auditoriaLog) {
         auditoriaLog.setId(id);
-        auditoriaService.save(auditoriaLog);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/auditoria"))
-                .build();
+        return ResponseEntity.ok(auditoriaService.save(auditoriaLog));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable Long id) {
+    public ResponseEntity<Void> destroy(@PathVariable Long id) {
         auditoriaService.deleteById(id);
-        return ResponseEntity.status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/auditoria"))
-                .build();
+        return ResponseEntity.ok().build();
     }
 }
