@@ -1,15 +1,28 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import rdtc from "react-data-table-component";
-const DataTable = rdtc.default || rdtc;
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import ReactDataTable from "react-data-table-component";
+
+// Fallback for Vite CJS/ESM interop when chunking library
+const DataTableComponent = (ReactDataTable as any).default || ReactDataTable;
 import { CSVLink } from "react-csv";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import DebouncedInput from "./DebouncedInput";
-import Skeleton, { SkeletonTable } from "./Skeleton";
+import { SkeletonTable } from "./Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import PrimaryButton from "../PrimaryButton";
 
-const DataTablecustom = ({
+interface DataTableProps {
+    datos?: any[];
+    columnas?: any[];
+    hiddenOptions?: boolean;
+    expandableRows?: boolean;
+    expandableRowsComponent?: React.FC<any> | any;
+    expandableRowExpanded?: ((row: any) => boolean) | any;
+    isLoading?: boolean;
+    [key: string]: any;
+}
+
+const DataTablecustom: React.FC<DataTableProps> = ({
     datos = [],
     columnas = [],
     hiddenOptions = false,
@@ -24,8 +37,8 @@ const DataTablecustom = ({
     const [visibleColumns, setVisibleColumns] = useState(columnas.map((col) => col.name));
     const [showModal, setShowModal] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
-    const tableRef = useRef(null);
-    const csvLinkRef = useRef();
+    const tableRef = useRef<HTMLDivElement>(null);
+    const csvLinkRef = useRef<any>(null);
 
     // Skeletons para carga
     const skeletonRows = Array(5).fill({});
@@ -190,10 +203,9 @@ const DataTablecustom = ({
     };
 
     console.log("Component Types inside DataTablecustom:");
-    console.log("DataTable:", typeof DataTable, DataTable);
+    console.log("DataTableComponent:", typeof DataTableComponent, DataTableComponent);
     console.log("PrimaryButton:", typeof PrimaryButton, PrimaryButton);
-    console.log("Skeleton:", typeof Skeleton, Skeleton);
-    console.log("Skeleton.Table:", typeof Skeleton?.Table, Skeleton?.Table);
+    console.log("SkeletonTable:", typeof SkeletonTable, SkeletonTable);
     console.log("CSVLink:", typeof CSVLink, CSVLink);
 
     return (
@@ -215,7 +227,7 @@ const DataTablecustom = ({
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => csvLinkRef.current.link.click()}
+                                onClick={() => csvLinkRef.current?.link?.click()}
                                 className="flex items-center gap-2 px-4 py-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all text-emerald-600 dark:text-emerald-400"
                                 title="Exportar CSV"
                             >
@@ -258,7 +270,7 @@ const DataTablecustom = ({
                 </div>
             ) : (
                 <div className={`overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
-                    <DataTable
+                    <DataTableComponent
                         columns={isLoading ? skeletonColumns : processedColumns}
                         data={isLoading ? skeletonRows : filteredData}
                         pagination

@@ -1,6 +1,12 @@
-import { motion } from "framer-motion";
+import { HTMLMotionProps, motion } from "framer-motion";
 
-export default function DangerButton({ className = '', disabled, children, ...props }) {
+interface DangerButtonProps extends HTMLMotionProps<"button"> {
+    className?: string;
+    disabled?: boolean;
+    children: React.ReactNode;
+}
+
+export default function DangerButton({ className = '', disabled, children, ...props }: DangerButtonProps) {
     return (
         <motion.button
             whileHover={!disabled ? { scale: 1.02, y: -1 } : {}}

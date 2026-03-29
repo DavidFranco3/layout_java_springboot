@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
@@ -104,7 +104,7 @@ export default function Form({ mode }: ClienteFormProps) {
                     Volver al listado
                 </Link>
 
-                <ContainerLaravel
+                <ContainerApp
                     titulo={isEdit ? "Editar Cliente" : "Nuevo Cliente"}
                     icono={faUser}
                 >
@@ -159,7 +159,7 @@ export default function Form({ mode }: ClienteFormProps) {
                             </PrimaryButton>
                         </div>
                     </form>
-                </ContainerLaravel>
+                </ContainerApp>
             </div>
         </Authenticated>
     );

@@ -4,12 +4,20 @@ import "chart.js/auto";
 import "chartjs-plugin-datalabels"; // Importa el plugin
 import CustomSelect from "./CustomSelect";
 
-const DynamicChart = ({
+interface DynamicChartProps {
+    frecuencias?: number[];
+    etiquetas?: string[];
+    chartTitle?: string;
+    titInfo?: string;
+    alto?: string | number;
+}
+
+const DynamicChart: React.FC<DynamicChartProps> = ({
     frecuencias = [0],
     etiquetas = ["Sin datos"],
     chartTitle = "",
     titInfo = "",
-    alto = "",
+    alto = "auto",
 }) => {
     // Agrega un estado local para el tipo de gráfico
     const [chartType, setChartType] = useState("pie");

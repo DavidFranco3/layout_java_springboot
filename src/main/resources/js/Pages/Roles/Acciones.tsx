@@ -22,9 +22,10 @@ interface RoleAccionesProps {
     accion: 'editar' | 'eliminar';
     onRefresh?: () => void;
     initialPermisos?: any[];
+    modulos?: any[];
 }
 
-const Acciones = ({ setShow, data: rol, accion, onRefresh, initialPermisos }: RoleAccionesProps) => {
+const Acciones = ({ setShow, data: rol, accion, onRefresh, initialPermisos, modulos }: RoleAccionesProps) => {
     const isEdit = accion === "editar";
     const isEliminar = accion === "eliminar";
 

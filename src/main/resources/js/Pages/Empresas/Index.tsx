@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import DropdownActions from "@/Components/Generales/DropdownActions";
@@ -137,7 +137,7 @@ const Index = () => {
 
     return (
         <Authenticated user={user}>
-            <ContainerLaravel
+            <ContainerApp
                 titulo={"Información de la Empresa"}
                 icono={"nav-icon bi bi-building"}
             >
@@ -167,7 +167,7 @@ const Index = () => {
                         {contentModal}
                     </ModalCustom.Body>
                 </ModalCustom>
-            </ContainerLaravel>
+            </ContainerApp>
         </Authenticated>
     );
 };

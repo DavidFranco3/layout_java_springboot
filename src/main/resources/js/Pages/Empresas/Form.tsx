@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
@@ -123,7 +123,7 @@ export default function Form({ mode }: EmpresaFormProps) {
                     <FontAwesomeIcon icon={faChevronLeft} className="mr-2 group-hover:-translate-x-1 transition-transform" />
                     Volver al listado
                 </Link>
-                <ContainerLaravel titulo={isEdit ? `Editando: ${watchedNombre}` : "Nueva Empresa"} icono={faBuilding}>
+                <ContainerApp titulo={isEdit ? `Editando: ${watchedNombre}` : "Nueva Empresa"} icono={faBuilding}>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 py-4">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             {/* BENTO BOX 1: INFORMACIÓN GENERAL Y CONTACTO */}
@@ -271,7 +271,7 @@ export default function Form({ mode }: EmpresaFormProps) {
                             </PrimaryButton>
                         </div>
                     </form>
-                </ContainerLaravel>
+                </ContainerApp>
             </div>
         </Authenticated>
     );

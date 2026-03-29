@@ -1,18 +1,42 @@
 import React, { useEffect, useState, useRef } from "react";
-import Dropdown from "@/Components/Dropdown";
-import axios from "axios"; // Asegúrate de tener axios importado
+import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 import SubMenu from "@/Components/Generales/SubMenu";
 import { eliminaSucursal } from "@/utils/consultas";
 
-const Menu = (props) => {
-    //console.log(props.auth);
+interface SubModulo {
+    ruta: string;
+    nombre: string;
+    icon?: string;
+}
 
-    const [turno, setTurno] = useState();
+interface Modulo {
+    nombre: string;
+    submodulos: SubModulo[];
+}
+
+interface AuthUser {
+    id: number;
+    id_rol: number;
+    id_configuracion?: number;
+}
+
+interface MenuValProps {
+    auth: AuthUser;
+    configuracion: any;
+    sidebarOpen: boolean;
+    toggleSidebar: () => void;
+    darkMode: boolean;
+}
+
+const MenuVal = ({ auth, configuracion, sidebarOpen, toggleSidebar, darkMode }: MenuValProps) => {
+    const location = useLocation();
+    const [turno, setTurno] = useState<boolean | null>(null);
 
     const verificarTurnoActivo = async () => {
         try {
             const response = await axios.get(
-                `${route("turnos.turnos.tieneTurnoActivo")}`
+                "/api/turnos/tiene-turno-activo"
             );
             if (response.status === 200) {
                 // Extraer el valor booleano de la respuesta
@@ -43,91 +67,46 @@ const Menu = (props) => {
 
     //console.log(turno);
 
-    const [dataConfiguracion, setDataConfiguracion] = useState([]);
-
-    const getConfiguracion = async () => {
-        try {
-            const response = await axios.get(
-                `${route(
-                    "configuraciones.configuraciones.listarConfiguraciones"
-                )}`
-            );
-            //console.log(response.data);
-            if (response.status === 200) {
-                // Filtrar los datos que coincidan con el id_configuracion
-                const filteredData = response.data.filter(
-                    (settings) => settings.id == props.auth.id_configuracion
-                );
-
-                //console.log(filteredData);
-
-                // Mapear los datos filtrados para crear un nuevo arreglo de objetos
-                const formattedData = filteredData.map((settings) => ({
-                    id: settings.id,
-                    colores: settings.colores,
-                    logo: settings.logo,
-                    id_datos_empresa: settings.id_datos_empresa,
-                    id_datos_facturacion: settings.id_datos_facturacion,
-                    nombre_empresa: settings.nombre_empresa,
-                    razon_social: settings.razon_social,
-                    created_at: settings.created_at,
-                    updated_at: settings.updated_at,
-                }));
-
-                // Establecer los datos de configuración en el estado
-                setDataConfiguracion(formattedData);
-            }
-        } catch (error) {
-            //console.log(error);
-        }
-    };
-
-    useEffect(() => {
-        getConfiguracion();
-    }, []);
-
-    //console.log(dataConfiguracion);
-
     const mystylelogo = {
-        backgroundColor: "#748895",
+        backgroundColor: configuracion?.colores || "#748895",
         color: "#ffffff",
         borderBottom: "0 solid transparent",
         display: "block",
-        fontFamily: "Arial, sans-serif", // Cambia esto por la fuente que prefieras
-        fontWeight: "bold", // Esto aplicará negritas a la fuente
+        fontFamily: "Arial, sans-serif",
+        fontWeight: "bold",
     };
 
     const baseUrl = window.location.origin;
 
-    const isAdministrador = props.auth.id_rol === 1;
-    const isSuperAdministrador = props.auth.id_rol === 6;
-    const isVentas = props.auth.id_rol === 2;
-    const isInventarios = props.auth.id_rol == 3;
-    const isOperaciones = props.auth.id_rol === 4;
-    const isAuditor = props.auth.id_rol === 5;
+    const isAdministrador = auth.id_rol === 1;
+    const isSuperAdministrador = auth.id_rol === 6;
+    const isVentas = auth.id_rol === 2;
+    const isInventarios = auth.id_rol === 3;
+    const isOperaciones = auth.id_rol === 4;
+    const isAuditor = auth.id_rol === 5;
 
     //console.log(isVentas);
 
     //validacion extrena
-    const [modulosPermitidos, setModulosPermitidos] = useState([]);
-    const cacheKey = `modulos_empresa_${props.auth.id}`;
-    const intervalRef = useRef(null);
+    const [modulosPermitidos, setModulosPermitidos] = useState<Modulo[]>([]);
+    const cacheKey = `modulos_empresa_${auth.id}`;
+    const intervalRef = useRef<number | null>(null);
 
     const fetchModulosDesdeBackend = async () => {
         try {
             //console.log("📡 Solicitando módulos desde backend...");
             const response = await axios.get(
-                "http://127.0.0.1:8000/api/modulos-por-empresa?empresa=saas"
+                "/api/modulos-por-empresa?empresa=saas"
             );
 
             if (response.status === 200) {
                 const newModulos = response.data; // ✅ correcto
-                //console.log(
-                    "🧪 Tipo:",
-                    typeof newModulos,
-                    "| Longitud:",
-                    newModulos.length
-                );
+                // console.log(
+                //     "🧪 Tipo:",
+                //     typeof newModulos,
+                //     "| Longitud:",
+                //     newModulos.length
+                // );
 
                 if (Array.isArray(newModulos) && newModulos.length > 0) {
                     const newHash = JSON.stringify(newModulos);
@@ -173,7 +152,7 @@ const Menu = (props) => {
                         fetchModulosDesdeBackend();
 
                         if (!intervalRef.current) {
-                            intervalRef.current = setInterval(
+                            intervalRef.current = window.setInterval(
                                 fetchModulosDesdeBackend,
                                 1000
                             );
@@ -185,10 +164,10 @@ const Menu = (props) => {
                     //console.log("✅ Cache válido con módulos:", modulos);
 
                     // 🔁 Verificación en segundo plano
-                    axios
-                        .get(
-                            "http://127.0.0.1:8000/api/modulos-por-empresa?empresa=saas"
-                        )
+                axios
+                    .get(
+                        "/api/modulos-por-empresa?empresa=saas"
+                    )
                         .then((response) => {
                             const newModulos = response.data; // ✅ acceso correcto
                             const newHash = JSON.stringify(newModulos);
@@ -225,7 +204,7 @@ const Menu = (props) => {
         // Si no hay cache o es inválido
         fetchModulosDesdeBackend();
         if (!intervalRef.current) {
-            intervalRef.current = setInterval(fetchModulosDesdeBackend, 5000);
+            intervalRef.current = window.setInterval(fetchModulosDesdeBackend, 5000);
         }
     };
 
@@ -240,7 +219,7 @@ const Menu = (props) => {
     }, []);
 
     // ✅ Verifica si el módulo con el nombre especificado está habilitado
-    const tieneModulo = (nombreModulo) => {
+    const tieneModulo = (nombreModulo: string) => {
         return (
             Array.isArray(modulosPermitidos) &&
             modulosPermitidos.some(
@@ -252,7 +231,7 @@ const Menu = (props) => {
     };
 
     // ✅ Devuelve los submódulos de un módulo por nombre
-    const obtenerSubmodulos = (nombreModulo) => {
+    const obtenerSubmodulos = (nombreModulo: string): SubModulo[] => {
         if (!Array.isArray(modulosPermitidos)) return [];
 
         const modulo = modulosPermitidos.find(
@@ -266,7 +245,7 @@ const Menu = (props) => {
     };
 
     // ✅ Verifica si existe un submódulo específico dentro de un módulo
-    const tieneSubmodulo = (nombreModulo, rutaSubmodulo) => {
+    const tieneSubmodulo = (nombreModulo: string, rutaSubmodulo: string) => {
         const submodulos = obtenerSubmodulos(nombreModulo);
         return submodulos.some(
             (sub) => typeof sub?.ruta === "string" && sub.ruta === rutaSubmodulo
@@ -276,20 +255,19 @@ const Menu = (props) => {
     return (
         <div>
             <aside className="main-sidebar sidebar-dark-primary elevation-4">
-                <a href={route("dashboard")} style={mystylelogo}>
+                <Link to="/dashboard" style={mystylelogo}>
                     <img
                         src={
-                            dataConfiguracion.length > 0
-                                ? `${baseUrl}/storage/${dataConfiguracion[0]?.logo}` ||
-                                  "https://appseguritec.com/logo.jpg" // Default si no hay colores
+                            configuracion?.logo
+                                ? `${baseUrl}/storage/${configuracion.logo}`
                                 : "https://appseguritec.com/logo.jpg"
                         }
                         alt="AdminLTE Logo"
                         style={{ height: "55px" }}
                     />
-                </a>
-                {(props.auth.id_rol !== 2 ||
-                    (props.auth.id_rol == 2 && turno === true)) && (
+                </Link>
+                {(auth.id_rol !== 2 ||
+                    (auth.id_rol == 2 && turno === true)) && (
                     <div className="sidebar">
                         <nav className="mt-2">
                             <ul
@@ -300,13 +278,13 @@ const Menu = (props) => {
                             >
                                 {tieneModulo("Bienvenido") && (
                                     <li className="nav-item">
-                                        <a
-                                            href={route("dashboard")}
-                                            className="nav-link"
+                                        <Link
+                                            to="/dashboard"
+                                            className={`nav-link ${location.pathname === "/dashboard" ? "active" : ""}`}
                                         >
                                             <i className="nav-icon fas fa-th" />
                                             <p>Bienvenido</p>
-                                        </a>
+                                        </Link>
                                     </li>
                                 )}
 
@@ -316,13 +294,13 @@ const Menu = (props) => {
                                     isAuditor) &&
                                     tieneModulo("Turnos") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route("turnos.index")}
-                                                className="nav-link"
+                                            <Link
+                                                to="/turnos"
+                                                className={`nav-link ${location.pathname === "/turnos" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon bi bi-arrows-collapse" />
                                                 <p>Turnos</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {(isSuperAdministrador ||
@@ -330,13 +308,13 @@ const Menu = (props) => {
                                     isAuditor) &&
                                     tieneModulo("Empleados") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route("empleados.index")}
-                                                className="nav-link"
+                                            <Link
+                                                to="/empleados"
+                                                className={`nav-link ${location.pathname === "/empleados" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon bi bi-people" />
                                                 <p>Empleados</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {(isSuperAdministrador ||
@@ -349,7 +327,7 @@ const Menu = (props) => {
                                         <SubMenu
                                             title="Cotizaciones"
                                             icon="nav-icon bi bi-currency-exchange"
-                                            menuKey="cotizaciones"
+                                            sidebarOpen={sidebarOpen}
                                             subItems={obtenerSubmodulos(
                                                 "Cotizaciones"
                                             ).map((sub) => {
@@ -368,7 +346,7 @@ const Menu = (props) => {
                                                 }
 
                                                 return {
-                                                    route: sub.ruta,
+                                                    to: `/${sub.ruta.replace(/\./g, "/")}`,
                                                     label: sub.nombre,
                                                     icon: icono,
                                                 };
@@ -378,37 +356,35 @@ const Menu = (props) => {
 
                                 {isVentas && tieneModulo("Contratos") && (
                                     <li className="nav-item">
-                                        <a
-                                            href={route(
-                                                "contratoPersona.index"
-                                            )}
-                                            className="nav-link"
+                                        <Link
+                                            to="/contratos"
+                                            className={`nav-link ${location.pathname === "/contratos" ? "active" : ""}`}
                                         >
                                             <i className="nav-icon bi bi-safe" />
                                             <p>Contratos</p>
-                                        </a>
+                                        </Link>
                                     </li>
                                 )}
                                 {isVentas && tieneModulo("Clientes") && (
                                     <li className="nav-item">
-                                        <a
-                                            href={route("clientes.index")}
-                                            className="nav-link"
+                                        <Link
+                                            to="/clientes"
+                                            className={`nav-link ${location.pathname === "/clientes" ? "active" : ""}`}
                                         >
                                             <i className="nav-icon bi bi-person-circle" />
                                             <p>Clientes</p>
-                                        </a>
+                                        </Link>
                                     </li>
                                 )}
                                 {isVentas && tieneModulo("Metodos de pago") && (
                                     <li className="nav-item">
-                                        <a
-                                            href={route("metodosPago.index")}
-                                            className="nav-link"
+                                        <Link
+                                            to="/metodos-pago"
+                                            className={`nav-link ${location.pathname === "/metodos-pago" ? "active" : ""}`}
                                         >
                                             <i className="nav-icon bi bi-cash-stack" />
                                             <p>Metodos de pago</p>
-                                        </a>
+                                        </Link>
                                     </li>
                                 )}
                                 {(isSuperAdministrador ||
@@ -417,82 +393,72 @@ const Menu = (props) => {
                                     isAuditor) &&
                                     tieneModulo("Orden de compra") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route(
-                                                    "ordenesCompra.index"
-                                                )}
-                                                className="nav-link"
+                                            <Link
+                                                to="/ordenes-compra"
+                                                className={`nav-link ${location.pathname === "/ordenes-compra" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon bi bi-currency-dollar" />
                                                 <p>Orden de compra</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {isInventarios && tieneModulo("Productos") && (
                                     <li className="nav-item">
-                                        <a
-                                            href={route("productos.index")}
-                                            className="nav-link"
+                                        <Link
+                                            to="/productos"
+                                            className={`nav-link ${location.pathname === "/productos" ? "active" : ""}`}
                                         >
                                             <i className="nav-icon bi bi-bag-check" />
                                             <p>Productos</p>
-                                        </a>
+                                        </Link>
                                     </li>
                                 )}
                                 {isInventarios &&
                                     tieneModulo("Proveedores") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route(
-                                                    "proveedores.index"
-                                                )}
-                                                className="nav-link"
+                                            <Link
+                                                to="/proveedores"
+                                                className={`nav-link ${location.pathname === "/proveedores" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon bi bi-file-person-fill" />
                                                 <p>Proveedores</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {isInventarios &&
                                     tieneModulo("Ingredientes") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route(
-                                                    "ingredientes.index"
-                                                )}
-                                                className="nav-link"
+                                            <Link
+                                                to="/ingredientes"
+                                                className={`nav-link ${location.pathname === "/ingredientes" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon bi bi-bag-check" />
                                                 <p>Ingredientes</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {isInventarios &&
                                     tieneModulo("Unidades de medida") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route(
-                                                    "unidadesMedida.index"
-                                                )}
-                                                className="nav-link"
+                                            <Link
+                                                to="/unidades-medida"
+                                                className={`nav-link ${location.pathname === "/unidades-medida" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon bi bi-window-sidebar" />
                                                 <p>Unidades de medida</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {isAuditor &&
                                     tieneModulo("Historial de ventas") && (
                                         <li className="nav-item">
-                                            <a
-                                                href={route(
-                                                    "ventas.ventas.indexHistorial"
-                                                )}
-                                                className="nav-link"
+                                            <Link
+                                                to="/historial-ventas"
+                                                className={`nav-link ${location.pathname === "/historial-ventas" ? "active" : ""}`}
                                             >
                                                 <i className="nav-icon fas fa-list-alt" />
                                                 <p>Historial de ventas</p>
-                                            </a>
+                                            </Link>
                                         </li>
                                     )}
                                 {(isAdministrador ||
@@ -504,7 +470,7 @@ const Menu = (props) => {
                                         <SubMenu
                                             title="Ventas"
                                             icon="fas fa-shopping-cart"
-                                            menuKey="ventas"
+                                            sidebarOpen={sidebarOpen}
                                             subItems={obtenerSubmodulos(
                                                 "Ventas"
                                             ).map((sub) => {
@@ -527,7 +493,7 @@ const Menu = (props) => {
                                                 }
 
                                                 return {
-                                                    route: sub.ruta,
+                                                    to: `/${sub.ruta.replace(/\./g, "/")}`,
                                                     label: sub.nombre,
                                                     icon: icono,
                                                 };
@@ -544,7 +510,7 @@ const Menu = (props) => {
                                         <SubMenu
                                             title="Catalogos"
                                             icon="fas fa-book"
-                                            menuKey="catalogos"
+                                            sidebarOpen={sidebarOpen}
                                             subItems={obtenerSubmodulos(
                                                 "Catalogos"
                                             ).map((sub) => {
@@ -597,7 +563,7 @@ const Menu = (props) => {
                                                 }
 
                                                 return {
-                                                    route: sub.ruta,
+                                                    to: `/${sub.ruta.replace(/\./g, "/")}`,
                                                     label: sub.nombre,
                                                     icon: icono,
                                                 };
@@ -614,7 +580,7 @@ const Menu = (props) => {
                                         <SubMenu
                                             title="Configuración"
                                             icon="fas fa-cogs"
-                                            menuKey="config"
+                                            sidebarOpen={sidebarOpen}
                                             subItems={obtenerSubmodulos(
                                                 "Configuración"
                                             ).map((sub) => {
@@ -649,7 +615,7 @@ const Menu = (props) => {
                                                 }
 
                                                 return {
-                                                    route: sub.ruta,
+                                                    to: `/${sub.ruta.replace(/\./g, "/")}`,
                                                     label: sub.nombre,
                                                     icon: icono,
                                                 };
@@ -658,21 +624,22 @@ const Menu = (props) => {
                                     )}
 
                                 <li className="nav-item">
-                                    <Dropdown.Link
-                                        href={route("logout")}
-                                        method="post"
-                                        as="button"
-                                        className="nav-link"
-                                        onClick={() => {
-                                            // Aquí puedes poner la función que quieras ejecutar antes de cerrar sesión
-                                            //console.log("Sesión cerrada");
-                                            // o una función más elaborada
-                                            eliminaSucursal();
+                                    <button
+                                        type="button"
+                                        className="nav-link w-full text-left"
+                                        onClick={async () => {
+                                            try {
+                                                await axios.post("/api/logout");
+                                                eliminaSucursal();
+                                                window.location.href = "/login";
+                                            } catch (error) {
+                                                console.error("Error al cerrar sesión:", error);
+                                            }
                                         }}
                                     >
                                         <i className="nav-icon fas fa-th" />
                                         Cerrar Sesión
-                                    </Dropdown.Link>
+                                    </button>
                                 </li>
                             </ul>
                         </nav>
@@ -683,4 +650,4 @@ const Menu = (props) => {
     );
 };
 
-export default Menu;
+export default MenuVal;

@@ -1,5 +1,5 @@
 /**
- * A synthetic route helper to replace Laravel's Ziggy in a Spring Boot environment.
+ * A synthetic route helper for the Spring Boot environment.
  */
 export default function route(name, params, absolute) {
     // Return a router object if called without arguments

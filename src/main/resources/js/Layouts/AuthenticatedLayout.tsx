@@ -54,7 +54,7 @@ export default function Authenticated({ auth, user, children }: AuthenticatedPro
                 let rawColor = configDataRaw.colores || "#0f172a";
                 let color = rawColor;
 
-                // If it looks like JSON (from Laravel array cast), parse it
+                // If it looks like JSON (parsed from database), parse it
                 if (typeof rawColor === 'string' && rawColor.trim().startsWith('{')) {
                     try {
                         const parsed = JSON.parse(rawColor);

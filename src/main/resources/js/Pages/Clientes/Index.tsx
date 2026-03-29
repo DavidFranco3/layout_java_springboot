@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import { Link, useNavigate } from "react-router-dom";
 import PrimaryButton from "@/Components/PrimaryButton";
@@ -11,8 +11,13 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import useAuth from "@/hooks/useAuth";
 
+interface Cliente {
+    id: number;
+    nombre: string;
+}
+
 const Index = () => {
-    const [clientes, setClientes] = useState([]);
+    const [clientes, setClientes] = useState<Cliente[]>([]);
     const [loading, setLoading] = useState(true);
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -33,7 +38,7 @@ const Index = () => {
         }
     };
 
-    const eliminarCliente = (id) => {
+    const eliminarCliente = (id: number) => {
         Swal.fire({
             title: "¿Estás seguro?",
             text: "Esta acción no se puede deshacer.",
@@ -62,7 +67,7 @@ const Index = () => {
 
     return (
         <Authenticated user={user}>
-            <ContainerLaravel
+            <ContainerApp
                 titulo="Gestión de Clientes"
                 icono={faUsers}
             >
@@ -137,7 +142,7 @@ const Index = () => {
                             ))}
                             {clientes.length === 0 && (
                                 <tr>
-                                    <td colSpan="2" className="px-6 py-12 text-center text-slate-400">
+                                    <td colSpan={2} className="px-6 py-12 text-center text-slate-400">
                                         No se encontraron clientes registrados.
                                     </td>
                                 </tr>
@@ -145,7 +150,7 @@ const Index = () => {
                         </tbody>
                     </table>
                 </div>
-            </ContainerLaravel>
+            </ContainerApp>
         </Authenticated>
     );
 };

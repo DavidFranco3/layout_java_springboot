@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
@@ -19,15 +20,34 @@ interface UserCreateValues {
 }
 
 interface UserCreateProps {
-    cerrarModal: () => void;
-    roles: Array<{ id: number; name: string }>;
+    cerrarModal?: () => void;
+    roles?: Array<{ id: number; name: string }>;
     onRefresh?: () => void;
 }
 
-export default function Create({ cerrarModal, roles, onRefresh }: UserCreateProps) {
+export default function Create({ cerrarModal, roles: initialRoles, onRefresh }: UserCreateProps) {
+    const navigate = useNavigate();
     const { hasPermission } = useAuth();
+    const [roles, setRoles] = useState(initialRoles || []);
     const [serverErrors, setServerErrors] = useState<Partial<Record<keyof UserCreateValues, string>>>({});
     const [processing, setProcessing] = useState(false);
+
+    // Default cerrar action
+    const handleCerrar = cerrarModal || (() => navigate(-1));
+
+    useEffect(() => {
+        if (!initialRoles) {
+            const fetchRoles = async () => {
+                try {
+                    const response = await axios.get("/api/roles/list");
+                    setRoles(response.data);
+                } catch (error) {
+                    console.error("Error fetching roles:", error);
+                }
+            };
+            fetchRoles();
+        }
+    }, [initialRoles]);
 
     const {
         register,
@@ -50,7 +70,7 @@ export default function Create({ cerrarModal, roles, onRefresh }: UserCreateProp
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Acceso Denegado</h3>
                 <p className="text-slate-500 dark:text-slate-400 mb-6">No tienes permisos para crear usuarios.</p>
-                <SecondaryButton onClick={cerrarModal}>Cerrar</SecondaryButton>
+                <SecondaryButton onClick={handleCerrar}>Cerrar</SecondaryButton>
             </div>
         );
     }
@@ -71,7 +91,7 @@ export default function Create({ cerrarModal, roles, onRefresh }: UserCreateProp
                 color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
             });
             if (onRefresh) onRefresh();
-            cerrarModal();
+            handleCerrar();
         } catch (err) {
             if (err.response?.data?.errors) {
                 setServerErrors(err.response.data.errors);
@@ -183,7 +203,7 @@ export default function Create({ cerrarModal, roles, onRefresh }: UserCreateProp
             <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
                 <SecondaryButton
                     type="button"
-                    onClick={cerrarModal}
+                    onClick={handleCerrar}
                     className="h-11 px-6 font-bold"
                 >
                     <FontAwesomeIcon icon={faTimes} className="mr-2" /> Cancelar

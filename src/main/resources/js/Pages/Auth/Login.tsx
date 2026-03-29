@@ -57,11 +57,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#fafafa] dark:bg-[#0f172a] selection:bg-indigo-500/30 selection:text-indigo-900 font-outfit relative overflow-hidden px-4">
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-                .font-outfit { font-family: 'Outfit', sans-serif; }
-            `}} />
 
             {/* Background Decorative Elements */}
             <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">

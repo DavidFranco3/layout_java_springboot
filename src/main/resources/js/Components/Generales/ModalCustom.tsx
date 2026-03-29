@@ -1,7 +1,37 @@
-import { Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
-const ModalCustom = ({
+interface ModalCustomProps {
+    children: React.ReactNode;
+    show?: boolean;
+    onClose?: () => void;
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full' | '90w';
+}
+
+interface ModalHeaderProps {
+    children: React.ReactNode;
+    closeButton?: boolean;
+    onClose?: () => void;
+    className?: string;
+}
+
+interface ModalBodyProps {
+    children: React.ReactNode;
+    className?: string;
+}
+
+interface ModalFooterProps {
+    children: React.ReactNode;
+    className?: string;
+}
+
+interface ModalCustomComponent extends React.FC<ModalCustomProps> {
+    Header: React.FC<ModalHeaderProps>;
+    Body: React.FC<ModalBodyProps>;
+    Footer: React.FC<ModalFooterProps>;
+}
+
+const ModalCustom: ModalCustomComponent = ({
     children,
     show = false,
     onClose = () => { },
@@ -74,9 +104,9 @@ const ModalCustom = ({
 };
 
 // Subcomponentes
-const ModalHeader = ({ children, closeButton = false, onClose }) => {
+const ModalHeader: React.FC<ModalHeaderProps> = ({ children, closeButton = false, onClose, className = '' }) => {
     return (
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 flex justify-between items-center bg-opacity-80 dark:bg-opacity-80 shrink-0">
+        <div className={`px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 flex justify-between items-center bg-opacity-80 dark:bg-opacity-80 shrink-0 ${className}`}>
             <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900 dark:text-gray-100">
                 {children}
             </Dialog.Title>
@@ -92,7 +122,7 @@ const ModalHeader = ({ children, closeButton = false, onClose }) => {
     );
 };
 
-const ModalBody = ({ children, className = '' }) => {
+const ModalBody: React.FC<ModalBodyProps> = ({ children, className = '' }) => {
     return (
         <div className={`px-6 py-4 overflow-y-auto custom-scrollbar dark:text-gray-300 ${className}`}>
             {children}
@@ -100,9 +130,9 @@ const ModalBody = ({ children, className = '' }) => {
     );
 };
 
-const ModalFooter = ({ children }) => {
+const ModalFooter: React.FC<ModalFooterProps> = ({ children, className = '' }) => {
     return (
-        <div className="bg-gray-50 dark:bg-slate-900/50 px-6 py-3 border-t border-gray-200 dark:border-slate-700 flex flex-row-reverse gap-2 shrink-0">
+        <div className={`bg-gray-50 dark:bg-slate-900/50 px-6 py-3 border-t border-gray-200 dark:border-slate-700 flex flex-row-reverse gap-2 shrink-0 ${className}`}>
             {children}
         </div>
     );

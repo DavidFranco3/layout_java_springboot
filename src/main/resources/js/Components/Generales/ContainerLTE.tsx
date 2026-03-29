@@ -1,6 +1,12 @@
 import React from "react";
 
-const ContainerLTE = React.memo(({children,title,buttonadd}) => {
+interface ContainerLTEProps {
+    children: React.ReactNode;
+    title: string;
+    buttonadd?: React.ReactNode;
+}
+
+const ContainerLTE: React.FC<ContainerLTEProps> = React.memo(({ children, title, buttonadd }) => {
     return (
         <div className="col-md-12 p-3">
             <div className="card card-primary card-outline">

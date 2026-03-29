@@ -6,6 +6,7 @@ import {
     faUsers, faBuilding, faCheckCircle, faChartLine,
     faArrowUp, faBriefcase, faEllipsisH, faCalendarAlt
 } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { Line } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -30,7 +31,15 @@ ChartJS.register(
     Filler
 );
 
-const StatCard = ({ title, value, icon, color, trend }) => (
+interface StatCardProps {
+    title: string;
+    value: string;
+    icon: IconDefinition;
+    color: string;
+    trend?: number;
+}
+
+const StatCard = ({ title, value, icon, color, trend }: StatCardProps) => (
     <div className="bg-[var(--card-bg)] p-6 rounded-[2.5rem] shadow-premium border border-[var(--border-light)] hover:shadow-premium-lg transition-all duration-300 group overflow-hidden relative">
         <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-500">
             <FontAwesomeIcon icon={icon} size="6x" />
@@ -101,7 +110,7 @@ export default function Dashboard() {
                 ticks: { color: '#94a3b8', font: { size: 11 } }
             }
         },
-    };
+    } as const;
 
     return (
         <Authenticated user={user}>

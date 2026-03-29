@@ -1,6 +1,17 @@
 import React from 'react';
 
-const Skeleton = ({ className = "", variant = "rect", width, height }) => {
+interface SkeletonProps {
+    className?: string;
+    variant?: "rect" | "circle" | "text";
+    width?: string | number;
+    height?: string | number;
+}
+
+interface SkeletonComponent extends React.FC<SkeletonProps> {
+    Stats: React.FC;
+}
+
+const Skeleton: SkeletonComponent = ({ className = "", variant = "rect", width, height }) => {
     // Usamos la clase .skeleton definida en app.css para el efecto shimmer premium
     const baseClass = "skeleton";
 
@@ -11,7 +22,7 @@ const Skeleton = ({ className = "", variant = "rect", width, height }) => {
         text: "rounded-lg h-4 w-full mb-2"
     };
 
-    const style = {
+    const style: React.CSSProperties = {
         width: width || (variant === 'text' ? '100%' : undefined),
         height: height || (variant === 'text' ? '1rem' : undefined),
         flexShrink: 0
@@ -25,8 +36,13 @@ const Skeleton = ({ className = "", variant = "rect", width, height }) => {
     );
 };
 
+interface SkeletonTableProps {
+    rows?: number;
+    cols?: number;
+}
+
 // Componentes predefinidos para casos comunes
-export const SkeletonTable = ({ rows = 5, cols = 4 }) => (
+export const SkeletonTable: React.FC<SkeletonTableProps> = ({ rows = 5, cols = 4 }) => (
     <div className="w-full bg-[var(--card-bg)] rounded-[32px] overflow-hidden border border-[var(--border-light)] shadow-sm">
         <div className="p-8 border-b border-[var(--border-light)] flex justify-between items-center">
             <Skeleton variant="rect" width="300px" height="42px" className="rounded-2xl" />
@@ -52,7 +68,7 @@ export const SkeletonTable = ({ rows = 5, cols = 4 }) => (
     </div>
 );
 
-export const SkeletonCard = () => (
+export const SkeletonCard: React.FC = () => (
     <div className="p-6 bg-[var(--card-bg)] border border-[var(--border-light)] rounded-[28px] space-y-4 shadow-sm">
         <div className="flex items-center gap-4">
             <Skeleton variant="circle" width="56px" height="56px" />

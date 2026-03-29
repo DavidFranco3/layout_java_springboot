@@ -1,7 +1,19 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DataTable from 'react-data-table-component';
 
-const DataTableCustPag = ({ columnas, datos, paginationServer, paginationTotalRows, paginationPerPage, rowsPerPage, setRowsPerPage, page, setPage }) => {
+interface DataTableCustPagProps {
+    columnas: any[];
+    datos: any[];
+    paginationServer?: boolean;
+    paginationTotalRows: number;
+    paginationPerPage?: number;
+    rowsPerPage: number;
+    setRowsPerPage: (newPerPage: number) => void;
+    page: number;
+    setPage: (newPage: number) => void;
+}
+
+const DataTableCustPag: React.FC<DataTableCustPagProps> = ({ columnas, datos, paginationServer, paginationTotalRows, paginationPerPage, rowsPerPage, setRowsPerPage, page, setPage }) => {
 
     const handleChangePage = (page) => {
         // //console.log("Nueva pagina "+ newPage)

@@ -9,8 +9,44 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const useAuth = () => {
-    const [user, setUser] = useState(null);
+export interface AuthPermission {
+    id: number;
+    nombre: string;
+    modulo_id: number;
+    modulo_nombre: string;
+}
+
+export interface AuthUser {
+    id: number;
+    name: string;
+    email: string;
+    nombre?: string; // Legacy compatibility
+    role_id?: number | null; // Legacy compatibility
+    id_rol?: number | null; // Legacy compatibility
+    rol_id?: number | null;
+    rol_nombre?: string | null;
+    rolNombre?: string | null; // Legacy compatibility
+    permisos?: AuthPermission[];
+}
+
+export interface AuthContext {
+    user: AuthUser | null;
+    isAuthenticated: boolean;
+    loading: boolean;
+    permisos: AuthPermission[];
+    rolId: number | null;
+    rolNombre: string | null;
+    hasRole: (roleName: string) => boolean;
+    hasAnyRole: (roleNames: string[]) => boolean;
+    hasPermission: (permissionName: string) => boolean;
+    hasAnyPermission: (permissionNames: string[]) => boolean;
+    hasModuleAccess: (moduleName: string) => boolean;
+    getPermissionsByModule: (moduleName: string) => AuthPermission[];
+    getModules: () => string[];
+}
+
+const useAuth = (): AuthContext => {
+    const [user, setUser] = useState<AuthUser | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -18,14 +54,20 @@ const useAuth = () => {
     const permisos = user?.permisos || [];
     
     // Información del rol
-    const rolNombre = user?.rol_nombre || null;
+    const rolNombre = user?.rol_nombre || user?.rolNombre || null;
+    const rolId = user?.rol_id || user?.id_rol || null;
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const res = await axios.get('/api/profile');
                 if (res.status === 200) {
-                    setUser(res.data);
+                    const userData = res.data;
+                    // Map legacy properties for compatibility
+                    userData.nombre = userData.nombre || userData.name;
+                    userData.rolNombre = userData.rolNombre || userData.rol_nombre;
+                    userData.id_rol = userData.id_rol || userData.rol_id;
+                    setUser(userData);
                     setIsAuthenticated(true);
                 }
             } catch (err) {
@@ -39,29 +81,29 @@ const useAuth = () => {
     }, []);
     
     // Funciones helper para verificación de roles
-    const hasRole = (roleName) => {
+    const hasRole = (roleName: string) => {
         return rolNombre === roleName;
     };
     
-    const hasAnyRole = (roleNames) => {
-        return Array.isArray(roleNames) ? roleNames.includes(rolNombre) : false;
+    const hasAnyRole = (roleNames: string[]) => {
+        return Array.isArray(roleNames) ? roleNames.includes(rolNombre || '') : false;
     };
     
     // Funciones helper para verificación de permisos
-    const hasPermission = (permissionName) => {
+    const hasPermission = (permissionName: string) => {
         return permisos.some(p => p.nombre === permissionName);
     };
     
-    const hasAnyPermission = (permissionNames) => {
+    const hasAnyPermission = (permissionNames: string[]) => {
         if (!Array.isArray(permissionNames)) return false;
         return permissionNames.some(name => hasPermission(name));
     };
     
-    const hasModuleAccess = (moduleName) => {
+    const hasModuleAccess = (moduleName: string) => {
         return permisos.some(p => p.modulo_nombre === moduleName);
     };
     
-    const getPermissionsByModule = (moduleName) => {
+    const getPermissionsByModule = (moduleName: string) => {
         return permisos.filter(p => p.modulo_nombre === moduleName);
     };
     
@@ -75,6 +117,7 @@ const useAuth = () => {
         isAuthenticated,
         loading,
         permisos,
+        rolId,
         rolNombre,
         hasRole,
         hasAnyRole,

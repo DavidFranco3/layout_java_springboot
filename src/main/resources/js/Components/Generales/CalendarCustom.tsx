@@ -10,7 +10,23 @@ import ModalCustom from './ModalCustom';
 dayjs.locale('es');
 const localizer = dayjsLocalizer(dayjs);
 
-const CalendarCustom = ({ eventos, onEventClick }) => {
+interface CalendarEvent {
+  id: number | string;
+  title: string;
+  start: string | Date;
+  end: string | Date;
+  color?: string;
+  tipo?: string;
+  cantidad?: number | string;
+  [key: string]: any;
+}
+
+interface CalendarCustomProps {
+  eventos: CalendarEvent[];
+  onEventClick: (eventId: number | string, tipo: string) => void;
+}
+
+const CalendarCustom: React.FC<CalendarCustomProps> = ({ eventos, onEventClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [dailyEvents, setDailyEvents] = useState([]);
@@ -202,7 +218,7 @@ const CalendarCustom = ({ eventos, onEventClick }) => {
           </div>
         </ModalCustom.Body>
 
-        <ModalCustom.Footer className="bg-slate-50/50 dark:bg-slate-900/50 flex justify-end p-4">
+        <ModalCustom.Footer>
           <button
             onClick={() => setIsOpen(false)}
             className="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"

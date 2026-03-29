@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
 import Create from "./Create";
@@ -60,7 +60,7 @@ const Index = () => {
 
     return (
         <Authenticated user={user}>
-            <ContainerLaravel
+            <ContainerApp
                 titulo="Control de Roles y Accesos"
                 icono={faShieldAlt}
             >
@@ -116,7 +116,7 @@ const Index = () => {
                         <Create cerrarModal={cerrarModal} permisos={permisos} modulos={modulos} onRefresh={fetchRoles} />
                     </ModalCustom.Body>
                 </ModalCustom>
-            </ContainerLaravel>
+            </ContainerApp>
         </Authenticated>
     );
 };

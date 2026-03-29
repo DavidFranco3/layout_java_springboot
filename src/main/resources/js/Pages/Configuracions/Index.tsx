@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import DropdownActions from "@/Components/Generales/DropdownActions";
@@ -147,7 +147,7 @@ const Index = () => {
 
     return (
         <Authenticated user={user}>
-            <ContainerLaravel
+            <ContainerApp
                 titulo="Configuración del Sistema"
                 icono={faCog}
             >
@@ -208,7 +208,7 @@ const Index = () => {
                         {contentModal}
                     </ModalCustom.Body>
                 </ModalCustom>
-            </ContainerLaravel>
+            </ContainerApp>
         </Authenticated>
     );
 };

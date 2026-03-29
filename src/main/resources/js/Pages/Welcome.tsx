@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 
-export default function Welcome({ laravelVersion, phpVersion }) {
+export default function Welcome({ springBootVersion, javaVersion }) {
     const { user, isAuthenticated } = useAuth();
     const [scrolled, setScrolled] = useState(false);
 
@@ -178,7 +178,7 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                             <FeatureCard
                                 icon="fas fa-atom"
                                 title="Infraestructura Ágil"
-                                desc="Actualizaciones instantáneas y rendimiento optimizado. React e Inertia en el núcleo."
+                                desc="Actualizaciones instantáneas y rendimiento optimizado. React y Spring Boot en el núcleo."
                                 gradient="from-purple-600 to-indigo-600"
                             />
                             <FeatureCard
@@ -236,49 +236,12 @@ export default function Welcome({ laravelVersion, phpVersion }) {
                             &copy; {new Date().getFullYear()} HidalQro S.A. de C.V.
                         </div>
                         <div className="text-slate-400 text-[10px]">
-                            Optimizado para v{laravelVersion} (PHP v{phpVersion})
+                            Optimizado para Spring Boot v{springBootVersion} (Java v{javaVersion})
                         </div>
                     </div>
                 </footer>
             </div>
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
-                
-                body {
-                    font-family: 'Outfit', sans-serif;
-                }
-
-                @keyframes blob {
-                    0% { transform: translate(0px, 0px) scale(1); }
-                    33% { transform: translate(30px, -50px) scale(1.1); }
-                    66% { transform: translate(-20px, 20px) scale(0.9); }
-                    100% { transform: translate(0px, 0px) scale(1); }
-                }
-                .animate-blob {
-                    animation: blob 7s infinite;
-                }
-                .animation-delay-2000 { animation-delay: 2s; }
-                .animation-delay-4000 { animation-delay: 4s; }
-
-                @keyframes float {
-                    0% { transform: translateY(0px) rotate(0deg); }
-                    50% { transform: translateY(-20px) rotate(1deg); }
-                    100% { transform: translateY(0px) rotate(0deg); }
-                }
-                .animate-float {
-                    animation: float 8s ease-in-out infinite;
-                }
-
-                @keyframes bounce-slow {
-                    0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
-                    50% { transform: none; animation-timing-function: cubic-bezier(0,0,0.2,1); }
-                }
-                .animate-bounce-slow {
-                    animation: bounce-slow 4s infinite;
-                }
-            `}} />
         </>
     );
 }

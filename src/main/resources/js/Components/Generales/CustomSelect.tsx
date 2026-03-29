@@ -11,7 +11,7 @@ interface CustomSelectProps {
     isDisabled?: boolean;
 }
 
-const CustomSelect = ({ 
+const CustomSelect: React.FC<CustomSelectProps> = ({ 
     dataOptions = [], 
     preDefaultValue = null, 
     setValue, 
@@ -19,20 +19,20 @@ const CustomSelect = ({
     onInputChange, 
     placeholder, 
     isDisabled = false 
-}: CustomSelectProps) => {
-    const handleSelectChange = (selectedOption) => {
+}) => {
+    const handleSelectChange = (selectedOption: any) => {
         setValue(selectedOption ? selectedOption.value : null);
     };
 
     // Función de filtro para la búsqueda en tiempo real (opcional)
-    const customFilterOption = (option, rawInput) => {
+    const customFilterOption = (option: any, rawInput: string) => {
         const words = rawInput.split('-').map(word => word.trim());
         const regex = new RegExp(words.join('|'), 'i');
         return regex.test(option.label);
     };
 
-    const customStyles = {
-        control: (base, state) => ({
+    const customStyles: any = {
+        control: (base: any, state: any) => ({
             ...base,
             backgroundColor: 'transparent',
             borderColor: state.isFocused ? 'var(--color-primary)' : 'var(--border-light)',

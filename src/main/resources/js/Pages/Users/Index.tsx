@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import axios from "axios";
 import Create from "./Create";
@@ -97,7 +97,7 @@ const Index = () => {
 
     return (
         <Authenticated user={user}>
-            <ContainerLaravel
+            <ContainerApp
                 titulo="Gestión de Usuarios"
                 icono={faUsers}
             >
@@ -170,7 +170,7 @@ const Index = () => {
                         </ModalCustom.Body>
                     </ModalCustom>
                 )}
-            </ContainerLaravel>
+            </ContainerApp>
         </Authenticated>
     );
 };

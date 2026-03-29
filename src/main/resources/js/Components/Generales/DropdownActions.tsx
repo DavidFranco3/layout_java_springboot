@@ -22,19 +22,24 @@ interface DropdownActionsProps {
     buttonColor?: 'primary' | 'secondary' | 'minimal';
 }
 
+interface DropdownActionsComponent extends React.FC<DropdownActionsProps> {
+    Link: React.FC<DropdownLinkProps>;
+    Button: React.FC<DropdownButtonProps>;
+}
+
 /**
  * DropdownActions
  * 
  * Componente reutilizable con soporte de Portal para "escapar" de tablas con overflow.
  */
-const DropdownActions = ({
+const DropdownActions: DropdownActionsComponent = ({
     label = 'Acciones',
     icon = 'fas fa-ellipsis-v',
     actions = [],
     children,
     align = 'right',
     buttonColor = 'secondary'
-}: DropdownActionsProps) => {
+}) => {
     const [menuStyles, setMenuStyles] = useState<React.CSSProperties>({});
     const buttonRef = useRef<HTMLDivElement>(null);
 
@@ -142,7 +147,7 @@ const DropdownActions = ({
 
                                                             if (action.to || action.href) {
                                                                 return (
-                                                                    <Link to={action.to || action.href} className={baseClasses}>
+                                                                    <Link to={action.to || action.href || '#'} className={baseClasses}>
                                                                         {content}
                                                                     </Link>
                                                                 );
@@ -179,7 +184,7 @@ interface DropdownLinkProps {
     color?: string;
 }
 
-const DropdownLink = ({ to, icon, children, color }: DropdownLinkProps) => (
+const DropdownLink: React.FC<DropdownLinkProps> = ({ to, icon, children, color }) => (
     <Menu.Item>
         {({ active }) => (
             <Link
@@ -203,7 +208,7 @@ interface DropdownButtonProps {
     color?: string;
 }
 
-const DropdownButton = ({ onClick, icon, children, color }: DropdownButtonProps) => (
+const DropdownButton: React.FC<DropdownButtonProps> = ({ onClick, icon, children, color }) => (
     <Menu.Item>
         {({ active }) => (
             <button

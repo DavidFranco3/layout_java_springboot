@@ -1,9 +1,15 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-const ContainerLaravel = ({ children, titulo, icono }) => {
+interface ContainerAppProps {
+    children: React.ReactNode;
+    titulo: string;
+    icono: any;
+}
+
+const ContainerApp: React.FC<ContainerAppProps> = ({ children, titulo, icono }) => {
     return (
-        <div className="py-2 container-laravel-custom animate-fade-in">
+        <div className="py-2 container-app-custom animate-fade-in">
             <div className="bg-[var(--card-bg)] shadow-premium rounded-[2.5rem] border border-[var(--border-light)] overflow-hidden transition-all duration-500 hover:shadow-premium-lg">
                 {/* Header Estilo Bento */}
                 <div className="px-8 pt-8 pb-4">
@@ -33,4 +39,4 @@ const ContainerLaravel = ({ children, titulo, icono }) => {
     );
 };
 
-export default ContainerLaravel;
+export default ContainerApp;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import DataTablecustom from "@/Components/Generales/DataTable";
 import dayjs from "dayjs";
@@ -125,7 +125,7 @@ const Index = (props) => {
 
     return (
         <Authenticated auth={auth} errors={errors}>
-            <ContainerLaravel
+            <ContainerApp
                 titulo="Historial de Auditoría"
                 icono={faTerminal}
             >
@@ -193,7 +193,7 @@ const Index = (props) => {
                         background: rgba(255, 255, 255, 0.2);
                     }
                 `}</style>
-            </ContainerLaravel>
+            </ContainerApp>
         </Authenticated>
     );
 };

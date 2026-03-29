@@ -12,7 +12,15 @@ import React, { useState, useEffect } from 'react';
  * @param {string} className - Clases CSS adicionales
  * @param {object} props - Props adicionales para el input
  */
-const DebouncedInput = ({
+interface DebouncedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+    value: string | number;
+    onChange: (value: string | number) => void;
+    debounce?: number;
+    className?: string;
+    placeholder?: string;
+}
+
+const DebouncedInput: React.FC<DebouncedInputProps> = ({
     value: initialValue,
     onChange,
     debounce = 500,

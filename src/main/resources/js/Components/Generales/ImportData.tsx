@@ -4,7 +4,20 @@ import ModalCustom from './ModalCustom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileImport, faDownload, faUpload, faFileExcel, faCheckCircle, faExclamationCircle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Swal from 'sweetalert2';
-import Skeleton from './Skeleton';
+import Skeleton, { SkeletonTable } from './Skeleton';
+
+interface ImportDataColumn {
+    header: string;
+    key: string;
+    required?: boolean;
+}
+
+interface ImportDataProps {
+    title?: string;
+    columns: ImportDataColumn[];
+    onImport: (data: any[]) => void;
+    templateName?: string;
+}
 
 /**
  * Componente ImportData
@@ -12,18 +25,18 @@ import Skeleton from './Skeleton';
  * Permite importar datos masivos desde archivos CSV o XLSX.
  * Ofrece descarga de plantilla, validación visual y previsualización.
  */
-const ImportData = ({
+const ImportData: React.FC<ImportDataProps> = ({
     title = "Importación Masiva",
     columns = [],
     onImport,
     templateName = "plantilla_importacion"
 }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [fileData, setFileData] = useState([]);
+    const [fileData, setFileData] = useState<any[]>([]);
     const [fileName, setFileName] = useState("");
     const [loading, setLoading] = useState(false);
-    const [headersMatch, setHeadersMatch] = useState(null);
-    const fileInputRef = useRef(null);
+    const [headersMatch, setHeadersMatch] = useState<boolean | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // --- Funciones de Utilidad ---
 
@@ -42,8 +55,8 @@ const ImportData = ({
         XLSX.writeFile(wb, `${templateName}.xlsx`);
     };
 
-    const handleFileUpload = (e) => {
-        const file = e.target.files[0];
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
         if (!file) return;
 
         setLoading(true);
@@ -53,11 +66,12 @@ const ImportData = ({
         const reader = new FileReader();
         reader.onload = (evt) => {
             try {
-                const bstr = evt.target.result;
+                const bstr = evt.target?.result as string;
+                if (!bstr) return;
                 const wb = XLSX.read(bstr, { type: 'binary' });
                 const wsname = wb.SheetNames[0];
                 const ws = wb.Sheets[wsname];
-                const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+                const data = XLSX.utils.sheet_to_json<any[]>(ws, { header: 1 });
 
                 if (data.length === 0) {
                     Swal.fire('Error', 'El archivo está vacío', 'error');
@@ -82,9 +96,9 @@ const ImportData = ({
                     setFileData([]);
                 } else {
                     setHeadersMatch(true);
-                    const jsonData = XLSX.utils.sheet_to_json(ws);
+                    const jsonData = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
                     const mappedData = jsonData.map(row => {
-                        const newRow = {};
+                        const newRow: Record<string, any> = {};
                         columns.forEach(col => {
                             newRow[col.key] = row[col.header];
                         });
@@ -205,7 +219,7 @@ const ImportData = ({
                         {loading ? (
                             <div className="space-y-3">
                                 <Skeleton variant="text" width="150px" />
-                                <Skeleton.Table rows={3} cols={4} />
+                                <SkeletonTable rows={3} cols={4} />
                             </div>
                         ) : fileData.length > 0 && (
                             <div className="mt-4 animate-fade-in">

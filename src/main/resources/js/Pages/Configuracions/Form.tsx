@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
 import axios from "axios";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
@@ -157,7 +157,7 @@ export default function Form({ mode }: ConfigFormProps) {
                     Volver al listado
                 </Link>
 
-                <ContainerLaravel
+                <ContainerApp
                     titulo={isEdit ? "Editar Identidad Visual" : "Nueva Configuración de Layout"}
                     icono={faCog}
                 >
@@ -334,7 +334,7 @@ export default function Form({ mode }: ConfigFormProps) {
                             </PrimaryButton>
                         </div>
                     </form>
-                </ContainerLaravel>
+                </ContainerApp>
             </div>
         </Authenticated>
     );

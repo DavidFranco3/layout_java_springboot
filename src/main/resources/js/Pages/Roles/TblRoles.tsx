@@ -15,7 +15,14 @@ import DropdownActions from "@/Components/Generales/DropdownActions";
 import ModalCustom from "@/Components/Generales/ModalCustom";
 import Acciones from "./Acciones";
 
-const TblRoles = ({ roles, onRefresh, permisos }) => {
+interface TblRolesProps {
+    roles: any[];
+    onRefresh: () => void;
+    permisos: any[];
+    modulos: any[];
+}
+
+const TblRoles = ({ roles, onRefresh, permisos, modulos }: TblRolesProps) => {
     // Estado para manejar los roles filtrados (útil para futuras funcionalidades de búsqueda)
     const [filteredRoles, setFilteredRoles] = useState(roles);
 
@@ -83,6 +90,7 @@ const TblRoles = ({ roles, onRefresh, permisos }) => {
                                         accion={"editar"}
                                         onRefresh={onRefresh}
                                         initialPermisos={permisos}
+                                        modulos={modulos}
                                     />
                                 )
                             },
