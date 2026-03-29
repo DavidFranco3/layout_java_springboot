@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, toggleSidebar }) => {
+const SubMenu = ({ title, icon, subItems, sidebarOpen = true, toggleSidebar }) => {
     const location = useLocation();
     const isAnyChildActive = subItems.some(item => location.pathname === item.to);
     const [expandedMenu, setExpandedMenu] = useState(isAnyChildActive);
@@ -17,41 +17,33 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
         }
     };
 
-    const parentColor = isDark ? "text-white/70" : "text-slate-600";
-    const childColor = isDark ? "text-white/60" : "text-slate-500";
-    const hoverBg = isDark ? "hover:bg-white/10" : "hover:bg-slate-100";
-    const hoverText = isDark ? "hover:text-white" : "hover:text-primary";
-    const activeColor = "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]";
+    const activeColor = "bg-white/20 text-white shadow-md ring-1 ring-white/30 backdrop-blur-md";
+    const inactiveColor = "text-white hover:text-white dark:text-slate-400 dark:hover:text-white hover:bg-white/10 dark:hover:bg-white/5 font-bold";
 
     return (
-        <div className="mb-1">
+        <div className="mb-2">
             <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={toggleSubMenu}
-                className={`w-full flex items-center py-3 text-sm font-bold rounded-2xl transition-all duration-300 group relative overflow-hidden
+                className={`w-full flex items-center py-3.5 text-sm font-bold rounded-2xl transition-all duration-300 group relative
                     ${sidebarOpen ? 'px-4' : 'justify-center px-0'}
                     ${expandedMenu && sidebarOpen
-                        ? (isDark ? "bg-white/10 text-white shadow-inner" : "bg-slate-50 text-slate-900 shadow-inner")
-                        : `${parentColor} ${hoverBg} ${hoverText}`
+                        ? "bg-white/10 text-white"
+                        : "text-white/60 hover:text-white hover:bg-white/5"
                     }`}
                 title={!sidebarOpen ? title : ""}
             >
-                {expandedMenu && sidebarOpen && (
-                    <motion.div
-                        layoutId="active-indicator"
-                        className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-primary rounded-r-full shadow-glow"
-                    />
-                )}
+                <div className={`w-6 flex justify-center text-lg transition-transform duration-300 ${expandedMenu && sidebarOpen ? 'scale-110 opacity-100' : 'opacity-60 group-hover:opacity-100 group-hover:scale-110'}`}>
+                    <i className={icon} />
+                </div>
 
-                <i className={`${icon} text-lg transition-all duration-300 ${expandedMenu && sidebarOpen ? 'opacity-100 scale-110' : 'opacity-60 group-hover:opacity-100'} ${sidebarOpen ? 'mr-3' : 'mr-0'}`} />
-
-                <AnimatePresence initial={false}>
+                <AnimatePresence>
                     {sidebarOpen && (
                         <motion.span
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -10 }}
-                            className="flex-1 text-left tracking-tight"
+                            className="flex-1 text-left ml-4 tracking-tight"
                         >
                             {title}
                         </motion.span>
@@ -61,7 +53,7 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
                 {sidebarOpen && (
                     <motion.i
                         animate={{ rotate: expandedMenu ? 90 : 0 }}
-                        className={`fas fa-chevron-right text-[10px] ${expandedMenu ? "text-primary" : "opacity-40 group-hover:opacity-100"}`}
+                        className={`fas fa-chevron-right text-[10px] transition-colors ${expandedMenu ? "text-white" : "text-white/30 group-hover:text-white/60"}`}
                     />
                 )}
             </motion.button>
@@ -69,32 +61,28 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
             <AnimatePresence>
                 {expandedMenu && sidebarOpen && (
                     <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
+                        initial={{ height: 0 }}
+                        animate={{ height: "auto" }}
+                        exit={{ height: 0 }}
+                        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                         className="overflow-hidden"
                     >
-                        <ul className="space-y-1 mt-1 ml-1 pl-2 border-l border-white/10 dark:border-white/5">
+                        <ul className="space-y-1 mt-2 ml-7 pl-4 border-l-2 border-white/20">
                             {subItems.map((item) => {
                                 const isActive = location.pathname === item.to;
                                 return (
-                                    <li key={item.to} className="relative group">
-                                        {isActive && (
-                                            <motion.div
-                                                layoutId={`active-dot-${item.to}`}
-                                                className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full shadow-glow"
-                                            />
-                                        )}
+                                    <li key={item.to}>
                                         <Link
                                             to={item.to}
-                                            className={`flex items-center px-3 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 group !no-underline ${isActive
+                                            className={`flex items-center px-4 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 group !no-underline ${isActive
                                                 ? activeColor
-                                                : `${childColor} ${hoverBg} ${hoverText}`
+                                                : inactiveColor
                                                 }`}
                                         >
-                                            <i className={`${item.icon} text-base transition-all duration-300 ${isActive ? 'opacity-100 scale-110' : 'opacity-50 group-hover:opacity-100 group-hover:scale-110'} mr-3`} />
-                                            <span className={`truncate tracking-tight ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`}>
+                                            <div className="w-5 flex justify-center mr-3 text-white transition-transform group-hover:scale-110">
+                                                <i className={item.icon} />
+                                            </div>
+                                            <span className="flex-1 text-[13px] font-bold tracking-tight transition-all group-hover:translate-x-0.5">
                                                 {item.label}
                                             </span>
                                         </Link>

@@ -1,33 +1,25 @@
 import React from "react";
-import { isColorDark, shadeColor } from "@/utils/Color";
 
 export default function Footer({ darkMode, configuracion }) {
-    const corporateColor = configuracion?.colores || "#0f172a";
-
-    // El footer usa el color real con un ajuste mínimo para diferenciar
-    const footerBg = darkMode
-        ? shadeColor(corporateColor, -0.7)
-        : corporateColor;
-
-    const isFooterDark = isColorDark(footerBg);
-
     return (
-        <footer
-            className={`mt-auto border-t py-6 px-4 text-center transition-all duration-300 ${isFooterDark ? 'border-white/5 text-slate-400' : 'border-black/5 text-slate-500'}`}
-            style={{ backgroundColor: footerBg }}
-        >
-            <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 max-w-[1700px]">
-                <div className={`text-[11px] font-bold uppercase tracking-[0.2em] opacity-80 ${isFooterDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                    © {new Date().getFullYear()} <span className="text-primary">Isotech.mx</span> — Gestión Inteligente
+        <footer className="mt-auto py-4 px-12 transition-all duration-300 bg-[var(--brand-surface)] text-white">
+            <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="flex flex-col items-center md:items-start gap-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50 mb-1">
+                        © {new Date().getFullYear()} {configuracion?.nombre_comercial || 'Isotech'}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <span className="text-[9px] font-bold text-white/70 uppercase tracking-widest">Plataforma Operativa</span>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className={`text-[10px] font-black uppercase tracking-widest opacity-60 ${isFooterDark ? 'text-slate-400' : 'text-slate-500'}`}>Sistema Operativo</span>
-                    </div>
-                    <div className={`text-[10px] px-2 py-1 rounded-lg font-bold opacity-80 uppercase ${isFooterDark ? 'bg-white/5 text-white' : 'bg-black/5 text-slate-900'}`}>
-                        v1.2.0 Stable
+                <div className="flex items-center gap-8">
+                    <div className="flex flex-col items-center md:items-end gap-1">
+                        <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em] mb-1">Versión del Sistema</span>
+                        <div className="px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold border border-white/10 shadow-sm">
+                            v2.1.0-STABLE
+                        </div>
                     </div>
                 </div>
             </div>
