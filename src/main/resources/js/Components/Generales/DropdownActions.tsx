@@ -4,6 +4,24 @@ import { Link } from 'react-router-dom';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 
+interface DropdownAction {
+    label: string;
+    icon?: string;
+    onClick?: () => void;
+    to?: string;
+    href?: string;
+    color?: string;
+}
+
+interface DropdownActionsProps {
+    label?: string;
+    icon?: string;
+    actions?: DropdownAction[];
+    children?: React.ReactNode;
+    align?: 'left' | 'right';
+    buttonColor?: 'primary' | 'secondary' | 'minimal';
+}
+
 /**
  * DropdownActions
  * 
@@ -16,9 +34,9 @@ const DropdownActions = ({
     children,
     align = 'right',
     buttonColor = 'secondary'
-}) => {
-    const [menuStyles, setMenuStyles] = useState({});
-    const buttonRef = useRef(null);
+}: DropdownActionsProps) => {
+    const [menuStyles, setMenuStyles] = useState<React.CSSProperties>({});
+    const buttonRef = useRef<HTMLDivElement>(null);
 
     // Función para calcular posición
     const updatePosition = () => {
@@ -154,7 +172,14 @@ const DropdownActions = ({
 };
 
 // Subcomponente Link Manual
-const DropdownLink = ({ to, icon, children, color }) => (
+interface DropdownLinkProps {
+    to: string;
+    icon?: string;
+    children: React.ReactNode;
+    color?: string;
+}
+
+const DropdownLink = ({ to, icon, children, color }: DropdownLinkProps) => (
     <Menu.Item>
         {({ active }) => (
             <Link
@@ -171,7 +196,14 @@ const DropdownLink = ({ to, icon, children, color }) => (
 );
 
 // Subcomponente Button Manual
-const DropdownButton = ({ onClick, icon, children, color }) => (
+interface DropdownButtonProps {
+    onClick: () => void;
+    icon?: string;
+    children: React.ReactNode;
+    color?: string;
+}
+
+const DropdownButton = ({ onClick, icon, children, color }: DropdownButtonProps) => (
     <Menu.Item>
         {({ active }) => (
             <button

@@ -5,7 +5,15 @@ import Footer from "./Sections/Footer";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Authenticated({ auth, user, children }) {
+interface AuthenticatedProps {
+    auth?: any;
+    user?: any;
+    errors?: any;
+    children: React.ReactNode;
+    [key: string]: any;
+}
+
+export default function Authenticated({ auth, user, children }: AuthenticatedProps) {
     const [darkMode, setDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem("theme");
         if (savedTheme) return savedTheme === "dark";

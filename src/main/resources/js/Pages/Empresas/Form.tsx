@@ -14,7 +14,30 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import useAuth from "@/hooks/useAuth";
 
-export default function Form({ mode }) {
+interface EmpresaFormValues {
+    nombre: string;
+    razon_social: string;
+    rfc: string;
+    tipo_persona: string;
+    calle: string;
+    numero_exterior: string;
+    numero_interior: string;
+    colonia: string;
+    municipio: string;
+    estado: string;
+    cp: string;
+    telefono: string;
+    email: string;
+    giro: string;
+    status: boolean;
+    [key: string]: any; // Allow for dynamic keys during fetch
+}
+
+interface EmpresaFormProps {
+    mode: "create" | "update";
+}
+
+export default function Form({ mode }: EmpresaFormProps) {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
@@ -22,9 +45,9 @@ export default function Form({ mode }) {
 
     const [loading, setLoading] = useState(isEdit);
     const [processing, setProcessing] = useState(false);
-    const [serverErrors, setServerErrors] = useState({});
+    const [serverErrors, setServerErrors] = useState<Partial<Record<keyof EmpresaFormValues, string>>>({});
 
-    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<EmpresaFormValues>({
         defaultValues: {
             nombre: "", razon_social: "", rfc: "", tipo_persona: "Moral",
             calle: "", numero_exterior: "", numero_interior: "", colonia: "",

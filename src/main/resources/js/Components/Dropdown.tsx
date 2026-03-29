@@ -1,10 +1,20 @@
-import { useState, createContext, useContext, Fragment } from 'react';
+import React, { useState, createContext, useContext, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { Transition } from '@headlessui/react';
 
-const DropDownContext = createContext();
+interface DropDownContextProps {
+    open: boolean;
+    setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    toggleOpen: () => void;
+}
 
-const Dropdown = ({ children }) => {
+const DropDownContext = createContext<DropDownContextProps | undefined>(undefined);
+
+interface DropdownProps {
+    children: React.ReactNode;
+}
+
+const Dropdown = ({ children }: DropdownProps) => {
     const [open, setOpen] = useState(false);
 
     const toggleOpen = () => {
@@ -18,8 +28,14 @@ const Dropdown = ({ children }) => {
     );
 };
 
-const Trigger = ({ children }) => {
-    const { open, setOpen, toggleOpen } = useContext(DropDownContext);
+interface TriggerProps {
+    children: React.ReactNode;
+}
+
+const Trigger = ({ children }: TriggerProps) => {
+    const context = useContext(DropDownContext);
+    if (!context) throw new Error("Trigger must be used within a Dropdown");
+    const { open, setOpen, toggleOpen } = context;
 
     return (
         <>
@@ -30,8 +46,17 @@ const Trigger = ({ children }) => {
     );
 };
 
-const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-white', children }) => {
-    const { open, setOpen } = useContext(DropDownContext);
+interface ContentProps {
+    align?: 'left' | 'right';
+    width?: string;
+    contentClasses?: string;
+    children: React.ReactNode;
+}
+
+const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-white', children }: ContentProps) => {
+    const context = useContext(DropDownContext);
+    if (!context) throw new Error("Content must be used within a Dropdown");
+    const { open, setOpen } = context;
 
     let alignmentClasses = 'origin-top';
 
@@ -70,7 +95,15 @@ const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-whit
     );
 };
 
-const DropdownLink = ({ className = '', children, as = 'link', to, ...props }) => {
+interface DropdownLinkProps {
+    className?: string;
+    children: React.ReactNode;
+    as?: string;
+    to?: string;
+    [key: string]: any;
+}
+
+const DropdownLink = ({ className = '', children, as = 'link', to, ...props }: DropdownLinkProps) => {
     const baseClasses = 'block w-full px-4 py-2 text-start text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out dark:text-slate-300 dark:hover:bg-slate-700 dark:focus:bg-slate-700 ' + className;
 
     if (as === 'button') {
@@ -86,7 +119,7 @@ const DropdownLink = ({ className = '', children, as = 'link', to, ...props }) =
 
     return (
         <Link
-            to={to || props.href}
+            to={to || props.href || '#'}
             {...props}
             className={baseClasses}
             style={{ textDecoration: 'none' }}

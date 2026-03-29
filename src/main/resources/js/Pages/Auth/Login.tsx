@@ -8,12 +8,23 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 
-export default function Login({ status, canResetPassword }) {
+interface LoginFormValues {
+    email: string;
+    password: string;
+    remember: boolean;
+}
+
+interface LoginProps {
+    status?: string;
+    canResetPassword?: boolean;
+}
+
+export default function Login({ status, canResetPassword }: LoginProps) {
     const navigate = useNavigate();
     const [processing, setProcessing] = useState(false);
-    const [serverErrors, setServerErrors] = useState({});
+    const [serverErrors, setServerErrors] = useState<Partial<Record<keyof LoginFormValues, string>>>({});
 
-    const { register, handleSubmit, formState: { errors } } = useForm({
+    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
         defaultValues: { email: '', password: '', remember: false },
     });
 

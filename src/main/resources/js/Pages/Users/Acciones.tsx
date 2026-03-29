@@ -12,9 +12,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faShieldAlt, faTrash, faSave, faTimes, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-const Acciones = ({ setShow, data, accion, roles, onRefresh }) => {
+interface UserAccionesValues {
+    name: string;
+    rol_id: string | number;
+}
+
+interface UserAccionesProps {
+    setShow: (show: boolean) => void;
+    data: any; // The user object being acted upon
+    accion: 'editar' | 'eliminar';
+    roles: Array<{ id: number; name: string }>;
+    onRefresh?: () => void;
+}
+
+const Acciones = ({ setShow, data, accion, roles, onRefresh }: UserAccionesProps) => {
     const { hasPermission } = useAuth();
-    const { register, handleSubmit, formState: { errors }, setValue } = useForm({
+    const { register, handleSubmit, formState: { errors }, setValue } = useForm<UserAccionesValues>({
         defaultValues: {
             name: data?.nombre || '',
             rol_id: data?.rol_id || ''

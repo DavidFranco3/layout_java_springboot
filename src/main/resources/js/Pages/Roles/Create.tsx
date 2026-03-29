@@ -10,11 +10,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShieldAlt, faCheckCircle, faSave, faTimes, faLayerGroup, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-export default function Create({ cerrarModal, permisos, modulos, onRefresh }) {
+interface RoleCreateValues {
+    name: string;
+    permisos: number[];
+}
+
+interface RoleCreateProps {
+    cerrarModal: () => void;
+    permisos: any[]; // List of all available permissions
+    modulos: any[];
+    onRefresh?: () => void;
+}
+
+export default function Create({ cerrarModal, permisos, modulos, onRefresh }: RoleCreateProps) {
     const [activeTab, setActiveTab] = useState('');
-    const [permisosPorModulo, setPermisosPorModulo] = useState({});
+    const [permisosPorModulo, setPermisosPorModulo] = useState<Record<string, any[]>>({});
     const [processing, setProcessing] = useState(false);
-    const [serverErrors, setServerErrors] = useState({});
+    const [serverErrors, setServerErrors] = useState<Partial<Record<keyof RoleCreateValues, string>>>({});
 
     const {
         register,
@@ -22,7 +34,7 @@ export default function Create({ cerrarModal, permisos, modulos, onRefresh }) {
         setValue,
         watch,
         formState: { errors },
-    } = useForm({
+    } = useForm<RoleCreateValues>({
         defaultValues: {
             name: "",
             permisos: [],

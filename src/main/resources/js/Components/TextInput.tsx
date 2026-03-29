@@ -1,6 +1,14 @@
 import { forwardRef, useEffect, useRef } from 'react';
 
-export default forwardRef(function TextInput({ type = 'text', className = '', isFocused = false, ...props }, ref) {
+interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    isFocused?: boolean;
+    isError?: boolean;
+}
+
+export default forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
+    { type = 'text', className = '', isFocused = false, ...props },
+    ref
+) {
     const localRef = useRef(null);
 
     useEffect(() => {

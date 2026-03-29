@@ -20,18 +20,29 @@ const PRESET_COLORS = [
     "#f43f5e", "#ef4444", "#f59e0b", "#10b981", "#06b6d4", "#1e293b",
 ];
 
-export default function Form({ mode }) {
+interface ConfigFormValues {
+    nombre_comercial: string;
+    idDatosEmpresa: string | number;
+    colores: string;
+    status: boolean;
+}
+
+interface ConfigFormProps {
+    mode: "create" | "update";
+}
+
+export default function Form({ mode }: ConfigFormProps) {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
     const isEdit = mode === "update";
 
-    const [previewLogo, setPreviewLogo] = useState(null);
-    const [logoFile, setLogoFile] = useState(null);
-    const [empresas, setEmpresas] = useState([]);
+    const [previewLogo, setPreviewLogo] = useState<string | null>(null);
+    const [logoFile, setLogoFile] = useState<File | null>(null);
+    const [empresas, setEmpresas] = useState<any[]>([]);
     const [loading, setLoading] = useState(isEdit);
     const [processing, setProcessing] = useState(false);
-    const [serverErrors, setServerErrors] = useState({});
+    const [serverErrors, setServerErrors] = useState<Partial<Record<keyof ConfigFormValues, string>>>({});
 
     const {
         register,
@@ -40,7 +51,7 @@ export default function Form({ mode }) {
         setValue,
         watch,
         formState: { errors },
-    } = useForm({
+    } = useForm<ConfigFormValues>({
         defaultValues: {
             nombre_comercial: "",
             idDatosEmpresa: "",
@@ -194,34 +205,48 @@ export default function Form({ mode }) {
 
                                     <div className="space-y-4">
                                         <InputLabel value="Color Identitario (Marca)" />
-                                        <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800">
-                                            {PRESET_COLORS.map((color) => (
-                                                <button
-                                                    key={color}
-                                                    type="button"
-                                                    onClick={() => setValue("colores", color)}
-                                                    className={`w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110 active:scale-95 ${selectedColor === color
-                                                        ? "border-slate-400 dark:border-white ring-2 ring-primary/20 scale-110 shadow-lg"
-                                                        : "border-transparent"
-                                                        }`}
-                                                    style={{ backgroundColor: color }}
-                                                    title={color}
-                                                />
-                                            ))}
+                                        <div className="flex flex-wrap gap-4 items-start">
+                                            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 flex-1">
+                                                {PRESET_COLORS.map((color) => (
+                                                    <button
+                                                        key={color}
+                                                        type="button"
+                                                        onClick={() => setValue("colores", color)}
+                                                        className={`w-8 h-8 rounded-full border-2 transition-all transform hover:scale-110 active:scale-95 ${selectedColor === color
+                                                            ? "border-slate-400 dark:border-white ring-2 ring-primary/20 scale-110 shadow-lg"
+                                                            : "border-transparent"
+                                                            }`}
+                                                        style={{ backgroundColor: color }}
+                                                        title={color}
+                                                    />
+                                                ))}
 
-                                            <div className="relative flex items-center justify-center w-8 h-8 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-primary transition-colors group">
-                                                <input
-                                                    type="color"
-                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                    value={selectedColor}
-                                                    onChange={(e) => setValue("colores", e.target.value)}
-                                                />
-                                                <FontAwesomeIcon
-                                                    icon={faPalette}
-                                                    className={`text-xs ${!PRESET_COLORS.includes(selectedColor) ? "text-primary" : "text-slate-400"}`}
-                                                />
+                                                <div className="relative flex items-center justify-center w-8 h-8 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-primary transition-colors group">
+                                                    <input
+                                                        type="color"
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        value={selectedColor}
+                                                        onChange={(e) => setValue("colores", e.target.value)}
+                                                    />
+                                                    <FontAwesomeIcon
+                                                        icon={faPalette}
+                                                        className={`text-xs ${!PRESET_COLORS.includes(selectedColor) ? "text-primary" : "text-slate-400"}`}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="w-48 space-y-2">
+                                                <InputLabel value="Estado" />
+                                                <select
+                                                    className="w-full h-12 rounded-2xl border-slate-200 bg-white/50 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-100 transition-all focus:ring-4 focus:ring-primary/10 focus:border-primary text-sm font-medium"
+                                                    {...register("status")}
+                                                >
+                                                    <option value="true">Activo</option>
+                                                    <option value="false">Inactivo</option>
+                                                </select>
                                             </div>
                                         </div>
+                                        
                                         <div className="flex items-center gap-2">
                                             <div className="w-4 h-4 rounded shadow-sm border border-black/10" style={{ backgroundColor: selectedColor }} />
                                             <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">

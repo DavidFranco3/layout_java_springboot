@@ -14,17 +14,25 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import useAuth from "@/hooks/useAuth";
 
-export default function Form({ mode }) {
+interface ClienteFormValues {
+    nombre: string;
+}
+
+interface ClienteFormProps {
+    mode: "create" | "update";
+}
+
+export default function Form({ mode }: ClienteFormProps) {
     const { id } = useParams();
     const isEdit = mode === "update";
     const navigate = useNavigate();
     const { user } = useAuth();
     
     const [processing, setProcessing] = useState(false);
-    const [serverErrors, setServerErrors] = useState({});
+    const [serverErrors, setServerErrors] = useState<Partial<Record<keyof ClienteFormValues, string>>>({});
     const [loading, setLoading] = useState(isEdit);
 
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<ClienteFormValues>({
         defaultValues: { nombre: "" },
     });
 

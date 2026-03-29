@@ -2,7 +2,15 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SubMenu = ({ title, icon, subItems, sidebarOpen = true, toggleSidebar }) => {
+interface SubMenuProps {
+    title: string;
+    icon: string;
+    subItems: { to: string; label: string; icon: string }[];
+    sidebarOpen?: boolean;
+    toggleSidebar?: () => void;
+}
+
+const SubMenu: React.FC<SubMenuProps> = ({ title, icon, subItems, sidebarOpen = true, toggleSidebar }) => {
     const location = useLocation();
     const isAnyChildActive = subItems.some(item => location.pathname === item.to);
     const [expandedMenu, setExpandedMenu] = useState(isAnyChildActive);

@@ -11,16 +11,29 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faEnvelope, faKey, faShieldAlt, faSave, faTimes } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-export default function Create({ cerrarModal, roles, onRefresh }) {
+interface UserCreateValues {
+    nombre: string;
+    email: string;
+    password: string;
+    rol_id: string;
+}
+
+interface UserCreateProps {
+    cerrarModal: () => void;
+    roles: Array<{ id: number; name: string }>;
+    onRefresh?: () => void;
+}
+
+export default function Create({ cerrarModal, roles, onRefresh }: UserCreateProps) {
     const { hasPermission } = useAuth();
-    const [serverErrors, setServerErrors] = useState({});
+    const [serverErrors, setServerErrors] = useState<Partial<Record<keyof UserCreateValues, string>>>({});
     const [processing, setProcessing] = useState(false);
 
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm({
+    } = useForm<UserCreateValues>({
         defaultValues: {
             nombre: "",
             email: "",

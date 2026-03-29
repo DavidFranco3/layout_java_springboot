@@ -7,15 +7,22 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 
+interface RegisterData {
+    name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+}
+
 export default function Register() {
     const navigate = useNavigate();
-    const [data, setData] = useState({
+    const [data, setData] = useState<RegisterData>({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
     });
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<Partial<Record<keyof RegisterData, string>>>({});
     const [processing, setProcessing] = useState(false);
 
     const handleDataChange = (key, value) => {

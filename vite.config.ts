@@ -45,7 +45,7 @@ export default defineConfig({
     emptyOutDir: false,
     manifest: true,
     rollupOptions: {
-      input: path.resolve(__dirname, 'src/main/resources/js/app.jsx'),
+      input: path.resolve(__dirname, 'src/main/resources/js/app.tsx'),
     },
   }
 })

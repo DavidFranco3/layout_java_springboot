@@ -10,11 +10,29 @@ import { faBuilding, faIdCard, faPhone, faEnvelope, faTrash, faSave, faTimes, fa
 import Swal from "sweetalert2";
 import axios from "axios";
 
-const Acciones = ({ setShow, data: empresa, accion, onRefresh }) => {
+interface EmpresaAccionesData {
+    nombre: string;
+    razon_social: string;
+    rfc: string;
+    tipo_persona: string;
+    telefono: string;
+    email: string;
+    giro: string;
+    status: boolean;
+}
+
+interface EmpresaAccionesProps {
+    setShow: (show: boolean) => void;
+    data: any; // The empresa object
+    accion: 'editar' | 'eliminar';
+    onRefresh?: () => void;
+}
+
+const Acciones = ({ setShow, data: empresa, accion, onRefresh }: EmpresaAccionesProps) => {
     const isEdit = accion === "editar";
     const isEliminar = accion === "eliminar";
 
-    const [data, setData] = useState({
+    const [data, setData] = useState<EmpresaAccionesData>({
         nombre: empresa?.nombre || "",
         razon_social: empresa?.razon_social || "",
         rfc: empresa?.rfc || "",
@@ -25,7 +43,7 @@ const Acciones = ({ setShow, data: empresa, accion, onRefresh }) => {
         status: empresa?.status ?? true,
     });
 
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<Partial<Record<keyof EmpresaAccionesData, string>>>({});
     const [processing, setProcessing] = useState(false);
 
     const handleSubmit = async (e) => {

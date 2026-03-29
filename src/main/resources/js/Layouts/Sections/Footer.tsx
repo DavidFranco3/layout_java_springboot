@@ -1,6 +1,11 @@
 import React from "react";
 
-export default function Footer({ darkMode, configuracion }) {
+interface FooterProps {
+    darkMode: boolean;
+    configuracion: any;
+}
+
+export default function Footer({ darkMode, configuracion }: FooterProps) {
     return (
         <footer className="mt-auto py-4 px-12 transition-all duration-300 bg-[var(--brand-surface)] text-white">
             <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-8">

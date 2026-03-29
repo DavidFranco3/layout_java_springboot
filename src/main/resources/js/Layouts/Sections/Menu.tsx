@@ -4,7 +4,16 @@ import SubMenu from "@/Components/Generales/SubMenu";
 import useAuth from "@/hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Menu = ({ configuracion, sidebarOpen, toggleSidebar, darkMode }) => {
+interface MenuProps {
+    configuracion: any;
+    sidebarOpen: boolean;
+    toggleSidebar: () => void;
+    darkMode: boolean;
+    auth?: any;
+    [key: string]: any;
+}
+
+const Menu: React.FC<MenuProps> = ({ configuracion, sidebarOpen, toggleSidebar, darkMode, auth }) => {
     const { user, hasModuleAccess } = useAuth();
     const location = useLocation();
 

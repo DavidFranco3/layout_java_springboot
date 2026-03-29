@@ -1,7 +1,25 @@
 import React from 'react';
 import Select from 'react-select';
 
-const CustomSelect = ({ dataOptions = [], preDefaultValue = null, setValue, useFilter = false, onInputChange, placeholder, isDisabled = false }) => {
+interface CustomSelectProps {
+    dataOptions?: Array<{ value: any; label: string }>;
+    preDefaultValue?: any;
+    setValue: (value: any) => void;
+    useFilter?: boolean;
+    onInputChange?: (newValue: string) => void;
+    placeholder?: string;
+    isDisabled?: boolean;
+}
+
+const CustomSelect = ({ 
+    dataOptions = [], 
+    preDefaultValue = null, 
+    setValue, 
+    useFilter = false, 
+    onInputChange, 
+    placeholder, 
+    isDisabled = false 
+}: CustomSelectProps) => {
     const handleSelectChange = (selectedOption) => {
         setValue(selectedOption ? selectedOption.value : null);
     };

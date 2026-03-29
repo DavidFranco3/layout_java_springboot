@@ -11,21 +11,34 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShieldAlt, faCheckCircle, faSave, faTimes, faTrash, faExclamationTriangle, faLayerGroup, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-const Acciones = ({ setShow, data: rol, accion, onRefresh, initialPermisos }) => {
+interface RoleAccionesValues {
+    name: string;
+    permisos: number[];
+}
+
+interface RoleAccionesProps {
+    setShow: (show: boolean) => void;
+    data: any; // The role object
+    accion: 'editar' | 'eliminar';
+    onRefresh?: () => void;
+    initialPermisos?: any[];
+}
+
+const Acciones = ({ setShow, data: rol, accion, onRefresh, initialPermisos }: RoleAccionesProps) => {
     const isEdit = accion === "editar";
     const isEliminar = accion === "eliminar";
 
-    const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm({
+    const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<RoleAccionesValues>({
         defaultValues: {
             name: rol?.name || '',
             permisos: rol?.permisos || []
         }
     });
 
-    const [permisos, setPermisos] = useState(initialPermisos || []);
+    const [permisos, setPermisos] = useState<any[]>(initialPermisos || []);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('');
-    const [permisosPorModulo, setPermisosPorModulo] = useState({});
+    const [permisosPorModulo, setPermisosPorModulo] = useState<Record<string, any[]>>({});
 
     const watchedName = watch('name');
     const watchedPermisos = watch('permisos');

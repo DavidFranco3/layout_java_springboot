@@ -5,7 +5,16 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import useAuth from "@/hooks/useAuth";
 
-export default function Header(props) {
+interface HeaderProps {
+    configuracion: any;
+    toggleSidebar: () => void;
+    sidebarOpen: boolean;
+    darkMode: boolean;
+    toggleDarkMode: () => void;
+    [key: string]: any;
+}
+
+export default function Header(props: HeaderProps) {
     const {
         configuracion,
         toggleSidebar,
