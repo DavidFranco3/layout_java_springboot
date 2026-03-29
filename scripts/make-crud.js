@@ -13,7 +13,7 @@ const entityNameLower = entityName.charAt(0).toLowerCase() + entityName.slice(1)
 const entityPlural = entityName + "s";
 const entityPluralLower = entityNameLower + "s";
 
-console.log(`Generando CRUD para la entidad: ${entityName}...`);
+console.log(`Generando CRUD moderno (Tailwind + Spring REST) para la entidad: ${entityName}...`);
 
 const BASE_PACKAGE = "com.example.demo";
 const JAVA_SRC_DIR = path.join("src", "main", "java", ...BASE_PACKAGE.split("."));
@@ -120,23 +120,21 @@ public class ${entityName}Service {
 `;
 writeContent(serviceFile, serviceContent);
 
-// 3. Controller
+// 3. Controller (RESTful)
 ensureDir(path.join(JAVA_SRC_DIR, "controller"));
 const controllerFile = path.join(JAVA_SRC_DIR, "controller", `${entityName}Controller.java`);
 const controllerContent = `package ${BASE_PACKAGE}.controller;
 
 import ${BASE_PACKAGE}.model.${entityName};
 import ${BASE_PACKAGE}.service.${entityName}Service;
-import com.example.demo.Inertia;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
-import java.util.Map;
+import java.util.List;
 
-@Controller
-@RequestMapping("/${entityPluralLower}")
+@RestController
+@RequestMapping("/api/${entityPluralLower}")
 public class ${entityName}Controller {
 
     private final ${entityName}Service ${entityNameLower}Service;
@@ -147,120 +145,152 @@ public class ${entityName}Controller {
     }
 
     @GetMapping
-    public Object index() {
-        return Inertia.render("${entityPlural}/Index", Map.of(
-            "${entityPluralLower}", ${entityNameLower}Service.findAll()
-        ));
+    public ResponseEntity<List<${entityName}>> index() {
+        return ResponseEntity.ok(${entityNameLower}Service.findAll());
     }
 
-    @GetMapping("/create")
-    public Object create() {
-        return Inertia.render("${entityPlural}/Form", Map.of(
-            "mode", "create",
-            "routeBase", "${entityPluralLower}"
-        ));
+    @GetMapping("/{id}")
+    public ResponseEntity<${entityName}> show(@PathVariable Long id) {
+        return ${entityNameLower}Service.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public String store(@ModelAttribute ${entityName} ${entityNameLower}) {
-        ${entityNameLower}Service.save(${entityNameLower});
-        return "redirect:/${entityPluralLower}";
-    }
-
-    @GetMapping("/{id}/edit")
-    public Object edit(@PathVariable Long id) {
-        return ${entityNameLower}Service.findById(id)
-            .map(${entityNameLower} -> Inertia.render("${entityPlural}/Form", Map.of(
-                "mode", "update",
-                "routeBase", "${entityPluralLower}",
-                "${entityNameLower}", ${entityNameLower}
-            )))
-            .orElseGet(() -> new ModelAndView("redirect:/${entityPluralLower}"));
+    public ResponseEntity<${entityName}> store(@RequestBody ${entityName} entity) {
+        return ResponseEntity.ok(${entityNameLower}Service.save(entity));
     }
 
     @PutMapping("/{id}")
-    public String update(@PathVariable Long id, @ModelAttribute ${entityName} updateData) {
-        return ${entityNameLower}Service.findById(id).map(${entityNameLower} -> {
-            ${entityNameLower}.setCampoEjemplo(updateData.getCampoEjemplo());
-            ${entityNameLower}Service.save(${entityNameLower});
-            return "redirect:/${entityPluralLower}";
-        }).orElse("redirect:/${entityPluralLower}");
+    public ResponseEntity<${entityName}> update(@PathVariable Long id, @RequestBody ${entityName} updateData) {
+        return ${entityNameLower}Service.findById(id).map(existing -> {
+            existing.setCampoEjemplo(updateData.getCampoEjemplo());
+            return ResponseEntity.ok(${entityNameLower}Service.save(existing));
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public String destroy(@PathVariable Long id) {
+    public ResponseEntity<Void> destroy(@PathVariable Long id) {
         ${entityNameLower}Service.deleteById(id);
-        return "redirect:/${entityPluralLower}";
+        return ResponseEntity.ok().build();
     }
 }
 `;
 writeContent(controllerFile, controllerContent);
 
-// 4. React Views
+// 4. React Views (Modern Tailwind + Router)
 const reactDir = path.join(REACT_PAGES_DIR, entityPlural);
 ensureDir(reactDir);
 
-// Index.jsx
-const indexFile = path.join(reactDir, "Index.jsx");
-const indexContent = `import React from "react";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+// Index.tsx
+const indexFile = path.join(reactDir, "Index.tsx");
+const indexContent = `import React, { useEffect, useState } from "react";
+import ContainerApp from "@/Components/Generales/ContainerApp";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import { Link, router } from "@inertiajs/react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faList, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
+import useAuth from "@/hooks/useAuth";
+import DataTablecustom from "@/Components/Generales/DataTable";
 
-const Index = (props) => {
-    const { auth, errors, ${entityPluralLower} } = props;
+const Index = () => {
+    const { user, hasModuleAccess } = useAuth();
+    const [data, setData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleDelete = (id) => {
-        if (confirm("¿Estás seguro de eliminar este registro?")) {
-            router.delete(\`/${entityPluralLower}/\${id}\`);
+    const fetchData = async () => {
+        try {
+            const response = await axios.get("/api/${entityPluralLower}");
+            setData(response.data);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <Authenticated auth={auth} errors={errors}>
-            <div className="col-lg-12 d-flex justify-content-center">
-                <div className="col-lg-12 col-lg-offset-1 mt-2">
-                    <ContainerLaravel titulo={"Listado de ${entityPlural}"} icono={"fa-list"}>
-                        
-                        <div className="mb-3 text-end">
-                            <Link
-                                href={\`/${entityPluralLower}/create\`}
-                                className="btn btn-success"
-                            >
-                                <i className="fa fa-plus me-2"></i> Crear ${entityName}
-                            </Link>
-                        </div>
+    useEffect(() => {
+        fetchData();
+    }, []);
 
-                        <div className="table-responsive">
-                            <table className="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Campo Ejemplo</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {${entityPluralLower}?.map((item) => (
-                                        <tr key={item.id}>
-                                            <td>{item.id}</td>
-                                            <td>{item.campoEjemplo}</td>
-                                            <td>
-                                                <Link href={\`/${entityPluralLower}/\${item.id}/edit\`} className="btn btn-sm btn-primary me-2">
-                                                    <i className="fa fa-edit"></i> Editar
-                                                </Link>
-                                                <button onClick={() => handleDelete(item.id)} className="btn btn-sm btn-danger">
-                                                    <i className="fa fa-trash"></i> Eliminar
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {!${entityPluralLower}?.length && <p className="text-center mt-3">No hay registros.</p>}
-                        </div>
-                    </ContainerLaravel>
+    const handleDelete = async (id: number) => {
+        const result = await Swal.fire({
+            title: "¿Estás seguro?",
+            text: "Esta acción no se puede deshacer",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "var(--app-primary)",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, eliminar"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(\`/api/${entityPluralLower}/\${id}\`);
+                Swal.fire({
+                    title: "Eliminado", 
+                    text: "El registro ha sido eliminado.", 
+                    icon: "success",
+                    background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                    color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a'
+                });
+                fetchData();
+            } catch (error) {
+                Swal.fire("Error", "No se pudo eliminar el registro.", "error");
+            }
+        }
+    };
+
+    const columns = [
+        { name: "ID", selector: (row: any) => row.id, sortable: true, width: "100px" },
+        { name: "Campo Ejemplo", selector: (row: any) => row.campoEjemplo, sortable: true },
+        {
+            name: "Acciones",
+            width: "140px",
+            cell: (row: any) => (
+                <div className="flex gap-3 justify-center">
+                    <Link to={\`/${entityPluralLower}/\${row.id}/edit\`} className="group w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 flex items-center justify-center hover:bg-indigo-500 hover:text-white dark:hover:bg-indigo-500 transition-all duration-300 shadow-sm hover:shadow-indigo-500/30 hover:-translate-y-0.5">
+                        <FontAwesomeIcon icon={faEdit} className="group-hover:scale-110 transition-transform" />
+                    </Link>
+                    <button onClick={() => handleDelete(row.id)} className="group w-9 h-9 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 flex items-center justify-center hover:bg-rose-500 hover:text-white dark:hover:bg-rose-500 transition-all duration-300 shadow-sm hover:shadow-rose-500/30 hover:-translate-y-0.5">
+                        <FontAwesomeIcon icon={faTrash} className="group-hover:scale-110 transition-transform" />
+                    </button>
                 </div>
+            )
+        }
+    ];
+
+    if (!hasModuleAccess('${entityName}')) return <Authenticated user={user}><div>Acceso Denegado</div></Authenticated>;
+
+    return (
+        <Authenticated user={user}>
+            <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-fade-in text-slate-900 dark:text-slate-100">
+                <ContainerApp titulo={\`Gestión de ${entityPlural}\`} icono={faList}>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-indigo-600 dark:from-indigo-400 dark:to-primary">
+                                Listado de ${entityPlural}
+                            </h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                Administra los registros de la base de datos de forma eficiente.
+                            </p>
+                        </div>
+                        <Link to="/${entityPluralLower}/create" className="group flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all duration-300 active:scale-95 bg-gradient-to-r from-primary to-indigo-600 text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1">
+                            <FontAwesomeIcon icon={faPlus} className="group-hover:rotate-90 transition-transform duration-300" />
+                            <span>Nuevo ${entityName}</span>
+                        </Link>
+                    </div>
+                    
+                    <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl rounded-3xl p-4 shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+                        <DataTablecustom 
+                            columnas={columns} 
+                            datos={data} 
+                            isLoading={loading}
+                        />
+                    </div>
+                </ContainerApp>
             </div>
         </Authenticated>
     );
@@ -270,61 +300,130 @@ export default Index;
 `;
 writeContent(indexFile, indexContent);
 
-// Form.jsx
-const formFile = path.join(reactDir, "Form.jsx");
-const formContent = `import React from "react";
-import { useForm, Link } from "@inertiajs/react";
+// Form.tsx
+const formFile = path.join(reactDir, "Form.tsx");
+const formContent = `import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
-import ContainerLaravel from "@/Components/Generales/ContainerLaravel";
+import ContainerApp from "@/Components/Generales/ContainerApp";
+import InputLabel from "@/Components/InputLabel";
+import TextInput from "@/Components/TextInput";
+import InputError from "@/Components/InputError";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSave, faTimes, faEdit, faPlus, faChevronLeft } from "@fortawesome/free-solid-svg-icons";
+import Swal from "sweetalert2";
+import useAuth from "@/hooks/useAuth";
 
-export default function Form(props) {
-    const { auth, errors, mode, routeBase, ${entityNameLower} } = props;
+export default function Form({ mode }: { mode: "create" | "update" }) {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
     const isEdit = mode === "update";
 
-    const { data, setData, post, put, processing, errors: formErrors } = useForm({
-        campoEjemplo: isEdit && ${entityNameLower} ? ${entityNameLower}.campoEjemplo : "",
+    const [loading, setLoading] = useState(isEdit);
+    const [processing, setProcessing] = useState(false);
+    const [serverErrors, setServerErrors] = useState<any>({});
+
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+        defaultValues: {
+            campoEjemplo: ""
+        }
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        if (isEdit && id) {
+            axios.get(\`/api/${entityPluralLower}/\${id}\`).then(res => {
+                setValue("campoEjemplo", res.data.campoEjemplo || "");
+                setLoading(false);
+            }).catch(err => {
+                console.error("Error loading data", err);
+                setLoading(false);
+            });
+        }
+    }, [isEdit, id, setValue]);
 
-        if (isEdit && ${entityNameLower}?.id) {
-            put(\`/\${routeBase}/\${${entityNameLower}.id}\`);
-        } else {
-            post(\`/\${routeBase}\`);
+    const onSubmit = async (data: any) => {
+        setProcessing(true);
+        setServerErrors({});
+        try {
+            const url = isEdit ? \`/api/${entityPluralLower}/\${id}\` : "/api/${entityPluralLower}";
+            const method = isEdit ? "put" : "post";
+            await axios[method](url, data);
+            
+            Swal.fire({
+                icon: "success",
+                title: isEdit ? "¡Actualizado!" : "¡Creado!",
+                text: "El registro ha sido guardado correctamente.",
+                timer: 2000,
+                showConfirmButton: false,
+                background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#fff',
+                color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a'
+            });
+            navigate("/${entityPluralLower}");
+        } catch (err: any) {
+            if (err.response?.data?.errors) {
+                setServerErrors(err.response.data.errors);
+            }
+            Swal.fire("Error", "Por favor revisa los campos señalados.", "error");
+        } finally {
+            setProcessing(false);
         }
     };
 
+    if (loading) return <Authenticated user={user}><div>Cargando...</div></Authenticated>;
+
     return (
-        <Authenticated auth={auth} errors={errors}>
-            <div className="col-lg-12 d-flex justify-content-center">
-                <div className="col-lg-12 col-lg-offset-1 mt-2">
-                    <ContainerLaravel
-                        titulo={isEdit ? "Editar ${entityName}" : "Crear ${entityName}"}
-                        icono={isEdit ? "fa-edit" : "fa-plus"}
-                    >
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-3">
-                                <label className="form-label">Campo Ejemplo</label>
-                                <input
-                                    type="text"
-                                    className={\`form-control \${formErrors.campoEjemplo ? "is-invalid" : ""}\`}
-                                    value={data.campoEjemplo}
-                                    onChange={(e) => setData("campoEjemplo", e.target.value)}
-                                />
-                                {formErrors.campoEjemplo && <div className="invalid-feedback">{formErrors.campoEjemplo}</div>}
+        <Authenticated user={user}>
+            <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-fade-in text-slate-900 dark:text-slate-100">
+                <Link to="/${entityPluralLower}" className="inline-flex items-center text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 hover:text-primary transition-all mb-4 group">
+                    <FontAwesomeIcon icon={faChevronLeft} className="mr-2 group-hover:-translate-x-1 transition-transform" />
+                    Volver al listado
+                </Link>
+
+                <ContainerApp titulo={isEdit ? "Editar ${entityName}" : "Crear ${entityName}"} icono={isEdit ? faEdit : faPlus}>
+                    <div className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-slate-200/60 dark:border-slate-700/60">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <InputLabel value="Campo Ejemplo" className="text-slate-700 dark:text-slate-300 font-semibold ml-1" />
+                                    <TextInput
+                                        className="w-full h-12 bg-white/70 dark:bg-slate-900/70 border-slate-200 dark:border-slate-700 focus:ring-primary focus:border-primary rounded-xl transition-all duration-300"
+                                        placeholder="Ingrese el valor..."
+                                        isError={!!errors.campoEjemplo || !!serverErrors.campoEjemplo}
+                                        {...register("campoEjemplo", { required: "El campo es requerido" })}
+                                    />
+                                    <InputError message={errors.campoEjemplo?.message?.toString() || serverErrors.campoEjemplo} className="ml-1" />
+                                </div>
                             </div>
-                            <div className="d-flex justify-content-between">
-                                <Link href={\`/\${routeBase}\`} className="btn btn-secondary">
-                                    Cancelar
+
+                            <div className="flex items-center justify-end gap-4 pt-8 border-t border-slate-200/60 dark:border-slate-700/60">
+                                <Link to="/${entityPluralLower}">
+                                    <SecondaryButton type="button" className="h-12 px-6 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        <FontAwesomeIcon icon={faTimes} className="mr-2 opacity-70" /> Cancelar
+                                    </SecondaryButton>
                                 </Link>
-                                <button type="submit" disabled={processing} className="btn btn-primary">
-                                    {isEdit ? "Actualizar" : "Guardar"}
-                                </button>
+
+                                <PrimaryButton type="submit" disabled={processing} className="h-12 px-8 rounded-xl bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-all duration-300 hover:-translate-y-0.5">
+                                    {processing ? (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <span className="font-semibold">Procesando...</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-3">
+                                            <FontAwesomeIcon icon={faSave} className="text-lg" />
+                                            <span className="font-semibold">{isEdit ? "Guardar Cambios" : "Crear Registro"}</span>
+                                        </div>
+                                    )}
+                                </PrimaryButton>
                             </div>
                         </form>
-                    </ContainerLaravel>
-                </div>
+                    </div>
+                </ContainerApp>
             </div>
         </Authenticated>
     );
@@ -342,7 +441,7 @@ let nextVersion = 1;
 if (migrationFiles.length > 0) {
     let maxVersion = 0;
     migrationFiles.forEach(file => {
-        const match = file.match(/^V(\d+)__/);
+        const match = file.match(/^V(\\d+)__/);
         if (match) {
             const version = parseInt(match[1]);
             if (version > maxVersion) {
@@ -365,8 +464,8 @@ const migrationContent = `CREATE TABLE IF NOT EXISTS ${entityPluralLower} (
 
 writeContent(migrationFile, migrationContent);
 
-console.log("\n✅ CRUD generation completed successfully.");
+console.log("\n✅ CRUD generation (REST + Tailwind) completed successfully.");
 console.log("💡 Note: You will need to:");
-console.log(`   1. Add your fields to ${entityName}.java`);
-console.log("   2. Restart the Spring Boot app");
-console.log(`   3. Add a link to /${entityPluralLower} in your frontend navigation.`);
+console.log(`   1. Add your fields to ${entityName}.java (and the SQL migration)`);
+console.log("   2. Run your app to execute Flyway");
+console.log(`   3. Add a route in router.tsx for /${entityPluralLower} and /${entityPluralLower}/create`);

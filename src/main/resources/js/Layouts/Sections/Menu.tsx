@@ -32,8 +32,8 @@ const Menu: React.FC<MenuProps> = ({ configuracion, sidebarOpen, toggleSidebar, 
 
     const isCurrent = (path) => location.pathname === path;
 
-    const activeLinkClasses = "bg-white/20 text-white shadow-md ring-1 ring-white/30 backdrop-blur-md";
-    const inactiveLinkClasses = "text-white hover:text-white dark:text-slate-400 dark:hover:text-white hover:bg-white/10 dark:hover:bg-white/5 font-extrabold";
+    const activeLinkClasses = "nav-item-active";
+    const inactiveLinkClasses = "nav-item-inactive";
 
     return (
         <>
@@ -50,12 +50,12 @@ const Menu: React.FC<MenuProps> = ({ configuracion, sidebarOpen, toggleSidebar, 
             </AnimatePresence>
 
             <aside
-                className={`fixed inset-y-0 left-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col bg-[var(--brand-surface)] backdrop-blur-2xl border-r border-white/5
+                className={`fixed inset-y-0 left-0 z-50 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] flex flex-col bg-[var(--brand-surface)]/95 backdrop-blur-[64px] border-r border-white/10 dark:border-white/5 shadow-2xl shadow-black/10
                     ${sidebarOpen ? 'w-[var(--sidebar-width)]' : 'w-[var(--sidebar-collapsed-width)] -translate-x-full lg:translate-x-0'}`}
             >
-                <div className="h-[var(--header-height)] flex items-center px-6 shrink-0 border-b border-slate-200/40 dark:border-white/5">
+                <div className="h-[var(--header-height)] flex items-center px-6 shrink-0 border-b border-white/10 dark:border-white/5">
                     <Link to="/dashboard" className="flex items-center gap-4 !no-underline group">
-                        <div className="w-11 h-11 rounded-2xl bg-white text-primary flex items-center justify-center text-xl font-black shadow-lg shadow-black/10 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-[20px] bg-gradient-to-br from-white to-white/90 text-[var(--app-primary)] flex items-center justify-center text-xl font-black shadow-xl shadow-black/10 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
                             {configuracion?.nombre_comercial?.charAt(0) || 'D'}
                         </div>
                         <AnimatePresence>
@@ -161,18 +161,18 @@ const Menu: React.FC<MenuProps> = ({ configuracion, sidebarOpen, toggleSidebar, 
                         </div>
                     </motion.div>
 
-                    <div className="pt-6 mt-6 border-t border-white/10 pb-4">
+                    <div className="pt-6 mt-6 border-t border-white/10 pb-6">
                         <motion.div
                             layout
-                            className={`p-3 rounded-2xl bg-white/5 border border-white/10 flex items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}
+                            className={`p-3 rounded-[24px] bg-white/5 border border-white/10 flex items-center hover:bg-white/10 transition-colors cursor-pointer ${sidebarOpen ? 'gap-4' : 'justify-center'}`}
                         >
-                            <div className="w-10 h-10 rounded-xl bg-white text-primary flex items-center justify-center font-black shrink-0 shadow-md">
+                            <div className="w-12 h-12 rounded-[18px] bg-gradient-to-br from-indigo-500 to-primary text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-indigo-500/30">
                                 {user?.nombre?.charAt(0) || 'U'}
                             </div>
                             {sidebarOpen && (
                                 <div className="min-w-0">
-                                    <p className="text-xs font-black text-white truncate">{user?.nombre || 'Admin'}</p>
-                                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest truncate">{user?.rolNombre || 'Staff'}</p>
+                                    <p className="text-sm font-black text-white truncate">{user?.nombre || 'Admin'}</p>
+                                    <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest truncate mt-0.5">{user?.rolNombre || 'Staff'}</p>
                                 </div>
                             )}
                         </motion.div>

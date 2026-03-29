@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \".\\mvnw.cmd spring-boot:run\"",
+    "dev": "concurrently \"vite\" \"mvnw.cmd spring-boot:run\"",
     "build": "vite build",
     "preview": "vite preview",
     "make:crud-react": "node scripts/make-crud.js",

@@ -116,71 +116,74 @@ export default function Header(props: HeaderProps) {
 
     return (
         <header
-            className="sticky top-0 z-30 h-[var(--header-height)] w-full bg-[var(--brand-surface)]/90 backdrop-blur-2xl border-b border-white/5 transition-all duration-700 px-6 md:px-12 text-white"
+            className="sticky top-0 z-40 h-[var(--header-height)] w-full bg-[var(--brand-surface)]/85 backdrop-blur-[40px] border-b border-white/5 shadow-2xl shadow-black/10 transition-all duration-700 px-6 md:px-10 text-white"
         >
             <div className="flex items-center justify-between h-full">
-                <div className="flex items-center gap-10">
+                <div className="flex items-center gap-6 md:gap-10">
                     <button
                         onClick={toggleSidebar}
-                        className="w-12 h-12 flex items-center justify-center rounded-[18px] bg-white/10 text-white hover:bg-white/20 transition-all group active:scale-95"
+                        className="w-12 h-12 flex items-center justify-center rounded-[20px] bg-white/5 hover:bg-white/20 hover:shadow-lg hover:shadow-white/5 text-white transition-all duration-300 group active:scale-95 border border-white/5"
                     >
-                        <i className={`fas ${sidebarOpen ? 'fa-align-left' : 'fa-bars'} text-xl transition-transform group-hover:scale-110`} />
+                        <i className={`fas ${sidebarOpen ? 'fa-align-left' : 'fa-bars'} text-xl transition-transform duration-300 group-hover:scale-110`} />
                     </button>
 
                     <div className="hidden lg:flex flex-col">
                         <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-1.5 leading-none">
                             {configuracion?.nombre_comercial || "Panel de Gestión"}
                         </p>
-                        <div className="flex items-center gap-2.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]" />
-                            <span className="text-sm font-bold text-white">Servicio Activo</span>
+                        <div className="flex items-center gap-2.5 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                            <span className="relative flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]"></span>
+                            </span>
+                            <span className="text-[11px] font-bold text-white uppercase tracking-wider">Sistema Activo</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-4 sm:gap-6">
                     <button
                         onClick={toggleDarkMode}
-                        className="w-12 h-12 flex items-center justify-center rounded-[18px] bg-white/10 text-white hover:bg-white/20 transition-all group hvr-pulse-shrink"
+                        className="w-12 h-12 flex items-center justify-center rounded-[20px] bg-white/5 hover:bg-white/20 hover:shadow-lg hover:shadow-white/5 text-white transition-all duration-300 group active:scale-95 border border-white/5"
                     >
-                        <i className={`fas ${darkMode ? 'fa-sun' : 'fa-moon'} text-xl transition-transform group-hover:rotate-12`} />
+                        <i className={`fas ${darkMode ? 'fa-sun text-yellow-300' : 'fa-moon text-indigo-300'} text-xl transition-transform duration-500 group-hover:rotate-12`} />
                     </button>
 
-                    <div className="h-8 w-px bg-slate-200/50 dark:bg-white/5 mx-2 hidden sm:block" />
+                    <div className="h-8 w-px bg-white/10 mx-1 hidden sm:block" />
 
                     <Dropdown>
                         <Dropdown.Trigger>
-                            <button className="flex items-center gap-5 group py-1 px-1 rounded-[22px] hover:bg-white/10 transition-all">
-                                <div className="w-12 h-12 rounded-[18px] bg-white text-primary flex items-center justify-center font-black shadow-xl shadow-black/10 group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+                            <button className="flex items-center gap-4 group py-1.5 px-2 rounded-full hover:bg-white/10 border border-transparent hover:border-white/10 transition-all duration-300">
+                                <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-indigo-500 to-primary text-white flex items-center justify-center font-black shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-300 ring-2 ring-white/20">
                                     {user?.nombre?.charAt(0) || user?.name?.charAt(0) || 'U'}
                                 </div>
                                 <div className="hidden sm:flex flex-col items-start pr-2">
-                                    <span className="text-sm font-black text-white group-hover:text-emerald-300 transition-colors">
+                                    <span className="text-sm font-black text-white group-hover:text-indigo-200 transition-colors">
                                         {user?.nombre?.split(' ')[0] || user?.name?.split(' ')[0]}
                                     </span>
-                                    <span className="text-[9px] font-black text-white/50 uppercase tracking-widest mt-0.5">
-                                        Nivel: {user?.rolNombre || 'Staff'}
+                                    <span className="text-[9px] font-bold text-white/60 uppercase tracking-widest mt-0.5">
+                                        {user?.rolNombre || 'Staff'}
                                     </span>
                                 </div>
-                                <i className="fas fa-chevron-down text-[10px] text-white/30 transition-transform group-hover:translate-y-0.5" />
+                                <i className="fas fa-chevron-down text-[10px] text-white/40 transition-transform group-hover:translate-y-0.5 ml-1" />
                             </button>
                         </Dropdown.Trigger>
 
-                        <Dropdown.Content align="right" width="w-72" contentClasses="p-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border border-slate-200/50 dark:border-white/10 shadow-3xl rounded-[40px] mt-5">
-                            <div className="px-6 py-8 bg-slate-50/50 dark:bg-white/5 rounded-[32px] mb-3 text-center border border-slate-100 dark:border-white/5">
-                                <div className="w-20 h-20 rounded-[28px] bg-primary text-white flex items-center justify-center font-black text-3xl mx-auto mb-4 shadow-2xl shadow-primary/30">
-                                    {user?.nombre?.charAt(0)}
+                        <Dropdown.Content align="right" width="w-72" contentClasses="p-5 bg-white/95 dark:bg-slate-900/90 backdrop-blur-[48px] border border-slate-200/50 dark:border-white/10 shadow-premium-lg rounded-[36px] mt-4">
+                            <div className="px-6 py-8 bg-gradient-to-br from-slate-50 to-white dark:from-white/5 dark:to-transparent rounded-[28px] mb-4 text-center border border-slate-100 dark:border-white/5 shadow-inner">
+                                <div className="w-20 h-20 rounded-[24px] bg-gradient-to-br from-indigo-500 to-primary text-white flex items-center justify-center font-black text-4xl mx-auto mb-4 shadow-xl shadow-indigo-500/30 ring-4 ring-white dark:ring-slate-800">
+                                    {user?.nombre?.charAt(0) || 'U'}
                                 </div>
                                 <p className="text-base font-black text-slate-900 dark:text-white truncate px-2">{user?.nombre}</p>
-                                <p className="text-[11px] font-bold text-slate-400 truncate mt-1 opacity-70">{user?.email}</p>
+                                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 truncate mt-1.5">{user?.email}</p>
                             </div>
 
                             <Dropdown.Link
                                 as="button"
                                 onClick={handleProfile}
-                                className="flex items-center gap-5 w-full px-6 py-5 rounded-[24px] text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-all mb-1"
+                                className="flex items-center gap-4 w-full px-5 py-4 rounded-[20px] text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400 transition-all mb-2 group"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400">
+                                <div className="w-10 h-10 rounded-[14px] bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 flex items-center justify-center text-slate-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-300 transition-colors">
                                     <i className="fas fa-fingerprint text-lg" />
                                 </div>
                                 Perfil Usuario
@@ -189,9 +192,9 @@ export default function Header(props: HeaderProps) {
                             <Dropdown.Link
                                 as="button"
                                 onClick={handleLogout}
-                                className="flex items-center gap-5 w-full px-6 py-5 rounded-[24px] text-sm font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                                className="flex items-center gap-4 w-full px-5 py-4 rounded-[20px] text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-400 transition-all group"
                             >
-                                <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center text-rose-400">
+                                <div className="w-10 h-10 rounded-[14px] bg-slate-100 dark:bg-slate-800 group-hover:bg-rose-100 dark:group-hover:bg-rose-500/20 flex items-center justify-center text-slate-400 group-hover:text-rose-500 dark:group-hover:text-rose-300 transition-colors">
                                     <i className="fas fa-power-off text-lg" />
                                 </div>
                                 Cerrar Sesión
