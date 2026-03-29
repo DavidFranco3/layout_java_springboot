@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import DataTable from "react-data-table-component";
+import rdtc from "react-data-table-component";
+const DataTable = rdtc.default || rdtc;
 import { CSVLink } from "react-csv";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import DebouncedInput from "./DebouncedInput";
-import Skeleton from "./Skeleton";
+import Skeleton, { SkeletonTable } from "./Skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import PrimaryButton from "../PrimaryButton";
 
 const DataTablecustom = ({
     datos = [],
@@ -187,6 +189,13 @@ const DataTablecustom = ({
         },
     };
 
+    console.log("Component Types inside DataTablecustom:");
+    console.log("DataTable:", typeof DataTable, DataTable);
+    console.log("PrimaryButton:", typeof PrimaryButton, PrimaryButton);
+    console.log("Skeleton:", typeof Skeleton, Skeleton);
+    console.log("Skeleton.Table:", typeof Skeleton?.Table, Skeleton?.Table);
+    console.log("CSVLink:", typeof CSVLink, CSVLink);
+
     return (
         <section className="bg-[var(--card-bg)] rounded-[32px] shadow-premium-lg border border-[var(--border-light)] overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5" ref={tableRef}>
             <div className="p-6 md:p-8 border-b border-[var(--border-light)] bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-950/20" hidden={hiddenOptions}>
@@ -245,7 +254,7 @@ const DataTablecustom = ({
 
             {isLoading && datos.length === 0 ? (
                 <div className="animate-fade-in p-0">
-                    <Skeleton.Table rows={8} cols={columnas.length} />
+                    <SkeletonTable rows={8} cols={columnas.length} />
                 </div>
             ) : (
                 <div className={`overflow-hidden transition-opacity duration-300 ${isLoading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>

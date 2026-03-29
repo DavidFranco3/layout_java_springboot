@@ -24,7 +24,7 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
     const activeColor = "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]";
 
     return (
-        <li className="mb-1">
+        <div className="mb-1">
             <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={toggleSubMenu}
@@ -105,7 +105,7 @@ const SubMenu = ({ title, icon, subItems, isDark = true, sidebarOpen = true, tog
                     </motion.div>
                 )}
             </AnimatePresence>
-        </li>
+        </div>
     );
 };
 

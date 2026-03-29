@@ -26,7 +26,7 @@ const Skeleton = ({ className = "", variant = "rect", width, height }) => {
 };
 
 // Componentes predefinidos para casos comunes
-Skeleton.Table = ({ rows = 5, cols = 4 }) => (
+export const SkeletonTable = ({ rows = 5, cols = 4 }) => (
     <div className="w-full bg-[var(--card-bg)] rounded-[32px] overflow-hidden border border-[var(--border-light)] shadow-sm">
         <div className="p-8 border-b border-[var(--border-light)] flex justify-between items-center">
             <Skeleton variant="rect" width="300px" height="42px" className="rounded-2xl" />
@@ -52,7 +52,7 @@ Skeleton.Table = ({ rows = 5, cols = 4 }) => (
     </div>
 );
 
-Skeleton.Card = () => (
+export const SkeletonCard = () => (
     <div className="p-6 bg-[var(--card-bg)] border border-[var(--border-light)] rounded-[28px] space-y-4 shadow-sm">
         <div className="flex items-center gap-4">
             <Skeleton variant="circle" width="56px" height="56px" />

@@ -18,8 +18,7 @@ import RolesIndex from './Pages/Roles/Index';
 import UsersIndex from './Pages/Users/Index';
 import UsersCreate from './Pages/Users/Create';
 
-// Profile
-import ProfileEdit from './Pages/Profile/Edit';
+// Profile removed
 
 // Empresas
 import EmpresasIndex from './Pages/Empresas/Index';
@@ -33,8 +32,8 @@ import ConfiguracionsIndex from './Pages/Configuracions/Index';
 import ConfiguracionsForm from './Pages/Configuracions/Form';
 
 // Layouts - We might need to refactor these to be used as Wrapper components
-import AuthenticatedLayout from './Layouts/AuthenticatedLayout';
-import GuestLayout from './Layouts/GuestLayout';
+// import AuthenticatedLayout from './Layouts/AuthenticatedLayout';
+// import GuestLayout from './Layouts/GuestLayout';
 
 export default function AppRouter() {
     return (
@@ -59,8 +58,7 @@ export default function AppRouter() {
             <Route path="/users" element={<UsersIndex />} />
             <Route path="/users/create" element={<UsersCreate />} />
 
-            {/* Profile */}
-            <Route path="/profile/edit" element={<ProfileEdit />} />
+            {/* Profile removed */}
 
             {/* Empresas */}
             <Route path="/empresas" element={<EmpresasIndex />} />

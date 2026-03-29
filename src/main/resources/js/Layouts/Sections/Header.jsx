@@ -136,13 +136,6 @@ export default function Header(props) {
                                 </div>
                             </div>
 
-                            <Dropdown.Link to="/profile" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-primary/5 hover:text-primary transition-all duration-300">
-                                <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                    <i className="fas fa-id-card" />
-                                </div>
-                                Perfil Personal
-                            </Dropdown.Link>
-
                             <div className="my-2 border-t border-slate-100 dark:border-white/5" />
 
                             <Dropdown.Link
