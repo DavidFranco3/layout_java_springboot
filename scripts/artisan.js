@@ -18,7 +18,7 @@ const commandArgs = args.join(' ');
 console.log(`⏳ Ejecutando proxy a Spring Boot: ${commandArgs}`);
 
 try {
-    const result = spawnSync('.\\mvnw.cmd', ['-q', 'spring-boot:run', `"-Dspring-boot.run.arguments=${commandArgs} --server.port=0"`], { stdio: 'inherit', env: { ...process.env, SKIP_FRONTEND: 'true' }, shell: true });
+    const result = spawnSync('./mvnw', ['-q', 'spring-boot:run', `"-Dspring-boot.run.arguments=${commandArgs} --server.port=0"`], { stdio: 'inherit', env: { ...process.env, SKIP_FRONTEND: 'true' }, shell: true });
     if (result.error) {
         throw result.error;
     }

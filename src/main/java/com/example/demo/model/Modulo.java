@@ -13,6 +13,7 @@ import org.hibernate.annotations.SQLRestriction;
 public class Modulo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "BIGINT UNSIGNED")
     private Long id;
 
     @Column(nullable = false)

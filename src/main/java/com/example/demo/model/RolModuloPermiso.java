@@ -16,17 +16,17 @@ public class RolModuloPermiso {
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
+    @JoinColumn(name = "role_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private Role role;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modulo_id", nullable = false)
+    @JoinColumn(name = "modulo_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private Modulo modulo;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", nullable = false)
+    @JoinColumn(name = "permission_id", nullable = false, columnDefinition = "BIGINT UNSIGNED")
     private Permission permission;
 
     @Column(name = "created_at", updatable = false)

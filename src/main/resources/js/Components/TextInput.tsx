@@ -1,15 +1,14 @@
-import { forwardRef, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     isFocused?: boolean;
     isError?: boolean;
 }
 
-export default forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
-    { type = 'text', className = '', isFocused = false, ...props },
-    ref
+export default function TextInput(
+    { type = 'text', className = '', isFocused = false, ref, ...props }: TextInputProps
 ) {
-    const localRef = useRef(null);
+    const localRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (isFocused && localRef.current) {
@@ -30,9 +29,9 @@ export default forwardRef<HTMLInputElement, TextInputProps>(function TextInput(
                 if (typeof ref === 'function') {
                     ref(node);
                 } else if (ref) {
-                    ref.current = node;
+                    (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
                 }
             }}
         />
     );
-});
+}
